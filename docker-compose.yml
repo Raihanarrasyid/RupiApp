@@ -1,0 +1,41 @@
+services:
+  rupiapp:
+    image: ghcr.io/mrijoo/rupiapp:latest
+    container_name: rupiapp
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=rupiapp
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=SBREnrt54d3
+      - JWT_SECRET_KEY=
+      - JWT_EXPIRATION_TIME=
+      - JWT_REFRESH_SECRET_KEY=
+      - JWT_REFRESH_EXPIRATION_TIME=
+      - MAIL_HOST=
+      - MAIL_PORT=
+      - MAIL_USERNAME=
+      - MAIL_PASSWORD=
+    volumes:
+      - ./data:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    container_name: rupiapp_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=rupiapp
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=SBREnrt54d3
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

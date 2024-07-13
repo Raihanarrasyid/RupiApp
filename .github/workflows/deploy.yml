@@ -1,0 +1,71 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/rupiapp:latest
+          load: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt -y --no-install-recommends install sshpass openvpn openvpn-systemd-resolved
+
+      - name: Connect to Server
+        run: |
+          echo "${{ secrets.OV }}" > config.ovpn
+          echo Connecting Server
+          sudo openvpn --config config.ovpn --log /tmp/ov.log --daemon
+          sleep 5
+
+      - name: Check connection
+        timeout-minutes: 1
+        run: sudo bash .github/workflows/check-connection.sh
+
+      - name: Deploy to server
+        timeout-minutes: 10
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          sshpass -p "${SERVER_PASSWORD}" ssh -o StrictHostKeyChecking=no -p ${SERVER_PORT} ${SERVER_USER}@${SERVER_HOST} <<EOF
+            docker login ghcr.io -u ${GITHUB_OWNER} -p ${GITHUB_TOKEN}
+            docker pull ghcr.io/${GITHUB_OWNER}/rupiapp:latest
+            cd ./github/rupiapp
+            docker-compose down
+            docker-compose up -d
+          EOF
+
+      - name: Disconnect from Server
+        if: always()
+        run: |
+          sudo killall openvpn
