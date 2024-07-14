@@ -5,9 +5,9 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class ApiResponse {
+public class ApiResponseUtil {
 
-    private ApiResponse() {
+    private ApiResponseUtil() {
     }
 
     private static ResponseEntity<Object> buildResponse(HttpStatus status, String message, Object data) {

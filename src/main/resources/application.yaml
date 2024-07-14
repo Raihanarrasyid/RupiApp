@@ -34,3 +34,9 @@ spring:
                     auth: ${MAIL_SMTP_AUTH:true}
                     starttls:
                         enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+
+springdoc:
+    api-docs:
+        path: /docs-api
+    swagger-ui:
+        path: /docs

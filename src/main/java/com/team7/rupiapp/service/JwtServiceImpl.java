@@ -43,8 +43,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(UserDetails userDetails, String refreshToken) {
-        return createToken(new HashMap<>(), userDetails, jwtRefreshExpiration,
-        refreshTokenSecretKey);
+        return createToken(new HashMap<>(), userDetails, jwtExpiration, accessTokenSecretKey);
     }
 
     private String[] generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {

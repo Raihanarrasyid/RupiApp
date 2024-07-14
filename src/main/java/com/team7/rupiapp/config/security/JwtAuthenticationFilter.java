@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.service.JwtService;
 
 import java.io.IOException;
@@ -67,9 +68,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             userDetails.getAuthorities());
 
                     String requestURI = request.getRequestURI();
+                    
+
                     if (!userDetails.isEnabled() && !requestURI.equals("/auth/verify")
                             && !requestURI.equals("/auth/verify/resend")) {
                         throw new AccessDeniedException("User is not verified");
+                    }
+
+                    if (userDetails instanceof User) {
+                        User user = (User) userDetails;
+                        if (user.getPin() == null && !requestURI.equals("/auth/set-pin")) {
+                            throw new AccessDeniedException("User has no pin");
+                        }
                     }
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

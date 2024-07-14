@@ -30,5 +30,5 @@ public interface AuthenticationService {
 
     public RefreshTokenResponseDto refreshToken(RefreshTokenDto refreshTokenDto);
 
-    public ResponseEntity<Object> setPin(String name, SetPinDto setPinDto);
+    public void setPin(String name, SetPinDto setPinDto);
 }

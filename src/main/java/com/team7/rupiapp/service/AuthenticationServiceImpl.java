@@ -227,6 +227,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (jwtService.isRefreshTokenValid(refreshToken, user)) {
+            if (!passwordEncoder.matches(refreshTokenDto.getPin(), user.getPin())) {
+                throw new IllegalArgumentException("Invalid pin");
+            }
+
             RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto();
             String token = jwtService.generateToken(user, refreshToken);
             refreshTokenResponseDto.setAccessToken(token);
@@ -238,13 +242,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ResponseEntity<Object> setPin(String name, SetPinDto setPinDto) {
+    public void setPin(String name, SetPinDto setPinDto) {
+        if (!setPinDto.getPin().equals(setPinDto.getConfirmPin())) {
+            throw new IllegalArgumentException("Pin and confirm pin must be the same");
+        }
+
         User user = userRepository.findByUsername(name)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         user.setPin(passwordEncoder.encode(setPinDto.getPin()));
         userRepository.save(user);
-
-        return ResponseEntity.ok().build();
     }
 }

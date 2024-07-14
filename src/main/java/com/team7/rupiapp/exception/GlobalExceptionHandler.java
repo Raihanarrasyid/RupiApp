@@ -12,7 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.team7.rupiapp.util.ApiResponse;
+import com.team7.rupiapp.util.ApiResponseUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleDataNotFoundException(DataNotFoundException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,41 +36,41 @@ public class GlobalExceptionHandler {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
 
-        return ApiResponse.error(HttpStatus.BAD_REQUEST, "Validation failed", errors);
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.CONFLICT, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.FORBIDDEN, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     @ExceptionHandler(HashingException.class)
     public ResponseEntity<Object> handleHashingException(HashingException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponse.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 }
