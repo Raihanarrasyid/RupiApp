@@ -27,6 +27,7 @@ import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.signup.SignupResponseDto;
 import com.team7.rupiapp.dto.auth.signup.VerificationEmailDto;
 import com.team7.rupiapp.enums.OtpType;
+import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.repository.UserRepository;
@@ -77,7 +78,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public SignupResponseDto signup(SignupDto signupDto) {
         if (!signupDto.getPassword().equals(signupDto.getConfirmPassword())) {
-            throw new IllegalArgumentException("Password and confirm password must be the same");
+            throw new BadRequestException("Password and confirm password must be the same");
         }
 
         User user = modelMapper.map(signupDto, User.class);
@@ -140,7 +141,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.isEnabled()) {
-            throw new IllegalArgumentException("User already verified");
+            throw new BadRequestException("User already verified");
         }
 
         otpRepository.findByUser(user).ifPresent(otpRepository::delete);
@@ -158,10 +159,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Otp otp = otpRepository.findByUserAndType(user, OtpType.REGISTRATION);
 
         if (otp == null) {
-            throw new IllegalArgumentException("Invalid OTP");
+            throw new BadRequestException("Invalid OTP");
         } else if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
             otpRepository.delete(otp);
-            throw new IllegalArgumentException("OTP expired");
+            throw new BadRequestException("OTP expired");
         }
 
         if (passwordEncoder.matches(verificationEmailDto.getOtp(), otp.getCode())) {
@@ -169,7 +170,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             userRepository.save(user);
             otpRepository.delete(otp);
         } else {
-            throw new IllegalArgumentException("Invalid OTP");
+            throw new BadRequestException("Invalid OTP");
         }
     }
 
@@ -203,10 +204,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Otp otp = otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET);
 
         if (otp == null) {
-            throw new IllegalArgumentException("Invalid OTP");
+            throw new BadRequestException("Invalid OTP");
         } else if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
             otpRepository.delete(otp);
-            throw new IllegalArgumentException("OTP expired");
+            throw new BadRequestException("OTP expired");
         }
 
         if (otp.getCode().equals(passwordEncoder.encode(forgotPasswordDto.getOtp()))) {
@@ -214,7 +215,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             userRepository.save(user);
             otpRepository.delete(otp);
         } else {
-            throw new IllegalArgumentException("Invalid OTP");
+            throw new BadRequestException("Invalid OTP");
         }
     }
 
@@ -228,7 +229,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (jwtService.isRefreshTokenValid(refreshToken, user)) {
             if (!passwordEncoder.matches(refreshTokenDto.getPin(), user.getPin())) {
-                throw new IllegalArgumentException("Invalid pin");
+                throw new BadRequestException("Invalid pin");
             }
 
             RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto();
@@ -244,7 +245,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void setPin(String name, SetPinDto setPinDto) {
         if (!setPinDto.getPin().equals(setPinDto.getConfirmPin())) {
-            throw new IllegalArgumentException("Pin and confirm pin must be the same");
+            throw new BadRequestException("Pin and confirm pin must be the same");
         }
 
         User user = userRepository.findByUsername(name)

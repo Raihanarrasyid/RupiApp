@@ -1,6 +1,7 @@
 package com.team7.rupiapp.exception;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -55,16 +56,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception ex) {
-        log.error(ex.getMessage());
+        String requestId = UUID.randomUUID().toString();
+        log.error("Error occurred with requestId: {}", requestId, ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    @ExceptionHandler(HashingException.class)
-    public ResponseEntity<Object> handleHashingException(HashingException ex) {
-        log.error(ex.getMessage());
-
-        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", requestId);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -72,5 +67,12 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Object> handleBadRequestException(BadRequestException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }
