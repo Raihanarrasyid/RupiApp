@@ -68,12 +68,13 @@ public class ApiResponseUtil {
         return new ResponseEntity<>(response, status);
     }
 
-    public static ResponseEntity<StandardResponseModel<Void>> createErrorResponse(String message, List<Map<String, String>> errors) {
+    public static ResponseEntity<StandardResponseModel<Void>> createErrorResponse(String message, List<Map<String,
+            String>> errors, HttpStatus status) {
         StandardResponseModel<Void> response = StandardResponseModel.<Void>builder()
                 .success(false)
                 .message(message)
                 .errors(errors)
                 .build();
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, status);
     }
 }

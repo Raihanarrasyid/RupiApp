@@ -39,6 +39,6 @@ public class DemoController {
 
         List<Map<String, String>> errors = List.of(error1, error2);
 
-        return ApiResponseUtil.createErrorResponse("error", errors);
+        return ApiResponseUtil.createErrorResponse("error", errors, HttpStatus.BAD_REQUEST);
     }
 }
