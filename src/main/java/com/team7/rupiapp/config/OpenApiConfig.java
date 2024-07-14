@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 @OpenAPIDefinition(
         info = @Info(
@@ -19,6 +20,12 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
                 version = "1.0",
                 description = "OpenApi documentation for RupiApp API"
         ),
+        servers = {
+                @Server(
+                        description = "Production",
+                        url = "https://api.rupiapp.me"
+                )
+        },
         security = {
                 @SecurityRequirement(
                         name = "bearerAuth"

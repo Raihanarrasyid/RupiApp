@@ -40,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.handlerExceptionResolver = handlerExceptionResolver;
     }
 
+    private boolean isAllowedRequest(String requestURI) {
+        return requestURI.equals("/auth/verify") ||
+                requestURI.equals("/auth/verify/resend") ||
+                requestURI.equals("/auth/set-pin");
+    }
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -68,16 +74,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             userDetails.getAuthorities());
 
                     String requestURI = request.getRequestURI();
-                    
 
-                    if (!userDetails.isEnabled() && !requestURI.equals("/auth/verify")
-                            && !requestURI.equals("/auth/verify/resend")) {
+                    if (!userDetails.isEnabled() && !isAllowedRequest(requestURI)) {
                         throw new AccessDeniedException("User is not verified");
                     }
 
                     if (userDetails instanceof User) {
                         User user = (User) userDetails;
-                        if (user.getPin() == null && !requestURI.equals("/auth/set-pin")) {
+                        if (user.getPin() == null && !isAllowedRequest(requestURI)) {
                             throw new AccessDeniedException("User has no pin");
                         }
                     }
