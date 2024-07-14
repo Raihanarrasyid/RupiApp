@@ -46,9 +46,6 @@ public class User implements UserDetails {
     @Column(length = 10, unique = true)
     private String accountNumber;
 
-    @Column(nullable = false)
-    private MutationType type;
-
     private Double balance;
 
     @Override

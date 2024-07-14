@@ -1,5 +1,6 @@
 package com.team7.rupiapp.model;
 
+import com.team7.rupiapp.enums.MutationType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,5 +31,8 @@ public class Mutation {
 
     @Column(nullable = false)
     LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private MutationType type;
 
 }
