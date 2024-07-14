@@ -1,7 +1,10 @@
 package com.team7.rupiapp.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.team7.rupiapp.dto.StandardResponseModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -46,5 +49,31 @@ public class ApiResponseUtil {
 
     public static ResponseEntity<Object> error(HttpStatus status, String message, String requestID) {
         return buildResponse(status, message, null, requestID);
+    }
+
+    public static <T> ResponseEntity<StandardResponseModel<T>> createSuccessResponse(String message, HttpStatus status) {
+        StandardResponseModel<T> response = StandardResponseModel.<T>builder()
+                .success(true)
+                .message(message)
+                .build();
+        return new ResponseEntity<>(response, status);
+    }
+
+    public static <T> ResponseEntity<StandardResponseModel<T>> createSuccessResponseWithData(String message, T data, HttpStatus status) {
+        StandardResponseModel<T> response = StandardResponseModel.<T>builder()
+                .success(true)
+                .message(message)
+                .data(data)
+                .build();
+        return new ResponseEntity<>(response, status);
+    }
+
+    public static ResponseEntity<StandardResponseModel<Void>> createErrorResponse(String message, List<Map<String, String>> errors) {
+        StandardResponseModel<Void> response = StandardResponseModel.<Void>builder()
+                .success(false)
+                .message(message)
+                .errors(errors)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
