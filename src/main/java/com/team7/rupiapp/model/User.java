@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import com.team7.rupiapp.enums.MutationType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -41,6 +42,14 @@ public class User implements UserDetails {
     private boolean enabled = false;
 
     private String pin;
+
+    @Column(length = 10, unique = true)
+    private String accountNumber;
+
+    @Column(nullable = false)
+    private MutationType type;
+
+    private Double balance;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
