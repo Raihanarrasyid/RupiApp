@@ -25,12 +25,13 @@ public class Mutation {
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
+    @Column(nullable = false)
     private Double amount;
 
-    String description;
+    private String description;
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private MutationType type;
