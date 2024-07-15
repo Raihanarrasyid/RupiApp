@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <springProperty scope="context" name="appName" source="spring.application.name" />
+
     <property name="LOGS" value="./logs" />
 
+    <!-- Console Appender with color -->
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %highlight(%-5level) [%blue(%thread)]
-                %yellow([%logger{36}]) - %msg%n
+                %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %highlight(%-5level) [%blue(%thread)] %yellow([%logger{36}]) - %msg%n
             </pattern>
         </encoder>
     </appender>
 
+    <!-- Rolling File Appender -->
     <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS}/${appName}-logger.log</file>
+        <file>${LOGS}/binarfud-logger.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %p %C{1} [%t] %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOGS}/archived/${appName}-logger-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy
-                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <fileNamePattern>${LOGS}/archived/binarfud-logger-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
     </appender>
 
+    <!-- Root Logger -->
     <root level="INFO">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />

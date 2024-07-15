@@ -43,7 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean isAllowedRequest(String requestURI) {
         return requestURI.equals("/auth/verify") ||
                 requestURI.equals("/auth/verify/resend") ||
-                requestURI.equals("/auth/set-pin");
+                requestURI.equals("/auth/set-pin") ||
+                requestURI.equals("/auth/forgot-password") ||
+                requestURI.equals("/auth/signout");
     }
 
     @Override
@@ -59,15 +61,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            final String jwt = authHeader.substring(7);
-            final String username = jwtService.extractUsername(jwt);
+            final String token = authHeader.substring(7);
+            final String username = jwtService.extractUsername(token);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (username != null && authentication == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (jwtService.isTokenValid(token, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -75,16 +77,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     String requestURI = request.getRequestURI();
 
-                    if (!userDetails.isEnabled() && !isAllowedRequest(requestURI)) {
-                        throw new AccessDeniedException("User is not verified");
-                    }
-
-                    if (userDetails instanceof User) {
-                        User user = (User) userDetails;
-                        if (user.getPin() == null && !isAllowedRequest(requestURI)) {
-                            throw new AccessDeniedException("User has no pin");
-                        }
-                    }
+                    handleDisabledUser(userDetails, requestURI);
+                    handleUserWithoutPin(userDetails, requestURI);
+                    handleLoginOtp(token, requestURI);
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -95,6 +90,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception exception) {
             log.error("Failed to set user authentication: ", exception.getMessage());
             handlerExceptionResolver.resolveException(request, response, null, exception);
+        }
+    }
+
+    private void handleDisabledUser(UserDetails userDetails, String requestURI) {
+        if (!userDetails.isEnabled() && !isAllowedRequest(requestURI)) {
+            throw new AccessDeniedException("User is not verified");
+        }
+    }
+
+    private void handleUserWithoutPin(UserDetails userDetails, String requestURI) {
+        if (userDetails instanceof User) {
+            User user = (User) userDetails;
+            if (user.getPin() == null && !isAllowedRequest(requestURI)) {
+                throw new AccessDeniedException("User has no pin");
+            }
+        }
+    }
+
+    private void handleLoginOtp(String token, String requestURI) {
+        if (!jwtService.isTokenEnabled(token) && !isAllowedRequest(requestURI)) {
+            throw new AccessDeniedException("OTP is not verified"); // NOTE: custom response is same as user is not
+                                                                    // verified
         }
     }
 }

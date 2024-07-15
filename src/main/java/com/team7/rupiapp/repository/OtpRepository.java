@@ -16,5 +16,6 @@ public interface OtpRepository extends JpaRepository<Otp, UUID> {
 
     Optional<Otp> findByUser(User user);
 
-    Otp findByUserAndType(User user, OtpType type);
+    Optional<Otp> findByUserAndType(User user, OtpType type);
+
 }

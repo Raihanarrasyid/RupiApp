@@ -1,5 +1,7 @@
 package com.team7.rupiapp.service;
 
+import java.security.Principal;
+
 import org.springframework.http.ResponseEntity;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
@@ -13,7 +15,7 @@ import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
 import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.signup.SignupResponseDto;
-import com.team7.rupiapp.dto.auth.signup.VerificationEmailDto;
+import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 
 public interface AuthenticationService {
     public SigninResponseDto signin(SigninDto signinDto);
@@ -22,13 +24,13 @@ public interface AuthenticationService {
 
     public void resendVerificationEmail(ResendVerificationEmailDto resendEmailDto);
 
-    public void verifyEmail(String name, VerificationEmailDto verificationEmailDto);
+    public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationEmailDto);
 
-    public void forgotPasswordRequest(ForgotPasswordRequestDto forgotPasswordDto);
-
-    public void forgotPassword(String name, ForgotPasswordDto forgotPasswordDto);
+    public void forgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
 
     public RefreshTokenResponseDto refreshToken(RefreshTokenDto refreshTokenDto);
 
     public void setPin(String name, SetPinDto setPinDto);
+
+    public void signOut(Principal principal);
 }
