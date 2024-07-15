@@ -3,8 +3,6 @@ package com.team7.rupiapp.service;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
-    public long getExpirationTime();
-
     public String[] generateToken(UserDetails userDetails);
 
     public String generateToken(UserDetails userDetails, String refreshToken);

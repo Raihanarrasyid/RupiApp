@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.team7.rupiapp.util.ApiResponseUtil;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -66,7 +67,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid credentials");
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -74,5 +75,12 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Token has expired");
     }
 }

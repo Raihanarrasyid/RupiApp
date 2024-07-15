@@ -18,7 +18,6 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-
     @Value("${spring.security.jwt.secret-key}")
     private String accessTokenSecretKey;
 
@@ -30,11 +29,6 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${spring.security.jwt.refresh-token.expiration-time}")
     private long jwtRefreshExpiration;
-
-    @Override
-    public long getExpirationTime() {
-        return jwtExpiration;
-    }
 
     @Override
     public String[] generateToken(UserDetails userDetails) {
