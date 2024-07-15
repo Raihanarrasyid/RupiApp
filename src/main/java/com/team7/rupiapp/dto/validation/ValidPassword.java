@@ -2,13 +2,15 @@ package com.team7.rupiapp.dto.validation;
 
 import java.lang.annotation.*;
 
+import com.team7.rupiapp.dto.validation.validator.PasswordValidator;
+
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = PasswordConstraintsValidator.class)
-public @interface Password {
+@Constraint(validatedBy = PasswordValidator.class)
+public @interface ValidPassword {
     String message() default "Invalid password";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

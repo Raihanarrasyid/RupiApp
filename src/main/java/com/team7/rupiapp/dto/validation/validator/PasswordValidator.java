@@ -1,9 +1,11 @@
-package com.team7.rupiapp.dto.validation;
+package com.team7.rupiapp.dto.validation.validator;
+
+import com.team7.rupiapp.dto.validation.ValidPassword;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class PasswordConstraintsValidator implements ConstraintValidator<Password, String> {
+public class PasswordValidator implements ConstraintValidator<ValidPassword, String> {
     private int minLength;
     private int minUpperCase;
     private int minLowerCase;
@@ -11,7 +13,7 @@ public class PasswordConstraintsValidator implements ConstraintValidator<Passwor
     private int minSpecialChars;
 
     @Override
-    public void initialize(Password constraintAnnotation) {
+    public void initialize(ValidPassword constraintAnnotation) {
         this.minLength = constraintAnnotation.minLength();
         this.minUpperCase = constraintAnnotation.minUpperCase();
         this.minLowerCase = constraintAnnotation.minLowerCase();

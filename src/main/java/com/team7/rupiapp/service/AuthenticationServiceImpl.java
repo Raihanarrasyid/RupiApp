@@ -1,12 +1,15 @@
 package com.team7.rupiapp.service;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,12 +28,16 @@ import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
 import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.signup.SignupResponseDto;
-import com.team7.rupiapp.dto.auth.signup.VerificationEmailDto;
+import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 import com.team7.rupiapp.enums.OtpType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.repository.UserRepository;
+import com.team7.rupiapp.util.ApiResponseUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.team7.rupiapp.repository.OtpRepository;
 
 @Service
@@ -39,25 +46,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final MailService mailService;
+    private final HttpServletRequest request;
+
     private final UserRepository userRepository;
     private final OtpRepository otpRepository;
-    private final MailService mailService;
 
     public AuthenticationServiceImpl(
             ModelMapper modelMapper,
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
+            MailService mailService,
+            HttpServletRequest request,
             UserRepository userRepository,
-            OtpRepository otpRepository,
-            MailService mailService) {
+            OtpRepository otpRepository) {
         this.modelMapper = modelMapper;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.mailService = mailService;
+        this.request = request;
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
-        this.mailService = mailService;
     }
 
     private Random random = new Random();
@@ -122,6 +133,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             responseSigninDto.setAccessToken(tokens[0]);
             responseSigninDto.setRefreshToken(tokens[1]);
 
+            otpRepository.findByUserAndType(user.get(), OtpType.LOGIN).ifPresent(otpRepository::delete);
+            Otp otp = createOtp(user.get(), OtpType.LOGIN);
+            mailService.sendVerificationLogin(user.get().getEmail(), user.get().getUsername(), otp.getCode());
+
             return responseSigninDto;
         } else {
             String errorMessage;
@@ -131,7 +146,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             } else {
                 errorMessage = "Email or password is incorrect.";
             }
-            throw new UsernameNotFoundException(errorMessage);
+            throw new BadCredentialsException(errorMessage);
         }
     }
 
@@ -152,30 +167,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void verifyEmail(String name, VerificationEmailDto verificationEmailDto) {
-        User user = userRepository.findByUsername(name)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        Otp otp = otpRepository.findByUserAndType(user, OtpType.REGISTRATION);
-
-        if (otp == null) {
-            throw new BadRequestException("Invalid OTP");
-        } else if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
-            otpRepository.delete(otp);
-            throw new BadRequestException("OTP expired");
-        }
-
-        if (passwordEncoder.matches(verificationEmailDto.getOtp(), otp.getCode())) {
-            user.setEnabled(true);
-            userRepository.save(user);
-            otpRepository.delete(otp);
-        } else {
-            throw new BadRequestException("Invalid OTP");
-        }
-    }
-
-    @Override
-    public void forgotPasswordRequest(ForgotPasswordRequestDto forgotPasswordDto) {
+    public void forgotPassword(ForgotPasswordRequestDto forgotPasswordDto) {
         String username = forgotPasswordDto.getUsername();
         Optional<User> user = userRepository.findByUsername(username);
         boolean isUsername = true;
@@ -186,6 +178,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (user.isPresent()) {
+            otpRepository.findByUserAndType(user.get(), OtpType.PASSWORD_RESET).ifPresent(otpRepository::delete);
+
             Otp otp = createOtp(user.get(), OtpType.PASSWORD_RESET);
 
             mailService.sendResetPasswordEmail(user.get().getEmail(), user.get().getUsername(), otp.getCode());
@@ -197,23 +191,89 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void forgotPassword(String name, ForgotPasswordDto forgotPasswordDto) {
-        User user = userRepository.findByUsername(name)
+    public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationEmailDto) {
+        if (verificationEmailDto.getType() == OtpType.REGISTRATION) {
+            return verifyEmail(principal, verificationEmailDto);
+        } else if (verificationEmailDto.getType() == OtpType.PASSWORD_RESET) {
+            return forgotPassword(verificationEmailDto);
+        } else if (verificationEmailDto.getType() == OtpType.LOGIN) {
+            return verifyLogin(principal, verificationEmailDto);
+        }
+
+        throw new BadRequestException("Invalid type");
+    }
+
+    private ResponseEntity<Object> verifyEmail(Principal principal, VerificationDto verificationDto) {
+        User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        Otp otp = otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET);
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.REGISTRATION)
+                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
 
-        if (otp == null) {
-            throw new BadRequestException("Invalid OTP");
-        } else if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
             otpRepository.delete(otp);
             throw new BadRequestException("OTP expired");
         }
 
-        if (otp.getCode().equals(passwordEncoder.encode(forgotPasswordDto.getOtp()))) {
-            user.setPassword(passwordEncoder.encode(forgotPasswordDto.getPassword()));
+        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            user.setEnabled(true);
             userRepository.save(user);
             otpRepository.delete(otp);
+
+            return ApiResponseUtil.success(HttpStatus.OK, "Email verified");
+        } else {
+            throw new BadRequestException("Invalid OTP");
+        }
+    }
+
+    private ResponseEntity<Object> forgotPassword(VerificationDto verificationDto) {
+        User user = userRepository.findByUsername(verificationDto.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET)
+                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
+
+        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otp);
+            throw new BadRequestException("OTP expired");
+        }
+
+        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            user.setPassword(passwordEncoder.encode(verificationDto.getPassword()));
+            userRepository.save(user);
+            otpRepository.delete(otp);
+
+            return ApiResponseUtil.success(HttpStatus.OK, "Password changed");
+        } else {
+            throw new BadRequestException("Invalid OTP");
+        }
+    }
+
+    private ResponseEntity<Object> verifyLogin(Principal principal, VerificationDto verificationDto) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.LOGIN)
+                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
+
+        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otp);
+            throw new BadRequestException("OTP expired");
+        }
+
+        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            String authorizationHeader = request.getHeader("Authorization");
+            String token = authorizationHeader != null && authorizationHeader.startsWith("Bearer ")
+                    ? authorizationHeader.substring(7)
+                    : "";
+
+            if (jwtService.isTokenEnabled(token)) {
+                return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
+            }
+
+            jwtService.verifyToken(token);
+
+            return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
         } else {
             throw new BadRequestException("Invalid OTP");
         }
@@ -253,5 +313,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         user.setPin(passwordEncoder.encode(setPinDto.getPin()));
         userRepository.save(user);
+    }
+
+    @Override
+    public void signOut(Principal principal) {
+        String authorizationHeader = request.getHeader("Authorization");
+            String token = authorizationHeader != null && authorizationHeader.startsWith("Bearer ")
+                    ? authorizationHeader.substring(7)
+                    : "";
+
+        jwtService.signOut(token);
     }
 }

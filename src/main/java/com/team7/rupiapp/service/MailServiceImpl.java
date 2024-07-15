@@ -38,7 +38,7 @@ public class MailServiceImpl implements MailService {
     public void sendVerificationEmail(String to, String username, String otp) {
         Context context = new Context();
         context.setVariable("username", username);
-        context.setVariable("verificationOtp", otp);
+        context.setVariable("otp", otp);
         context.setVariable("message", "Use the following OTP to complete your Registration. OTP is valid for 5 minutes");
 
         String subject = "Email Verification";
@@ -51,10 +51,23 @@ public class MailServiceImpl implements MailService {
     public void sendResetPasswordEmail(String to, String username, String otp) {
         Context context = new Context();
         context.setVariable("username", username);
-        context.setVariable("resetPasswordOtp", otp);
+        context.setVariable("otp", otp);
         context.setVariable("message", "Use the following OTP to reset your password. OTP is valid for 5 minutes");
 
         String subject = "Reset Password";
+        String body = templateEngine.process("verificationEmail", context);
+
+        sendEmail(to, subject, body);
+    }
+
+    @Override
+    public void sendVerificationLogin(String to, String username, String otp) {
+        Context context = new Context();
+        context.setVariable("username", username);
+        context.setVariable("otp", otp);
+        context.setVariable("message", "Use the following OTP to login. OTP is valid for 5 minutes");
+
+        String subject = "Login Verification";
         String body = templateEngine.process("verificationEmail", context);
 
         sendEmail(to, subject, body);

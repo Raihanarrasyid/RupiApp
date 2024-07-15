@@ -5,5 +5,7 @@ public interface MailService {
 
     void sendVerificationEmail(String to, String username, String otp);
 
-    void sendResetPasswordEmail(String to, String username, String resetPasswordUrl);
+    void sendResetPasswordEmail(String to, String username, String otp);
+
+    void sendVerificationLogin(String to, String username, String otp);
 }

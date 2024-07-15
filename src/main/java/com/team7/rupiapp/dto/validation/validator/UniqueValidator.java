@@ -1,9 +1,10 @@
-package com.team7.rupiapp.dto.validation;
+package com.team7.rupiapp.dto.validation.validator;
 
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.team7.rupiapp.dto.validation.ValidUnique;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.UserRepository;
 
@@ -11,7 +12,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 @Component
-public class UniqueValidator implements ConstraintValidator<Unique, String> {
+public class UniqueValidator implements ConstraintValidator<ValidUnique, String> {
     private String column;
     private final UserRepository userRepository;
 
@@ -20,7 +21,7 @@ public class UniqueValidator implements ConstraintValidator<Unique, String> {
     }
 
     @Override
-    public void initialize(Unique constraintAnnotation) {
+    public void initialize(ValidUnique constraintAnnotation) {
         this.column = constraintAnnotation.column();
     }
 
