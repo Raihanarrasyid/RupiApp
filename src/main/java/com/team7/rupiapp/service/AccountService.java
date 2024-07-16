@@ -1,7 +1,9 @@
-// package com.team7.rupiapp.service;
+package com.team7.rupiapp.service;
 
-// import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
+import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 
-// public interface AccountService {
-//     public AccountDetailResponseDto getAccountDetail(String username);
-// }
+import java.security.Principal;
+
+public interface AccountService {
+    public AccountDetailResponseDto getAccountDetail(Principal principal);
+}
