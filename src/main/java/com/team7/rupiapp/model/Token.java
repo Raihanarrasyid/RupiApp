@@ -22,7 +22,11 @@ import lombok.Setter;
 @Table(name = "tokens")
 public class Token {
     @Id
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "token_id", nullable = false, unique = true)
+    private UUID tokenId;
 
     @Column(name = "refreshToken_id", nullable = false, unique = true)
     private UUID refreshTokenId;
@@ -32,8 +36,8 @@ public class Token {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) {
-            id = UUID.randomUUID();
+        if (tokenId == null) {
+            tokenId = UUID.randomUUID();
         }
 
         if (refreshTokenId == null) {
