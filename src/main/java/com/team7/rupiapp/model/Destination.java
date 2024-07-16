@@ -29,6 +29,6 @@ public class Destination {
     private String accountNumber;
 
     @Column(nullable = false)
-    private boolean enabled = false;
+    private boolean isFavorites = false;
 
 }
