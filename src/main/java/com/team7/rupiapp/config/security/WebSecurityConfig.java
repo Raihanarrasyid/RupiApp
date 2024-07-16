@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -43,6 +42,7 @@ public class WebSecurityConfig {
                                                 .requestMatchers("/demo/create", "/demo/get-data", "/demo/error").permitAll()
                                                 .requestMatchers("/docs*/**", "/swagger-ui/**").permitAll()
                                                 .requestMatchers("/auth/**", "/login").permitAll()
+//                                                .requestMatchers("/transfer/**").permitAll()
                                                 .anyRequest()
                                                 .authenticated())
                                 .sessionManagement(management -> management
