@@ -18,42 +18,35 @@ public class WebSecurityConfig {
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
         private final AuthEntryPointJwt authEntryPointJwt;
-        private final OauthSuccessHandler oauthSuccessHandler;
 
         public WebSecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         AuthenticationProvider authenticationProvider,
-                        AuthEntryPointJwt authEntryPointJwt,
-                        OauthSuccessHandler oauthSuccessHandler) {
+                        AuthEntryPointJwt authEntryPointJwt) {
                 this.authenticationProvider = authenticationProvider;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.authEntryPointJwt = authEntryPointJwt;
-                this.oauthSuccessHandler = oauthSuccessHandler;
         }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                // OidcUserService oidcUserService = new OidcUserService();
                 return http.csrf(AbstractHttpConfigurer::disable)
                                 .cors(Customizer.withDefaults())
                                 .exceptionHandling(exception -> exception
                                                 .authenticationEntryPoint(authEntryPointJwt))
                                 .authorizeHttpRequests(requests -> requests
-                                                .requestMatchers("/demo/create", "/demo/get-data", "/demo/error").permitAll()
+                                                .requestMatchers("/demo/create", "/demo/get-data", "/demo/error")
+                                                .permitAll()
                                                 .requestMatchers("/docs*/**", "/swagger-ui/**").permitAll()
+                                                .requestMatchers("/auth/signout", "/auth/set-password", "/auth/set-pin").authenticated()
                                                 .requestMatchers("/auth/**", "/login").permitAll()
-//                                                .requestMatchers("/transfer/**").permitAll()
+                                                // .requestMatchers("/transfer/**").permitAll()
                                                 .anyRequest()
                                                 .authenticated())
                                 .sessionManagement(management -> management
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(authenticationProvider)
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                                // .oauth2Login(oauth2 -> oauth2
-                                //                 .loginPage("/login")
-                                //                 .userInfoEndpoint(userInfo -> userInfo
-                                //                                 .oidcUserService(oidcUserService))
-                                //                 .successHandler(oauthSuccessHandler))
                                 .build();
         }
 }

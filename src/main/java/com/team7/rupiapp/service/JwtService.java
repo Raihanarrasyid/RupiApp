@@ -1,7 +1,5 @@
 package com.team7.rupiapp.service;
 
-import java.util.UUID;
-
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {

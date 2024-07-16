@@ -8,6 +8,7 @@ import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
 import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
 import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
+import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 import com.team7.rupiapp.service.AuthenticationService;
@@ -69,9 +70,16 @@ public class AuthController {
                 authenticationService.refreshToken(refreshTokenDto));
     }
 
+    @PostMapping("/set-password")
+    public ResponseEntity<Object> setPassword(@Valid @RequestBody SetPasswordDto setPasswordDto, Principal principal) {
+        authenticationService.setPassword(principal, setPasswordDto);
+        return ApiResponseUtil.success(HttpStatus.OK, "Password set success");
+    }
+    
+
     @PostMapping("/set-pin")
     public ResponseEntity<Object> setPin(@RequestBody SetPinDto setPinDto, Principal principal) {
-        authenticationService.setPin(principal.getName(), setPinDto);
+        authenticationService.setPin(principal, setPinDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Pin set success");
     }
 

@@ -18,14 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
-import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
-import com.team7.rupiapp.dto.auth.pin.PinDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenResponseDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
 import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
 import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
+import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.signup.SignupResponseDto;
 import com.team7.rupiapp.dto.auth.verify.VerificationDto;
@@ -86,14 +85,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new Otp(user, String.valueOf(code), otp.getExpiryDate());
     }
 
+    private String generateSimplePassword(int length) {
+        Random random = new Random();
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
+    }
+
     @Override
     public SignupResponseDto signup(SignupDto signupDto) {
+        if (signupDto.getPassword() == null || signupDto.getConfirmPassword() == null) {
+            String password = generateSimplePassword(8);
+
+            User user = modelMapper.map(signupDto, User.class);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setDefaultPassword(true);
+
+            User savedUser = userRepository.save(user);
+
+            Otp otp = createOtp(savedUser, OtpType.REGISTRATION);
+
+            mailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername(), otp.getCode());
+
+            SignupResponseDto signupResponseDto = modelMapper.map(savedUser, SignupResponseDto.class);
+            signupResponseDto.setPassword(password);
+
+            return signupResponseDto;
+        }
+
         if (!signupDto.getPassword().equals(signupDto.getConfirmPassword())) {
             throw new BadRequestException("Password and confirm password must be the same");
         }
 
         User user = modelMapper.map(signupDto, User.class);
         user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
+        user.setDefaultPassword(false);
 
         User savedUser = userRepository.save(user);
 
@@ -134,8 +163,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             responseSigninDto.setRefreshToken(tokens[1]);
 
             otpRepository.findByUserAndType(user.get(), OtpType.LOGIN).ifPresent(otpRepository::delete);
-            Otp otp = createOtp(user.get(), OtpType.LOGIN);
-            mailService.sendVerificationLogin(user.get().getEmail(), user.get().getUsername(), otp.getCode());
+
+            if (!user.get().isDefaultPassword()) {
+                Otp otp = createOtp(user.get(), OtpType.LOGIN);
+                mailService.sendVerificationLogin(user.get().getEmail(), user.get().getUsername(), otp.getCode());
+            }
 
             return responseSigninDto;
         } else {
@@ -216,7 +248,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
-            user.setEnabled(true);
+            user.setVerified(true);
             userRepository.save(user);
             otpRepository.delete(otp);
 
@@ -303,12 +335,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void setPin(String name, SetPinDto setPinDto) {
+    public void setPassword(Principal principal, SetPasswordDto setPasswordDto) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!user.isDefaultPassword()) {
+            throw new BadRequestException("Password already set");
+        }
+
+        if (!setPasswordDto.getPassword().equals(setPasswordDto.getConfirmPassword())) {
+            throw new BadRequestException("Password and confirm password must be the same");
+        }
+
+        user.setPassword(passwordEncoder.encode(setPasswordDto.getPassword()));
+        user.setDefaultPassword(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void setPin(Principal principal, SetPinDto setPinDto) {
         if (!setPinDto.getPin().equals(setPinDto.getConfirmPin())) {
             throw new BadRequestException("Pin and confirm pin must be the same");
         }
 
-        User user = userRepository.findByUsername(name)
+        User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         user.setPin(passwordEncoder.encode(setPinDto.getPin()));
@@ -318,9 +368,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void signOut(Principal principal) {
         String authorizationHeader = request.getHeader("Authorization");
-            String token = authorizationHeader != null && authorizationHeader.startsWith("Bearer ")
-                    ? authorizationHeader.substring(7)
-                    : "";
+        String token = authorizationHeader != null && authorizationHeader.startsWith("Bearer ")
+                ? authorizationHeader.substring(7)
+                : "";
 
         jwtService.signOut(token);
     }
