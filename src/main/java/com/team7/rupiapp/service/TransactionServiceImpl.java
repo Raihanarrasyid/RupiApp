@@ -94,9 +94,9 @@ public class TransactionServiceImpl implements TransactionService {
         return destinations.stream()
                 .map(destination -> {
                     DestinationDto dto = new DestinationDto();
-                    dto.setFull_name(destination.getName());
+                    dto.setFullname(destination.getName());
                     dto.setAccountNumber(destination.getAccountNumber());
-                    dto.setIsfavorites(destination.isFavorites());
+                    dto.setFavorites(destination.isFavorites());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -113,7 +113,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new RuntimeException("Destination not found"));
 
         // Update the destination to set as favorite
-        destination.setFavorites(destinationDto.isIsfavorites());
+        destination.setFavorites(destinationDto.isFavorites());
 
         // Save the updated destination
         destinationRepository.save(destination);
