@@ -3,7 +3,6 @@ package com.team7.rupiapp.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
-import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordRequestDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
@@ -59,7 +58,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Object> forgotPasswordRequest(
-            @Valid @RequestBody ForgotPasswordRequestDto forgotPasswordRequestDto) {
+            @Valid @RequestBody ForgotPasswordDto forgotPasswordRequestDto) {
         authenticationService.forgotPassword(forgotPasswordRequestDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Forgot password success");
     }
