@@ -10,6 +10,9 @@ import lombok.Data;
 
 @Data
 public class SignupDto {
+    @NotBlank(message = "full_name must not be null")
+    private String fullName;
+
     @NotBlank(message = "username must not be null")
     @ValidUnique(column = "username", message = "username already exists")
     private String username;
