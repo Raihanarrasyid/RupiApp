@@ -41,9 +41,10 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .collect(Collectors.toMap(
-                        FieldError::getField,
+                        fieldError -> fieldError.getField().replaceAll("([a-z])([A-Z]+)", "$1_$2").toLowerCase(),
                         DefaultMessageSourceResolvable::getDefaultMessage,
-                        (existing, replacement) -> existing));
+                        (existing, replacement) -> existing // merge function to handle duplicate keys
+                ));
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     }

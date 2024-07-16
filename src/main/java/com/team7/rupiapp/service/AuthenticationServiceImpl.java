@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
-import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordRequestDto;
+import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
 import com.team7.rupiapp.dto.auth.pin.PinDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
@@ -167,7 +167,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void forgotPassword(ForgotPasswordRequestDto forgotPasswordDto) {
+    public void forgotPassword(ForgotPasswordDto forgotPasswordDto) {
         String username = forgotPasswordDto.getUsername();
         Optional<User> user = userRepository.findByUsername(username);
         boolean isUsername = true;

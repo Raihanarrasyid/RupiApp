@@ -42,7 +42,7 @@ public class User implements UserDetails {
 
     private String pin;
 
-    @Column(length = 10, unique = true)
+    @Column(unique = true, length = 10)
     private String accountNumber;
 
     private Double balance = 0.0;

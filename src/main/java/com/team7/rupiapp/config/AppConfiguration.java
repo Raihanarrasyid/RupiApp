@@ -12,7 +12,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.team7.rupiapp.repository.UserRepository;
+
+import io.swagger.v3.core.jackson.ModelResolver;
 
 @Configuration
 public class AppConfiguration {
@@ -54,5 +58,10 @@ public class AppConfiguration {
     authProvider.setPasswordEncoder(passwordEncoder());
 
     return authProvider;
+  }
+
+  @Bean
+  public ModelResolver modelResolver(ObjectMapper objectMapper) {
+    return new ModelResolver(objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE));
   }
 }
