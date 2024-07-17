@@ -50,7 +50,7 @@ public class JwtServiceImpl implements JwtService {
         UUID tokenId = UUID.randomUUID();
         Token token = tokenRepository.findByRefreshTokenId(extractRefreshTokenId(refreshToken));
 
-        token.setId(tokenId);
+        token.setTokenId(tokenId);
         tokenRepository.save(token);
 
         return createToken(new HashMap<>(), tokenId, userDetails, jwtExpiration, accessTokenSecretKey);
@@ -58,7 +58,7 @@ public class JwtServiceImpl implements JwtService {
 
     private String[] generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         Token token = tokenRepository.save(new Token());
-        UUID tokenId = token.getId();
+        UUID tokenId = token.getTokenId();
         UUID refreshTokenId = token.getRefreshTokenId();
 
         String accessToken = createToken(extraClaims, tokenId, userDetails, expiration, accessTokenSecretKey);
@@ -93,7 +93,7 @@ public class JwtServiceImpl implements JwtService {
     private boolean isTokenValid(String token, UserDetails userDetails, boolean isAccessToken) {
         String secretKey = isAccessToken ? accessTokenSecretKey : refreshTokenSecretKey;
         boolean exists = isAccessToken
-                ? tokenRepository.existsById(UUID.fromString(extractClaim(token, Claims::getId, secretKey)))
+                ? tokenRepository.existsByTokenId(UUID.fromString(extractClaim(token, Claims::getId, secretKey)))
                 : tokenRepository
                         .existsByRefreshTokenId(UUID.fromString(extractClaim(token, Claims::getId, secretKey)));
 
@@ -140,7 +140,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean isTokenEnabled(String token) {
         UUID tokenId = extractTokenId(token);
-        Token tokenEntity = tokenRepository.findById(tokenId).orElseThrow();
+        Token tokenEntity = tokenRepository.findByTokenId(tokenId).orElseThrow();
 
         return tokenEntity.isEnabled();
     }
@@ -148,7 +148,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public void verifyToken(String token) {
         UUID tokenId = extractTokenId(token);
-        Token tokenEntity = tokenRepository.findById(tokenId).orElseThrow();
+        Token tokenEntity = tokenRepository.findByTokenId(tokenId).orElseThrow();
 
         tokenEntity.setEnabled(true);
         tokenRepository.save(tokenEntity);
@@ -163,10 +163,9 @@ public class JwtServiceImpl implements JwtService {
         UUID tokenId = UUID.fromString(
                 extractClaim(token, Claims::getId, isAccessToken ? accessTokenSecretKey : refreshTokenSecretKey));
         if (isAccessToken) {
-            tokenRepository.deleteById(tokenId);
+            tokenRepository.deleteByTokenId(tokenId);
         } else {
-            Token tokenEntity = tokenRepository.findByRefreshTokenId(tokenId);
-            tokenRepository.delete(tokenEntity);
+            tokenRepository.deleteByRefreshTokenId(tokenId);
         }
     }
 }

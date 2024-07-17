@@ -1,5 +1,6 @@
 package com.team7.rupiapp.dto.auth.signup;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.team7.rupiapp.dto.validation.ValidPassword;
 import com.team7.rupiapp.dto.validation.ValidUnique;
 
@@ -9,6 +10,9 @@ import lombok.Data;
 
 @Data
 public class SignupDto {
+    @NotBlank(message = "full_name must not be null")
+    private String fullName;
+
     @NotBlank(message = "username must not be null")
     @ValidUnique(column = "username", message = "username already exists")
     private String username;
@@ -18,9 +22,7 @@ public class SignupDto {
     @NotBlank(message = "email must not be null")
     private String email;
 
-    @ValidPassword(message = "password must not be null")
     private String password;
 
-    @NotBlank(message = "confirm_password must not be null")
     private String confirmPassword;
 }

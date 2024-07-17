@@ -43,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean isAllowedRequest(String requestURI) {
         return requestURI.equals("/auth/verify") ||
                 requestURI.equals("/auth/verify/resend") ||
+                requestURI.equals("/auth/set-password") ||
                 requestURI.equals("/auth/set-pin") ||
                 requestURI.equals("/auth/forgot-password") ||
                 requestURI.equals("/auth/signout");
@@ -78,6 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String requestURI = request.getRequestURI();
 
                     handleDisabledUser(userDetails, requestURI);
+                    handleUserWithDefaultPassword(userDetails, requestURI);
                     handleUserWithoutPin(userDetails, requestURI);
                     handleLoginOtp(token, requestURI);
 
@@ -94,8 +96,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void handleDisabledUser(UserDetails userDetails, String requestURI) {
-        if (!userDetails.isEnabled() && !isAllowedRequest(requestURI)) {
-            throw new AccessDeniedException("User is not verified");
+        if (userDetails instanceof User) {
+            User user = (User) userDetails;
+            if (!user.isVerified() && !isAllowedRequest(requestURI)) {
+                throw new AccessDeniedException("User is not verified");
+            }
+        }
+    }
+
+    private void handleUserWithDefaultPassword(UserDetails userDetails, String requestURI) {
+        if (userDetails instanceof User) {
+            User user = (User) userDetails;
+            if (user.isDefaultPassword() && !isAllowedRequest(requestURI)) {
+                throw new AccessDeniedException("User has default password");
+            }
         }
     }
 
