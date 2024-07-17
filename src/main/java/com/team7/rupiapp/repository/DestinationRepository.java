@@ -14,5 +14,7 @@ public interface DestinationRepository extends JpaRepository<Destination, UUID> 
     List<Destination> findByUser(User user);
 
     Optional<Destination> findByUserAndAccountNumber(User user, String accountNumber);
+
+    Optional<Destination> findByAccountNumber(String accountNumber);
 }
 

@@ -1,5 +1,6 @@
 package com.team7.rupiapp.service;
 
+import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -118,4 +120,33 @@ public class TransactionServiceImpl implements TransactionService {
         // Save the updated destination
         destinationRepository.save(destination);
     }
+
+    @Override
+    public DestinationAddDto addDestination(DestinationAddDto requestDto) {
+        // Fetch user based on account number
+        User user = userRepository.findByAccountNumber(requestDto.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Account number not found"));
+
+        // Check if destination exists
+        Optional<Destination> existingDestination = destinationRepository.findByAccountNumber(requestDto.getAccountNumber());
+
+        if (existingDestination.isPresent()) {
+            // Destination already exists, do nothing
+        } else {
+            // Add new destination
+            Destination newDestination = new Destination();
+            newDestination.setUser(user);
+            newDestination.setAccountNumber(requestDto.getAccountNumber());
+            newDestination.setName(user.getUsername());
+            newDestination.setFavorites(false);
+
+            destinationRepository.save(newDestination);
+        }
+
+        // Update requestDto fullname and return
+        requestDto.setFullname(user.getUsername());
+        return requestDto;
+
+    }
+
 }

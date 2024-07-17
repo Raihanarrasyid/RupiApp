@@ -1,5 +1,6 @@
 package com.team7.rupiapp.controller;
 
+import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
@@ -33,14 +34,19 @@ public class TransferController {
 
     @GetMapping("/destinations")
     public ResponseEntity<Object> getDestinations(@Valid Principal principal) {
-        List<DestinationDto> destinations = transactionService.getDestination(principal);
-        return ApiResponseUtil.success(HttpStatus.OK, "List of destinations", destinations);
+        List<DestinationDto> responseDestinations = transactionService.getDestination(principal);
+        return ApiResponseUtil.success(HttpStatus.OK, "List of destinations", responseDestinations);
     }
 
-    @PostMapping("/destination/add")
-    public ResponseEntity<Object> addFavorites(@Valid @RequestBody DestinationDto destinationDto, Principal principal){
-        transactionService.addFavorites(destinationDto,principal);
+    @PostMapping("/destination/favorite")
+    public ResponseEntity<Object> addFavorites(@Valid @RequestBody DestinationDto requestDto, Principal principal){
+        transactionService.addFavorites(requestDto,principal);
         return ApiResponseUtil.success(HttpStatus.OK,"transaction added to favorites");
     }
 
+    @PostMapping("/destination/add")
+    public ResponseEntity<Object> addDestination(@Valid @RequestBody DestinationAddDto requestDto) {
+        DestinationAddDto responseDto = transactionService.addDestination(requestDto);
+        return ApiResponseUtil.success(HttpStatus.OK,"transaction has been added",responseDto);
+    }
 }
