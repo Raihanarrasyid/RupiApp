@@ -43,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean isAllowedRequest(String requestURI) {
         return requestURI.equals("/auth/verify") ||
                 requestURI.equals("/auth/verify/resend") ||
+                requestURI.equals("/auth/set-password") ||
                 requestURI.equals("/auth/set-pin") ||
                 requestURI.equals("/auth/forgot-password") ||
                 requestURI.equals("/auth/signout");
