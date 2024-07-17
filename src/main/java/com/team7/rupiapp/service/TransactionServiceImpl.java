@@ -1,7 +1,9 @@
 package com.team7.rupiapp.service;
 
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
+import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
+import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.exception.BadRequestException;
@@ -13,6 +15,7 @@ import com.team7.rupiapp.repository.DestinationRepository;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,9 +24,12 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 @Service
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final MutationRepository mutationRepository;
@@ -96,6 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
         return destinations.stream()
                 .map(destination -> {
                     DestinationDto dto = new DestinationDto();
+                    dto.setId(destination.getId());
                     dto.setFullname(destination.getName());
                     dto.setAccountNumber(destination.getAccountNumber());
                     dto.setFavorites(destination.isFavorites());
@@ -105,42 +112,45 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void addFavorites(DestinationDto destinationDto, Principal principal) {
-        // Fetch user based on principal
-        User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+    public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
         // Fetch destination by user and account number
-        Destination destination = destinationRepository.findByUserAndAccountNumber(user, destinationDto.getAccountNumber())
+        Destination destination = destinationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Destination not found"));
 
         // Update the destination to set as favorite
-        destination.setFavorites(destinationDto.isFavorites());
+        destination.setFavorites(destinationFavoriteDto.isFavorites());
 
         // Save the updated destination
         destinationRepository.save(destination);
+        log.info("updated favorite for destination with id: {}", id);
     }
 
     @Override
-    public DestinationAddDto addDestination(DestinationAddDto requestDto) {
+    public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal) {
         // Fetch user based on account number
         User user = userRepository.findByAccountNumber(requestDto.getAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Account number not found"));
+
+        // Fetch user based on principal
+        User user1 = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Check if destination exists
         Optional<Destination> existingDestination = destinationRepository.findByAccountNumber(requestDto.getAccountNumber());
 
         if (existingDestination.isPresent()) {
             // Destination already exists, do nothing
+            log.info("nothing has been added");
         } else {
             // Add new destination
             Destination newDestination = new Destination();
-            newDestination.setUser(user);
+            newDestination.setUser(user1);
             newDestination.setAccountNumber(requestDto.getAccountNumber());
             newDestination.setName(user.getFullName());
             newDestination.setFavorites(false);
 
             destinationRepository.save(newDestination);
+            log.info("destination has been added with userID: {}",user1.getId());
         }
 
         // Update requestDto fullname and return
@@ -148,5 +158,20 @@ public class TransactionServiceImpl implements TransactionService {
         return requestDto;
 
     }
+
+    @Override
+    public DestinationDetailDto getDestinationDetail(UUID id) {
+        // Fetch user based on id
+        Destination destination = destinationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Destination not found"));
+
+        // Create and populate DestinationDetailDto
+        DestinationDetailDto destinationDetail = new DestinationDetailDto();
+        destinationDetail.setFullname(destination.getName());
+        destinationDetail.setAccountNumber(destination.getAccountNumber());
+
+        return destinationDetail;
+    }
+
 
 }

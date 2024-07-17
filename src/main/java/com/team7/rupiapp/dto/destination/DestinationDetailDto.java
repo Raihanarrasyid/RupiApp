@@ -1,18 +1,13 @@
 package com.team7.rupiapp.dto.destination;
 
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
-public class DestinationDto {
-    private UUID id;
+public class DestinationDetailDto {
     private String fullname;
 
     @Column(length = 10, unique = true)
     private String accountNumber;
-
-    private boolean isFavorites;
+    private String bankName="Rupi App";
 }
