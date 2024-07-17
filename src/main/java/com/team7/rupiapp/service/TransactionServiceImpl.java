@@ -137,14 +137,14 @@ public class TransactionServiceImpl implements TransactionService {
             Destination newDestination = new Destination();
             newDestination.setUser(user);
             newDestination.setAccountNumber(requestDto.getAccountNumber());
-            newDestination.setName(user.getUsername());
+            newDestination.setName(user.getFullName());
             newDestination.setFavorites(false);
 
             destinationRepository.save(newDestination);
         }
 
         // Update requestDto fullname and return
-        requestDto.setFullname(user.getUsername());
+        requestDto.setFullname(user.getFullName());
         return requestDto;
 
     }
