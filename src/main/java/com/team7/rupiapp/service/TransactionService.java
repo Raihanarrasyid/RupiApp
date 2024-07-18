@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TransactionService {
-    TransferResponseDto createTransaction(TransferRequestDto requestDto);
+    TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal);
 
     List<DestinationDto> getDestination(Principal principal);
 

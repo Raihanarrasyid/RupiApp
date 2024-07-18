@@ -30,8 +30,8 @@ public class TransferController {
     }
 
     @PostMapping("/intrabank")
-    public ResponseEntity<Object> transferIntrabank(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferResponseDto responseDto = transactionService.createTransaction(requestDto);
+    public ResponseEntity<Object> transferIntrabank(@Valid @RequestBody TransferRequestDto requestDto, Principal principal) {
+        TransferResponseDto responseDto = transactionService.createTransaction(requestDto, principal);
         return ApiResponseUtil.success(HttpStatus.OK, "Transfer success", responseDto);
     }
 

@@ -16,8 +16,8 @@ import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -34,39 +34,48 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final MutationRepository mutationRepository;
     private final DestinationRepository destinationRepository;
-    private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, ModelMapper modelMapper) {
+    public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.mutationRepository = mutationRepository;
         this.destinationRepository = destinationRepository;
-        this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public TransferResponseDto createTransaction(TransferRequestDto requestDto) {
-
-        User sender = userRepository.findById(requestDto.getUserId())
+    public TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal) {
+        // Fetch user based on principal
+        User sender = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
+        // Verify the PIN
+        if (!passwordEncoder.matches(requestDto.getPin(), sender.getPin())) {
+            throw new BadRequestException("Invalid PIN");
+        }
+
+        // Fetch destination and receiver
         Destination destination = destinationRepository.findById(requestDto.getDestinationId())
                 .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         User receiver = userRepository.findByAccountNumber(destination.getAccountNumber())
                 .orElseThrow(() -> new DataNotFoundException("Receiver not found with account number: " + destination.getAccountNumber()));
 
+        // Check sender's balance
         if (sender.getBalance() < requestDto.getAmount()) {
             throw new BadRequestException("Insufficient balance");
         }
 
+        // Update balances
         sender.setBalance(sender.getBalance() - requestDto.getAmount());
         receiver.setBalance(receiver.getBalance() + requestDto.getAmount());
 
         userRepository.save(sender);
         userRepository.save(receiver);
 
+        // Record transactions
         Mutation senderMutation = new Mutation();
         senderMutation.setUser(sender);
         senderMutation.setAmount(-requestDto.getAmount());
@@ -83,8 +92,17 @@ public class TransactionServiceImpl implements TransactionService {
         receiverMutation.setType(requestDto.getType());
         mutationRepository.save(receiverMutation);
 
-        TransferResponseDto responseDto = modelMapper.map(senderMutation, TransferResponseDto.class);
-        responseDto.setUserId(sender.getId());
+        // Prepare response
+        TransferResponseDto responseDto = new TransferResponseDto();
+        responseDto.setReceiverName(destination.getName());
+        responseDto.setReceiverBankName("BCA");                                 //belum fix (static bank name)
+        responseDto.setReceiverAccountNumber(destination.getAccountNumber());
+
+        responseDto.setAmount(requestDto.getAmount());
+        responseDto.setCreatedAt(senderMutation.getCreatedAt());
+
+        responseDto.setSenderName(sender.getUsername());
+        responseDto.setSenderAccountNumber(sender.getAccountNumber());
 
         return responseDto;
     }
