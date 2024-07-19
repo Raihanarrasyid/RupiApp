@@ -111,7 +111,7 @@ public class TransactionServiceImpl implements TransactionService {
     public List<DestinationDto> getDestination(Principal principal) {
         // Fetch user based on principal
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Fetch destinations by user
         List<Destination> destinations = destinationRepository.findByUser(user);
@@ -133,7 +133,7 @@ public class TransactionServiceImpl implements TransactionService {
     public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
         // Fetch destination by user and account number
         Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Destination not found"));
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         // Update the destination to set as favorite
         destination.setFavorites(destinationFavoriteDto.isFavorites());
@@ -147,11 +147,11 @@ public class TransactionServiceImpl implements TransactionService {
     public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal) {
         // Fetch user based on account number
         User user = userRepository.findByAccountNumber(requestDto.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account number not found"));
+                .orElseThrow(() -> new DataNotFoundException("Account number not found"));
 
         // Fetch user based on principal
         User user1 = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Check if destination exists
         Optional<Destination> existingDestination = destinationRepository.findByAccountNumber(requestDto.getAccountNumber());
@@ -181,7 +181,7 @@ public class TransactionServiceImpl implements TransactionService {
     public DestinationDetailDto getDestinationDetail(UUID id) {
         // Fetch user based on id
         Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Destination not found"));
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         // Create and populate DestinationDetailDto
         DestinationDetailDto destinationDetail = new DestinationDetailDto();
