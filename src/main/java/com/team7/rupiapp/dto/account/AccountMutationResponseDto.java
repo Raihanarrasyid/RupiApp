@@ -1,5 +1,13 @@
 package com.team7.rupiapp.dto.account;
 
-public class AccountMutationResponseDto {
+import lombok.Data;
 
+import java.time.LocalDateTime;
+
+@Data
+public class AccountMutationResponseDto {
+    private LocalDateTime date;
+    private String category;
+    private String description;
+    private Double amount;
 }

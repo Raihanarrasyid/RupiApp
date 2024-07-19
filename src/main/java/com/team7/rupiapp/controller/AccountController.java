@@ -3,8 +3,6 @@ package com.team7.rupiapp.controller;
 
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.service.AccountServiceImpl;
-import com.team7.rupiapp.service.MutationService;
-import com.team7.rupiapp.service.MutationServiceImpl;
 import com.team7.rupiapp.util.ApiResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,12 +18,10 @@ import java.security.Principal;
 public class AccountController {
 
     private final AccountServiceImpl accountService;
-    private final MutationServiceImpl mutationService;
 
-    public AccountController(AccountServiceImpl accountService, MutationServiceImpl mutationService) {
+    public AccountController(AccountServiceImpl accountService) {
 
         this.accountService = accountService;
-        this.mutationService = mutationService;
     }
 
     @GetMapping("/detail")
@@ -36,7 +32,7 @@ public class AccountController {
 
     @GetMapping("/mutations")
     public ResponseEntity<Object> getAccountMutation(@Valid Principal principal) {
-        Object response = mutationService.getAccountMutation(principal);
+        Object response = accountService.getAccountMutation(principal);
         return ApiResponseUtil.success(HttpStatus.OK, "Account Mutations fetched", response);
     }
 
