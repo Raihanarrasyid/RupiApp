@@ -20,6 +20,7 @@ public class AccountController {
     private final AccountServiceImpl accountService;
 
     public AccountController(AccountServiceImpl accountService) {
+
         this.accountService = accountService;
     }
 
@@ -27,6 +28,12 @@ public class AccountController {
     public ResponseEntity<Object> getAccountDetail(@Valid Principal principal) {
         AccountDetailResponseDto response = accountService.getAccountDetail(principal);
         return ApiResponseUtil.success(HttpStatus.OK, "Account detail fetched", response);
+    }
+
+    @GetMapping("/mutations")
+    public ResponseEntity<Object> getAccountMutation(@Valid Principal principal) {
+        Object response = accountService.getAccountMutation(principal);
+        return ApiResponseUtil.success(HttpStatus.OK, "Account Mutations fetched", response);
     }
 
 }
