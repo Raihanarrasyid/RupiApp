@@ -19,18 +19,20 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDetailResponseDto getAccountDetail(Principal principal) {
-        Optional<User> foundUser = userRepository.findByUsername(principal.getName());
+        try {
+            // Validate user
+            User foundUser = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new DataNotFoundException("User not found"));
 
-        AccountDetailResponseDto response = new AccountDetailResponseDto();
-        foundUser.ifPresentOrElse(user -> {
-            response.setFullName(user.getFullName());
-            response.setEmail(user.getEmail());
-            response.setAccountNumber(user.getAccountNumber());
-            response.setBalance(user.getBalance());
-        }, () -> {
-            throw new DataNotFoundException("User not found");
-        });
+            AccountDetailResponseDto response = new AccountDetailResponseDto();
+            response.setFullName(foundUser.getFullName());
+            response.setEmail(foundUser.getEmail());
+            response.setAccountNumber(foundUser.getAccountNumber());
+            response.setBalance(foundUser.getBalance());
 
-        return response;
+            return response;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 }
