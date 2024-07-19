@@ -22,7 +22,7 @@ public class MutationServiceImpl {
         this.userRepository = userRepository;
     }
 
-    public Map<String, List<Map<String, String>>> getAccountMutation(Principal principal) {
+    public Map<String, List<Map<String, Object>>> getAccountMutation(Principal principal) {
         Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
 
         UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -30,15 +30,16 @@ public class MutationServiceImpl {
         Map<Month, List<Mutation>> groupedByMonth = mutations.stream()
                 .collect(Collectors.groupingBy(mutation -> mutation.getCreatedAt().getMonth()));
 
-        Map<String, List<Map<String, String>>> response = new LinkedHashMap<>();
+        Map<String, List<Map<String, Object>>> response = new LinkedHashMap<>();
 
         for (Month month : Month.values()) {
-            List<Map<String, String>> monthData = groupedByMonth.getOrDefault(month, Collections.emptyList()).stream()
+            List<Map<String, Object>> monthData = groupedByMonth.getOrDefault(month, Collections.emptyList()).stream()
                     .map(mutation -> {
-                        Map<String, String> data = new HashMap<>();
+                        Map<String, Object> data = new HashMap<>();
                         data.put("date", mutation.getCreatedAt().toString());
                         data.put("category", mutation.getType().name());
                         data.put("description", mutation.getDescription());
+                        data.put("amount", mutation.getAmount());
                         return data;
                     })
                     .collect(Collectors.toList());
