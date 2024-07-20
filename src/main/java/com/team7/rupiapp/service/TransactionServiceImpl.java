@@ -154,7 +154,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Check if destination exists
-        Optional<Destination> existingDestination = destinationRepository.findByAccountNumber(requestDto.getAccountNumber());
+        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1,requestDto.getAccountNumber());
 
         if (existingDestination.isPresent()) {
             // Destination already exists, do nothing

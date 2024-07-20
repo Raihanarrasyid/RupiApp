@@ -6,6 +6,6 @@ import lombok.Data;
 
 @Data
 public class DestinationFavoriteDto {
-    @NotNull
+    @NotNull(message = "Favorite status must not be null")
     private boolean isFavorites;
 }

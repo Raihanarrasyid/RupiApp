@@ -7,7 +7,7 @@ import lombok.Data;
 public class DestinationDetailDto {
     private String fullname;
 
-    @Column(length = 10, unique = true)
+    @Column(length = 10)
     private String accountNumber;
     private String bankName="Rupi App";
 }
