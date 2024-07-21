@@ -124,7 +124,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void handleLoginOtp(String token, String requestURI) {
         if (!jwtService.isTokenEnabled(token) && !isAllowedRequest(requestURI)) {
-            throw new AccessDeniedException("OTP is not verified"); // NOTE: custom response is same as user is not
+            throw new AccessDeniedException("Login is not verified"); // NOTE: custom response is same as user is not
                                                                     // verified
         }
     }

@@ -22,6 +22,12 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtServiceImpl implements JwtService {
+    private TokenRepository tokenRepository;
+
+    public JwtServiceImpl(TokenRepository tokenRepository) {
+        this.tokenRepository = tokenRepository;
+    }
+
     @Value("${spring.security.jwt.secret-key}")
     private String accessTokenSecretKey;
 
@@ -34,11 +40,6 @@ public class JwtServiceImpl implements JwtService {
     @Value("${spring.security.jwt.refresh-token.expiration-time}")
     private long jwtRefreshExpiration;
 
-    private TokenRepository tokenRepository;
-
-    public JwtServiceImpl(TokenRepository tokenRepository) {
-        this.tokenRepository = tokenRepository;
-    }
 
     @Override
     public String[] generateToken(UserDetails userDetails) {
@@ -162,6 +163,7 @@ public class JwtServiceImpl implements JwtService {
     private void markTokenAsCanNotBeUsed(String token, boolean isAccessToken) {
         UUID tokenId = UUID.fromString(
                 extractClaim(token, Claims::getId, isAccessToken ? accessTokenSecretKey : refreshTokenSecretKey));
+
         if (isAccessToken) {
             tokenRepository.deleteByTokenId(tokenId);
         } else {

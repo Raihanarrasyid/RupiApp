@@ -4,10 +4,7 @@ import com.team7.rupiapp.dto.validation.ValidEnum;
 import com.team7.rupiapp.dto.validation.ValidVerificationOtp;
 import com.team7.rupiapp.enums.OtpType;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data

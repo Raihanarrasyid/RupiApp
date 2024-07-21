@@ -1,7 +1,5 @@
 package com.team7.rupiapp.dto.auth.signup;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.team7.rupiapp.dto.validation.ValidPassword;
 import com.team7.rupiapp.dto.validation.ValidUnique;
 
 import jakarta.validation.constraints.Email;
@@ -21,6 +19,10 @@ public class SignupDto {
     @ValidUnique(column = "email", message = "email already exists")
     @NotBlank(message = "email must not be null")
     private String email;
+
+    @ValidUnique(column = "phone", message = "phone already exists")
+    @NotBlank(message = "phone must not be null")
+    private String phone;
 
     private String password;
 

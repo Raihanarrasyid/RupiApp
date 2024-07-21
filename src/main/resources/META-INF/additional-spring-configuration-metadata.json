@@ -19,6 +19,16 @@
       "name": "spring.security.jwt.refresh-token.expiration-time",
       "type": "java.lang.String",
       "description": "Expiration time for JWT refresh token"
+    },
+    {
+      "name": "client.wahub.key",
+      "type": "java.lang.String",
+      "description": "WAHub API Key"
+    },
+    {
+      "name": "client.wahub.number",
+      "type": "java.lang.String",
+      "description": "WAHub Number"
     }
   ]
 }

@@ -7,10 +7,11 @@ import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
 import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
-import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
+import com.team7.rupiapp.dto.auth.signup.ResendVerificationDto;
 import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.verify.VerificationDto;
+import com.team7.rupiapp.enums.OtpType;
 import com.team7.rupiapp.service.AuthenticationService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
@@ -20,6 +21,7 @@ import java.security.Principal;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,21 +48,24 @@ public class AuthController {
 
     @PostMapping("/verify/resend")
     public ResponseEntity<Object> resendVerificationEmail(
-            @Valid @RequestBody ResendVerificationEmailDto resendEmailDto) {
-        authenticationService.resendVerificationEmail(resendEmailDto);
-        return ApiResponseUtil.success(HttpStatus.OK, "Verification email sent");
+            @Valid @RequestBody ResendVerificationDto resendVerificationDto) {
+        authenticationService.resendVerification(resendVerificationDto);
+        return ApiResponseUtil.success(HttpStatus.OK, "Resend verification success");
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationEmailDto,
+    public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationDto,
             Principal principal) {
-        return authenticationService.verify(principal, verificationEmailDto);
+        if (principal == null && verificationDto.getType() != OtpType.PASSWORD_RESET) {
+            throw new BadCredentialsException("Unauthorized");
+        }
+        return authenticationService.verify(principal, verificationDto);
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Object> forgotPasswordRequest(
-            @Valid @RequestBody ForgotPasswordDto forgotPasswordRequestDto) {
-        authenticationService.forgotPassword(forgotPasswordRequestDto);
+            @Valid @RequestBody ForgotPasswordDto forgotPasswordDto) {
+        authenticationService.forgotPassword(forgotPasswordDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Forgot password success");
     }
 
@@ -75,7 +80,6 @@ public class AuthController {
         authenticationService.setPassword(principal, setPasswordDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Password set success");
     }
-    
 
     @PostMapping("/set-pin")
     public ResponseEntity<Object> setPin(@RequestBody SetPinDto setPinDto, Principal principal) {
@@ -84,8 +88,8 @@ public class AuthController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<Object> signOut(Principal principal) {
-        authenticationService.signOut(principal);
+    public ResponseEntity<Object> signOut() {
+        authenticationService.signOut();
         return ApiResponseUtil.success(HttpStatus.OK, "Signout success");
     }
 }

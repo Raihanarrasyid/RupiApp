@@ -136,7 +136,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         // Update the destination to set as favorite
-        destination.setFavorites(destinationFavoriteDto.isFavorites());
+        destination.setFavorites(destinationFavoriteDto.getIsFavorites());
 
         // Save the updated destination
         destinationRepository.save(destination);
