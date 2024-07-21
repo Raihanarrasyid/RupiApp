@@ -79,8 +79,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String requestURI = request.getRequestURI();
 
                     handleDisabledUser(userDetails, requestURI);
-                    handleUserWithDefaultPassword(userDetails, requestURI);
-                    handleUserWithoutPin(userDetails, requestURI);
+                    handleUserWithDefaultPassword(token, userDetails, requestURI);
+                    handleUserWithoutPin(token, userDetails, requestURI);
                     handleLoginOtp(token, requestURI);
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -104,7 +104,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void handleUserWithDefaultPassword(UserDetails userDetails, String requestURI) {
+    private void handleUserWithDefaultPassword(String token, UserDetails userDetails, String requestURI) {
         if (userDetails instanceof User) {
             User user = (User) userDetails;
             if (user.isDefaultPassword() && !isAllowedRequest(requestURI)) {
@@ -113,7 +113,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void handleUserWithoutPin(UserDetails userDetails, String requestURI) {
+    private void handleUserWithoutPin(String token, UserDetails userDetails, String requestURI) {
         if (userDetails instanceof User) {
             User user = (User) userDetails;
             if (user.getPin() == null && !isAllowedRequest(requestURI)) {
@@ -123,9 +123,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void handleLoginOtp(String token, String requestURI) {
-        if (!jwtService.isTokenEnabled(token) && !isAllowedRequest(requestURI)) {
-            throw new AccessDeniedException("Login is not verified"); // NOTE: custom response is same as user is not
-                                                                    // verified
+        if (!jwtService.isTokenEnabled(token) &&
+                (requestURI.equals("/auth/set-password") ||
+                        requestURI.equals("/auth/set-pin") ||
+                        !isAllowedRequest(requestURI))) {
+            throw new AccessDeniedException("Login is not verified");
         }
     }
+
 }

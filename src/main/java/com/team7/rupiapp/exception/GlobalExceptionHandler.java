@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -45,14 +46,14 @@ public class GlobalExceptionHandler {
                         DefaultMessageSourceResolvable::getDefaultMessage,
                         (existing, replacement) -> existing));
 
-        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Validation failed", errors);
+        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed", errors);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<Object> handleResourceConflict(ResourceConflictException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -121,6 +122,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.NOT_FOUND, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<Object> handleSignatureException(SignatureException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
     }
 }

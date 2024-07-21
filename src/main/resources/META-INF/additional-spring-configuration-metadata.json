@@ -29,6 +29,16 @@
       "name": "client.wahub.number",
       "type": "java.lang.String",
       "description": "WAHub Number"
+    },
+    {
+      "name": "app.otp.code.length",
+      "type": "java.lang.String",
+      "description": "Length of OTP code"
+    },
+    {
+      "name": "app.otp.code.expiration-time",
+      "type": "java.lang.String",
+      "description": "Expiration time for OTP code"
     }
   ]
 }

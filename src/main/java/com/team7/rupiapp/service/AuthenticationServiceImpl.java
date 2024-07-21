@@ -142,6 +142,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String[] tokens = jwtService.generateToken(savedUser);
         signupResponseDto.setAccessToken(tokens[0]);
         signupResponseDto.setRefreshToken(tokens[1]);
+        signupResponseDto.setPassword(null);
 
         return signupResponseDto;
     }
@@ -182,7 +183,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void resendVerification(ResendVerificationDto resendVerificationDto) {
         User user = userRepository.findByUsername(resendVerificationDto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         if (user.isVerified()) {
             throw new BadRequestException("User already verified");
@@ -197,7 +198,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void forgotPassword(ForgotPasswordDto forgotPasswordDto) {
         User user = userRepository.findByUsername(forgotPasswordDto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET).ifPresent(otpRepository::delete);
 
@@ -221,7 +222,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private ResponseEntity<Object> verifyRegistration(Principal principal, VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         Otp otp = otpRepository.findByUserAndType(user, OtpType.REGISTRATION)
                 .orElseThrow(() -> new BadRequestException("Invalid OTP"));
@@ -246,7 +247,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private ResponseEntity<Object> forgotPassword(VerificationDto verificationDto) {
         User user = userRepository.findByUsername(verificationDto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         Otp otp = otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET)
                 .orElseThrow(() -> new BadRequestException("Invalid OTP"));
@@ -269,7 +270,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private ResponseEntity<Object> verifyLogin(Principal principal, VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         Otp otp = otpRepository.findByUserAndType(user, OtpType.LOGIN)
                 .orElseThrow(() -> new BadRequestException("Invalid OTP"));
@@ -300,7 +301,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String username = jwtService.extractRefreshUsername(refreshToken);
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         if (jwtService.isRefreshTokenValid(refreshToken, user)) {
             if (!passwordEncoder.matches(refreshTokenDto.getPin(), user.getPin())) {
@@ -321,7 +322,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void setPassword(Principal principal, SetPasswordDto setPasswordDto) {
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         if (!user.isDefaultPassword()) {
             throw new BadRequestException("Password already set");
@@ -343,7 +344,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
         if (user.getPin() != null) {
             throw new BadRequestException("Pin already set");

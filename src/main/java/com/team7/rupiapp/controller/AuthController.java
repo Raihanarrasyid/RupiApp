@@ -2,6 +2,7 @@ package com.team7.rupiapp.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.team7.rupiapp.api.AuthApi;
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
@@ -28,22 +29,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthController implements AuthApi {
     private final AuthenticationService authenticationService;
 
     public AuthController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<Object> signup(@Valid @RequestBody SignupDto signupDto) {
+        return ApiResponseUtil.success(HttpStatus.OK, "Signup success", authenticationService.signup(signupDto));
+    }
+
     @PostMapping("/signin")
     public ResponseEntity<Object> signin(@Valid @RequestBody SigninDto signinDto) {
         SigninResponseDto response = authenticationService.signin(signinDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Signin success", response);
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<Object> signup(@Valid @RequestBody SignupDto signupDto) {
-        return ApiResponseUtil.success(HttpStatus.OK, "Signup success", authenticationService.signup(signupDto));
     }
 
     @PostMapping("/verify/resend")
@@ -71,20 +72,20 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<Object> refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
-        return ApiResponseUtil.success(HttpStatus.OK, "Refresh token success",
+        return ApiResponseUtil.success(HttpStatus.OK, "Successfully refreshed token",
                 authenticationService.refreshToken(refreshTokenDto));
     }
 
     @PostMapping("/set-password")
     public ResponseEntity<Object> setPassword(@Valid @RequestBody SetPasswordDto setPasswordDto, Principal principal) {
         authenticationService.setPassword(principal, setPasswordDto);
-        return ApiResponseUtil.success(HttpStatus.OK, "Password set success");
+        return ApiResponseUtil.success(HttpStatus.OK, "Password has been successfully updated.");
     }
 
     @PostMapping("/set-pin")
     public ResponseEntity<Object> setPin(@RequestBody SetPinDto setPinDto, Principal principal) {
         authenticationService.setPin(principal, setPinDto);
-        return ApiResponseUtil.success(HttpStatus.OK, "Pin set success");
+        return ApiResponseUtil.success(HttpStatus.OK, "PIN has been successfully set.");
     }
 
     @PostMapping("/signout")

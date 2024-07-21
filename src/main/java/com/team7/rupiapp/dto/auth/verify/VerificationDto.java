@@ -13,7 +13,7 @@ public class VerificationDto {
     @ValidEnum(enumClass = OtpType.class, message = "otp type must be one of {enumValues}")
     private OtpType type;
 
-    @NotBlank(message = "otp must not be null")
+    @NotBlank(message = "OTP is required")
     private String otp;
 
     private String username;

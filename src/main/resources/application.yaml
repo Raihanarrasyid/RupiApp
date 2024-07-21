@@ -47,5 +47,5 @@ springdoc:
 
 client:
     wahub:
-        key: ${WAHUB_API_KEY:ExampleKey}
-        number: ${WAHUB_NUMBER:6281234567890}
+        key: ${WAHUB_API_KEY}
+        number: ${WAHUB_NUMBER}

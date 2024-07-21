@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class RefreshTokenDto {
-    @NotBlank(message = "refresh_token must not be null")
+    @NotBlank(message = "Refresh token is required")
     private String refreshToken;
 
-    @NotBlank(message = "pin must not be null")
+    @NotBlank(message = "PIN is required")
     private String pin;
 }

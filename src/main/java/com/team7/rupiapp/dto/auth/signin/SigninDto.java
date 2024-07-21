@@ -6,9 +6,9 @@ import lombok.Data;
 
 @Data
 public class SigninDto {
-    @NotBlank(message = "username or email must not be null")
+    @NotBlank(message = "Username is required")
     private String username;
 
-    @NotNull(message = "password must not be null")
+    @NotNull(message = "Password is required")
     private String password;
 }

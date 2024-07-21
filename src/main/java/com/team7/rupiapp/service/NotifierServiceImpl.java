@@ -1,13 +1,17 @@
 package com.team7.rupiapp.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.team7.rupiapp.client.WhatsappClient;
 import com.team7.rupiapp.client.data.SendWhatsappMessageData;
+import com.team7.rupiapp.exception.BadRequestException;
 
+import feign.FeignException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -52,6 +56,10 @@ public class NotifierServiceImpl implements NotifierService {
 
         try {
             whatsappClient.sendWhatsappMessage(data);
+        } catch (FeignException e) {
+            if (e.status() == HttpStatus.BAD_REQUEST.value()) {
+                throw new BadRequestException("Number is not valid");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to send verification message");
         }
@@ -71,8 +79,12 @@ public class NotifierServiceImpl implements NotifierService {
 
         try {
             whatsappClient.sendWhatsappMessage(data);
+        } catch (FeignException e) {
+            if (e.status() == HttpStatus.BAD_REQUEST.value()) {
+                throw new BadRequestException("Number is not valid");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification message", e);
+            throw new RuntimeException("Failed to send verification message");
         }
     }
 
@@ -89,6 +101,10 @@ public class NotifierServiceImpl implements NotifierService {
 
         try {
             whatsappClient.sendWhatsappMessage(data);
+        } catch (FeignException e) {
+            if (e.status() == HttpStatus.BAD_REQUEST.value()) {
+                throw new BadRequestException("Number is not valid");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to send verification message");
         }

@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 public class SetPasswordDto {
-    @ValidPassword(message = "password must not be null")
+    @ValidPassword(message = "Password is required")
     private String password;
 
-    @NotBlank(message = "confirm_password must not be null")
+    @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
 }

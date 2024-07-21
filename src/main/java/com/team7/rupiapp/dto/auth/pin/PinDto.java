@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class PinDto {
-    @NotBlank(message = "pin must not be null")
+    @NotBlank(message = "PIN is required")
     private String pin;
 }
