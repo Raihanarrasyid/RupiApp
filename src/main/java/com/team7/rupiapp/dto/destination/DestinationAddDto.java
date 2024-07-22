@@ -8,7 +8,7 @@ import lombok.NonNull;
 @Data
 public class DestinationAddDto {
     private String fullname;
-    @Column(length = 10, unique = true)
+    @Column(length = 10)
     private String accountNumber;
     @NotNull(message = "Type must not be null")
     private String bankName;

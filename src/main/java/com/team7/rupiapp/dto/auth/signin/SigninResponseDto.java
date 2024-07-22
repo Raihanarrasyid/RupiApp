@@ -8,6 +8,8 @@ public class SigninResponseDto {
 
     private String email;
 
+    private String phone;
+
     private String accessToken;
 
     private String refreshToken;

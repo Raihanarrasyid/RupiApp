@@ -25,7 +25,7 @@ public class Destination {
 
     private String name;
 
-    @Column(length = 10, unique = true)
+    @Column(length = 10)
     private String accountNumber;
 
     @Column(nullable = false)

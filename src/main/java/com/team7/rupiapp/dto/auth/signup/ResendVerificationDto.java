@@ -1,10 +1,10 @@
-package com.team7.rupiapp.dto.auth.forgot;
+package com.team7.rupiapp.dto.auth.signup;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ForgotPasswordDto {
+public class ResendVerificationDto {
     @NotBlank(message = "Username is required")
     private String username;
 }

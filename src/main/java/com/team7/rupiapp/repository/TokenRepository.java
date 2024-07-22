@@ -8,7 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import com.team7.rupiapp.model.Token;
 
+import jakarta.transaction.Transactional;
+
 @Repository
+@Transactional
 public interface TokenRepository extends JpaRepository<Token, Long> {
     Optional<Token> findByTokenId(UUID tokenId);
 

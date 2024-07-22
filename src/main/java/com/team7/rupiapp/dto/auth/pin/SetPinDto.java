@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class SetPinDto {
-    @NotBlank(message = "pin must not be null")
+    @NotBlank(message = "PIN is required")
     @Size(min = 6, max = 6, message = "pin must be 6 characters long")
     private String pin;
 
-    @NotBlank(message = "confirm_pin must not be null")
+    @NotBlank(message = "Confirm PIN is required")
     private String confirmPin;
 }

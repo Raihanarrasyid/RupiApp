@@ -11,7 +11,7 @@ public class DestinationDto {
     private UUID id;
     private String fullname;
 
-    @Column(length = 10, unique = true)
+    @Column(length = 10)
     private String accountNumber;
 
     private boolean isFavorites;

@@ -16,8 +16,8 @@ import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -34,39 +34,48 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final MutationRepository mutationRepository;
     private final DestinationRepository destinationRepository;
-    private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, ModelMapper modelMapper) {
+    public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.mutationRepository = mutationRepository;
         this.destinationRepository = destinationRepository;
-        this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public TransferResponseDto createTransaction(TransferRequestDto requestDto) {
-
-        User sender = userRepository.findById(requestDto.getUserId())
+    public TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal) {
+        // Fetch user based on principal
+        User sender = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
+        // Verify the PIN
+        if (!passwordEncoder.matches(requestDto.getPin(), sender.getPin())) {
+            throw new BadRequestException("Invalid PIN");
+        }
+
+        // Fetch destination and receiver
         Destination destination = destinationRepository.findById(requestDto.getDestinationId())
                 .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         User receiver = userRepository.findByAccountNumber(destination.getAccountNumber())
                 .orElseThrow(() -> new DataNotFoundException("Receiver not found with account number: " + destination.getAccountNumber()));
 
+        // Check sender's balance
         if (sender.getBalance() < requestDto.getAmount()) {
             throw new BadRequestException("Insufficient balance");
         }
 
+        // Update balances
         sender.setBalance(sender.getBalance() - requestDto.getAmount());
         receiver.setBalance(receiver.getBalance() + requestDto.getAmount());
 
         userRepository.save(sender);
         userRepository.save(receiver);
 
+        // Record transactions
         Mutation senderMutation = new Mutation();
         senderMutation.setUser(sender);
         senderMutation.setAmount(-requestDto.getAmount());
@@ -83,8 +92,26 @@ public class TransactionServiceImpl implements TransactionService {
         receiverMutation.setType(requestDto.getType());
         mutationRepository.save(receiverMutation);
 
-        TransferResponseDto responseDto = modelMapper.map(senderMutation, TransferResponseDto.class);
-        responseDto.setUserId(sender.getId());
+        // Prepare response
+        TransferResponseDto responseDto = new TransferResponseDto();
+
+        // Set destination details
+        TransferResponseDto.Receiver destinationDetail = new TransferResponseDto.Receiver();
+        destinationDetail.setName(destination.getName());
+        destinationDetail.setAccountNumber(destination.getAccountNumber());
+        responseDto.setReceiver(destinationDetail);
+
+        // Set mutation details
+        TransferResponseDto.Mutation mutationDetail = new TransferResponseDto.Mutation();
+        mutationDetail.setAmount(requestDto.getAmount());
+        mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
+        responseDto.setMutation(mutationDetail);
+
+        // Set user details
+        TransferResponseDto.Sender userDetail = new TransferResponseDto.Sender();
+        userDetail.setName(sender.getUsername());
+        userDetail.setAccountNumber(sender.getAccountNumber());
+        responseDto.setSender(userDetail);
 
         return responseDto;
     }
@@ -93,7 +120,7 @@ public class TransactionServiceImpl implements TransactionService {
     public List<DestinationDto> getDestination(Principal principal) {
         // Fetch user based on principal
         User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Fetch destinations by user
         List<Destination> destinations = destinationRepository.findByUser(user);
@@ -115,10 +142,10 @@ public class TransactionServiceImpl implements TransactionService {
     public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
         // Fetch destination by user and account number
         Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Destination not found"));
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         // Update the destination to set as favorite
-        destination.setFavorites(destinationFavoriteDto.isFavorites());
+        destination.setFavorites(destinationFavoriteDto.getIsFavorites());
 
         // Save the updated destination
         destinationRepository.save(destination);
@@ -129,14 +156,14 @@ public class TransactionServiceImpl implements TransactionService {
     public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal) {
         // Fetch user based on account number
         User user = userRepository.findByAccountNumber(requestDto.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account number not found"));
+                .orElseThrow(() -> new DataNotFoundException("Account number not found"));
 
         // Fetch user based on principal
         User user1 = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Check if destination exists
-        Optional<Destination> existingDestination = destinationRepository.findByAccountNumber(requestDto.getAccountNumber());
+        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1,requestDto.getAccountNumber());
 
         if (existingDestination.isPresent()) {
             // Destination already exists, do nothing
@@ -163,7 +190,7 @@ public class TransactionServiceImpl implements TransactionService {
     public DestinationDetailDto getDestinationDetail(UUID id) {
         // Fetch user based on id
         Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Destination not found"));
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
         // Create and populate DestinationDetailDto
         DestinationDetailDto destinationDetail = new DestinationDetailDto();

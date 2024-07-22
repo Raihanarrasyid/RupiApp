@@ -35,12 +35,10 @@ public class WebSecurityConfig {
                                 .exceptionHandling(exception -> exception
                                                 .authenticationEntryPoint(authEntryPointJwt))
                                 .authorizeHttpRequests(requests -> requests
-                                                .requestMatchers("/demo/create", "/demo/get-data", "/demo/error")
-                                                .permitAll()
                                                 .requestMatchers("/docs*/**", "/swagger-ui/**").permitAll()
-                                                .requestMatchers("/auth/signout", "/auth/set-password", "/auth/set-pin").authenticated()
+                                                .requestMatchers("/auth/set-password", "/auth/set-pin", "/auth/signout")
+                                                .authenticated()
                                                 .requestMatchers("/auth/**", "/login").permitAll()
-                                                // .requestMatchers("/transfer/**").permitAll()
                                                 .anyRequest()
                                                 .authenticated())
                                 .sessionManagement(management -> management

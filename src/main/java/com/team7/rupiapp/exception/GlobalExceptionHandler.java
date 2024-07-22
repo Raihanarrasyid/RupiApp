@@ -12,15 +12,16 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.fasterxml.jackson.databind.JsonMappingException.Reference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -43,17 +44,16 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(
                         fieldError -> fieldError.getField().replaceAll("([a-z])([A-Z]+)", "$1_$2").toLowerCase(),
                         DefaultMessageSourceResolvable::getDefaultMessage,
-                        (existing, replacement) -> existing // merge function to handle duplicate keys
-                ));
+                        (existing, replacement) -> existing));
 
-        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Validation failed", errors);
+        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed", errors);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<Object> handleResourceConflict(ResourceConflictException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -74,6 +74,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
         log.error(ex.getMessage());
+
+        if (ex.getMessage().equals("Bad credentials")) {
+            return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        }
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
@@ -98,7 +102,7 @@ public class GlobalExceptionHandler {
         if (mostSpecificCause instanceof InvalidFormatException) {
             InvalidFormatException ife = (InvalidFormatException) mostSpecificCause;
             String fieldName = ife.getPath().stream()
-                    .map(reference -> reference.getFieldName())
+                    .map(Reference::getFieldName)
                     .collect(Collectors.joining("."));
 
             String validValues = Arrays.stream(ife.getTargetType().getEnumConstants())
@@ -118,6 +122,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
         log.error(ex.getMessage());
 
-        return ApiResponseUtil.error(HttpStatus.NOT_FOUND, ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<Object> handleSignatureException(SignatureException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
     }
 }

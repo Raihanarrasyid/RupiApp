@@ -33,8 +33,19 @@ spring:
                     starttls:
                         enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 
+app:
+    otp:
+        code:
+            length: ${VERIFICATION_CODE_LENGTH:6}
+            expiration-time: ${VERIFICATION_CODE_EXPIRATION_TIME:5}
+
 springdoc:
     api-docs:
         path: /docs-api
     swagger-ui:
         path: /docs
+
+client:
+    wahub:
+        key: ${WAHUB_API_KEY}
+        number: ${WAHUB_NUMBER}

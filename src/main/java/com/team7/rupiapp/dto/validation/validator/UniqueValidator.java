@@ -28,11 +28,20 @@ public class UniqueValidator implements ConstraintValidator<ValidUnique, String>
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         Optional<User> user = Optional.empty();
-        if (column.equals("username")) {
-            user = userRepository.findByUsername(value);
-        } else if (column.equals("email")) {
-            user = userRepository.findByEmail(value);
+        switch (column) {
+            case "username":
+                user = userRepository.findByUsername(value);
+                break;
+            case "email":
+                user = userRepository.findByEmail(value);
+                break;
+            case "phone":
+                user = userRepository.findByPhone(value);
+                break;
+            default:
+                break;
         }
+
         return user.isEmpty();
     }
 }

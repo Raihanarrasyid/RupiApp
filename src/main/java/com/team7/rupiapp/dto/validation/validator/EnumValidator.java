@@ -1,6 +1,5 @@
 package com.team7.rupiapp.dto.validation.validator;
 
-import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 import com.team7.rupiapp.dto.validation.ValidEnum;
 
 import jakarta.validation.ConstraintValidator;

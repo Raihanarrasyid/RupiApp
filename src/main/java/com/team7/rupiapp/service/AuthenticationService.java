@@ -10,7 +10,7 @@ import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenResponseDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
 import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
-import com.team7.rupiapp.dto.auth.signup.ResendVerificationEmailDto;
+import com.team7.rupiapp.dto.auth.signup.ResendVerificationDto;
 import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.signup.SignupResponseDto;
@@ -25,7 +25,7 @@ public interface AuthenticationService {
 
     public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationEmailDto);
 
-    public void resendVerificationEmail(ResendVerificationEmailDto resendEmailDto);
+    public void resendVerification(ResendVerificationDto resendVerificationDto);
 
     public void forgotPassword(ForgotPasswordDto forgotPasswordDto);
 
@@ -33,5 +33,5 @@ public interface AuthenticationService {
 
     public void setPin(Principal principal, SetPinDto setPinDto);
 
-    public void signOut(Principal principal);
+    public void signOut();
 }
