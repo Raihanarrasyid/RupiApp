@@ -94,15 +94,25 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Prepare response
         TransferResponseDto responseDto = new TransferResponseDto();
-        responseDto.setReceiverName(destination.getName());
-        responseDto.setReceiverBankName("BCA");                                 //belum fix (static bank name)
-        responseDto.setReceiverAccountNumber(destination.getAccountNumber());
 
-        responseDto.setAmount(requestDto.getAmount());
-        responseDto.setCreatedAt(senderMutation.getCreatedAt());
+        // Set destination details
+        TransferResponseDto.Receiver destinationDetail = new TransferResponseDto.Receiver();
+        destinationDetail.setName(destination.getName());
+        destinationDetail.setBankName("BCA"); // Assuming bank name is static
+        destinationDetail.setAccountNumber(destination.getAccountNumber());
+        responseDto.setReceiver(destinationDetail);
 
-        responseDto.setSenderName(sender.getUsername());
-        responseDto.setSenderAccountNumber(sender.getAccountNumber());
+        // Set mutation details
+        TransferResponseDto.Mutation mutationDetail = new TransferResponseDto.Mutation();
+        mutationDetail.setAmount(requestDto.getAmount());
+        mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
+        responseDto.setMutation(mutationDetail);
+
+        // Set user details
+        TransferResponseDto.Sender userDetail = new TransferResponseDto.Sender();
+        userDetail.setName(sender.getUsername());
+        userDetail.setAccountNumber(sender.getAccountNumber());
+        responseDto.setSender(userDetail);
 
         return responseDto;
     }

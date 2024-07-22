@@ -6,14 +6,27 @@ import java.time.LocalDateTime;
 
 @Data
 public class TransferResponseDto {
-    private String receiverName;
-    private String receiverBankName;
-    private String receiverAccountNumber;
+    private Receiver receiver;
+    private Mutation mutation;
+    private Sender sender;
 
-    private Double amount;
-    private LocalDateTime createdAt;
+    @Data
+    public static class Receiver {
+        private String name;
+        private String bankName;
+        private String accountNumber;
+    }
 
-    private String senderName;
-    private String senderAccountNumber;
+    @Data
+    public static class Mutation {
+        private Double amount;
+        private LocalDateTime createdAt;
+    }
+
+    @Data
+    public static class Sender {
+        private String name;
+        private String accountNumber;
+    }
 }
 
