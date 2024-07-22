@@ -98,7 +98,6 @@ public class TransactionServiceImpl implements TransactionService {
         // Set destination details
         TransferResponseDto.Receiver destinationDetail = new TransferResponseDto.Receiver();
         destinationDetail.setName(destination.getName());
-        destinationDetail.setBankName("BCA"); // Assuming bank name is static
         destinationDetail.setAccountNumber(destination.getAccountNumber());
         responseDto.setReceiver(destinationDetail);
 

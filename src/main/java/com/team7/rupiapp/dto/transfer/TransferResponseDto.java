@@ -13,7 +13,6 @@ public class TransferResponseDto {
     @Data
     public static class Receiver {
         private String name;
-        private String bankName;
         private String accountNumber;
     }
 
