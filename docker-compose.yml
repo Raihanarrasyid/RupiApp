@@ -19,6 +19,8 @@ services:
       - MAIL_PORT=
       - MAIL_USERNAME=
       - MAIL_PASSWORD=
+      - WAHUB_API_KEY=
+      - WAHUB_NUMBER=
     volumes:
       - ./data:/app
     depends_on:

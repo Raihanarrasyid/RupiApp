@@ -87,19 +87,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private Otp createOtp(User user, OtpType type) {
         int code = random.nextInt((int) Math.pow(10, otpCodeLength));
-
+        String otpCode = String.format("%0" + otpCodeLength + "d", code);
+    
         Otp otp = new Otp();
-        otp.setCode(passwordEncoder.encode(String.valueOf(code)));
+        otp.setCode(passwordEncoder.encode(otpCode));
         otp.setUser(user);
         otp.setExpiryDate(LocalDateTime.now().plusMinutes(otpExpirationTime));
         otp.setType(type);
         otpRepository.save(otp);
-
-        return new Otp(user, String.valueOf(code), otp.getExpiryDate());
+    
+        return new Otp(user, otpCode, otp.getExpiryDate());
     }
 
     private String generateSimplePassword(int length) {
-        Random random = new Random();
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
