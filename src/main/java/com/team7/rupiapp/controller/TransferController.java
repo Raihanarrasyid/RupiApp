@@ -1,5 +1,6 @@
 package com.team7.rupiapp.controller;
 
+import com.team7.rupiapp.api.TransferApi;
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
@@ -21,7 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/transfer")
-public class TransferController {
+public class TransferController implements TransferApi {
     private final TransactionService transactionService;
 
     @Autowired
