@@ -6,24 +6,24 @@ import java.time.LocalDateTime;
 
 @Data
 public class TransferResponseDto {
-    private Receiver receiver;
-    private Mutation mutation;
-    private Sender sender;
+    private ReceiverDetail destinationDetail;
+    private MutationDetail mutationDetail;
+    private SenderDetail userDetail;
 
     @Data
-    public static class Receiver {
+    public static class ReceiverDetail {
         private String name;
         private String accountNumber;
     }
 
     @Data
-    public static class Mutation {
+    public static class MutationDetail {
         private Double amount;
         private LocalDateTime createdAt;
     }
 
     @Data
-    public static class Sender {
+    public static class SenderDetail {
         private String name;
         private String accountNumber;
     }

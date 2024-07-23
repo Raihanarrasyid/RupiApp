@@ -1,6 +1,7 @@
 package com.team7.rupiapp.dto.transfer;
 
 import com.team7.rupiapp.enums.MutationType;
+import com.team7.rupiapp.enums.TransactionPurpose;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -22,4 +23,7 @@ public class TransferRequestDto {
 
     @NotBlank(message = "PIN must not be blank")
     private String pin;
+
+    @NotNull(message = "Transaction Purpose must not be null")
+    private TransactionPurpose transactionPurpose;
 }

@@ -61,7 +61,7 @@ public class AccountServiceImpl implements AccountService {
                     .map(mutation -> {
                         AccountMutationResponseDto dto = new AccountMutationResponseDto();
                         dto.setDate(mutation.getCreatedAt());
-                        dto.setCategory(mutation.getType().name());
+                        dto.setCategory(mutation.getMutationType().name());
                         dto.setDescription(mutation.getDescription());
                         dto.setAmount(mutation.getAmount());
                         return dto;

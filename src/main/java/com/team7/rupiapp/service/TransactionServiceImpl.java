@@ -6,6 +6,7 @@ import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
+import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
 import com.team7.rupiapp.model.Destination;
@@ -75,43 +76,50 @@ public class TransactionServiceImpl implements TransactionService {
         userRepository.save(sender);
         userRepository.save(receiver);
 
-        // Record transactions
+        // Record sender transaction
         Mutation senderMutation = new Mutation();
         senderMutation.setUser(sender);
-        senderMutation.setAmount(-requestDto.getAmount());
+        senderMutation.setAmount(requestDto.getAmount());
         senderMutation.setDescription(requestDto.getDescription());
         senderMutation.setCreatedAt(LocalDateTime.now());
-        senderMutation.setType(requestDto.getType());
+        senderMutation.setMutationType(requestDto.getType());
+        senderMutation.setAccountNumber(destination.getAccountNumber());
+        senderMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
+        senderMutation.setTransactionType(TransactionType.DEBIT);
         mutationRepository.save(senderMutation);
 
+        // Record receiver transaction
         Mutation receiverMutation = new Mutation();
         receiverMutation.setUser(receiver);
         receiverMutation.setAmount(requestDto.getAmount());
         receiverMutation.setDescription(requestDto.getDescription());
         receiverMutation.setCreatedAt(LocalDateTime.now());
-        receiverMutation.setType(requestDto.getType());
+        receiverMutation.setMutationType(requestDto.getType());
+        receiverMutation.setAccountNumber(sender.getAccountNumber());
+        receiverMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
+        receiverMutation.setTransactionType(TransactionType.CREDIT);
         mutationRepository.save(receiverMutation);
 
         // Prepare response
         TransferResponseDto responseDto = new TransferResponseDto();
 
         // Set destination details
-        TransferResponseDto.Receiver destinationDetail = new TransferResponseDto.Receiver();
+        TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
         destinationDetail.setName(destination.getName());
         destinationDetail.setAccountNumber(destination.getAccountNumber());
-        responseDto.setReceiver(destinationDetail);
+        responseDto.setDestinationDetail(destinationDetail);
 
         // Set mutation details
-        TransferResponseDto.Mutation mutationDetail = new TransferResponseDto.Mutation();
+        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
         mutationDetail.setAmount(requestDto.getAmount());
         mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
-        responseDto.setMutation(mutationDetail);
+        responseDto.setMutationDetail(mutationDetail);
 
         // Set user details
-        TransferResponseDto.Sender userDetail = new TransferResponseDto.Sender();
+        TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
         userDetail.setName(sender.getUsername());
         userDetail.setAccountNumber(sender.getAccountNumber());
-        responseDto.setSender(userDetail);
+        responseDto.setUserDetail(userDetail);
 
         return responseDto;
     }
