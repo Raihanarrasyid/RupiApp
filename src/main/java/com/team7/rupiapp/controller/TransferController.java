@@ -49,13 +49,13 @@ public class TransferController implements TransferApi {
     }
 
     @PatchMapping("/destinations/{id}")
-    public ResponseEntity<Object> addFavorites(@PathVariable("id") UUID id,@Valid @RequestBody DestinationFavoriteDto requestDto){
+    public ResponseEntity<Object> addFavorites(@PathVariable("id") String id,@Valid @RequestBody DestinationFavoriteDto requestDto){
         transactionService.addFavorites(id,requestDto);
         return ApiResponseUtil.success(HttpStatus.OK,"transaction added to favorites");
     }
 
     @GetMapping("/destinations/{id}")
-    public ResponseEntity<Object> getDetail(@PathVariable("id") UUID id){
+    public ResponseEntity<Object> getDetail(@PathVariable("id") String id){
         DestinationDetailDto destinationDetail = transactionService.getDestinationDetail(id);
         return ApiResponseUtil.success(HttpStatus.OK,"transaction detail has been sent", destinationDetail);
     }

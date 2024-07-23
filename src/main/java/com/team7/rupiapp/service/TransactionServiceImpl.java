@@ -9,6 +9,7 @@ import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
+import com.team7.rupiapp.exception.UUIDParsingException;
 import com.team7.rupiapp.model.Destination;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
@@ -147,17 +148,23 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
-        // Fetch destination by user and account number
-        Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
+    public void addFavorites(String id, DestinationFavoriteDto destinationFavoriteDto) {
+        try {
+            // change the id from string to UUId
+            UUID uuid = UUID.fromString(id);
+            // Fetch destination by user and account number
+            Destination destination = destinationRepository.findById(uuid)
+                    .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
-        // Update the destination to set as favorite
-        destination.setFavorites(destinationFavoriteDto.getIsFavorites());
+            // Update the destination to set as favorite
+            destination.setFavorites(destinationFavoriteDto.getIsFavorites());
 
-        // Save the updated destination
-        destinationRepository.save(destination);
-        log.info("updated favorite for destination with id: {}", id);
+            // Save the updated destination
+            destinationRepository.save(destination);
+            log.info("updated favorite for destination with id: {}", id);
+        } catch (IllegalArgumentException ex) {
+            throw new UUIDParsingException("Failed parsing id to UUID");
+        }
     }
 
     @Override
@@ -171,11 +178,15 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
         // Check if destination exists
-        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1,requestDto.getAccountNumber());
+        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1, requestDto.getAccountNumber());
+
+        // Update requestDto fullname and return
+        requestDto.setFullname(user.getFullName());
 
         if (existingDestination.isPresent()) {
             // Destination already exists, do nothing
             log.info("nothing has been added");
+
         } else {
             // Add new destination
             Destination newDestination = new Destination();
@@ -185,27 +196,32 @@ public class TransactionServiceImpl implements TransactionService {
             newDestination.setFavorites(false);
 
             destinationRepository.save(newDestination);
-            log.info("destination has been added with userID: {}",user1.getId());
+            log.info("destination has been added with userID: {}", user1.getId());
         }
 
-        // Update requestDto fullname and return
-        requestDto.setFullname(user.getFullName());
+
         return requestDto;
 
     }
 
     @Override
-    public DestinationDetailDto getDestinationDetail(UUID id) {
-        // Fetch user based on id
-        Destination destination = destinationRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
+    public DestinationDetailDto getDestinationDetail(String id) {
+        try {
+            // change the id from string to UUId
+            UUID uuid = UUID.fromString(id);
+            // Fetch user based on id
+            Destination destination = destinationRepository.findById(uuid)
+                    .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
-        // Create and populate DestinationDetailDto
-        DestinationDetailDto destinationDetail = new DestinationDetailDto();
-        destinationDetail.setFullname(destination.getName());
-        destinationDetail.setAccountNumber(destination.getAccountNumber());
+            // Create and populate DestinationDetailDto
+            DestinationDetailDto destinationDetail = new DestinationDetailDto();
+            destinationDetail.setFullname(destination.getName());
+            destinationDetail.setAccountNumber(destination.getAccountNumber());
 
-        return destinationDetail;
+            return destinationDetail;
+        } catch (IllegalArgumentException ex) {
+            throw new UUIDParsingException("Failed parsing id to UUID");
+        }
     }
 
 

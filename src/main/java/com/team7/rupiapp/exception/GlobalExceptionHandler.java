@@ -131,4 +131,11 @@ public class GlobalExceptionHandler {
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
     }
+
+    @ExceptionHandler(UUIDParsingException.class)
+    public ResponseEntity<Object> handleUUIDException(UUIDParsingException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, "Failed parsing id to UUID");
+    }
 }

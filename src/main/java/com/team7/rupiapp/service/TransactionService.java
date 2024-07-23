@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TransactionService {
-    TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal);
+    public TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal);
 
-    List<DestinationDto> getDestination(Principal principal);
+    public List<DestinationDto> getDestination(Principal principal);
 
-    void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto);
+    public void addFavorites(String id, DestinationFavoriteDto destinationFavoriteDto);
 
-    DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal);
+    public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal);
 
-    DestinationDetailDto getDestinationDetail(UUID id);
+    public DestinationDetailDto getDestinationDetail(String id);
 }
 
