@@ -1,6 +1,8 @@
 package com.team7.rupiapp.model;
 
 import com.team7.rupiapp.enums.MutationType;
+import com.team7.rupiapp.enums.TransactionPurpose;
+import com.team7.rupiapp.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,7 +35,18 @@ public class Mutation {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MutationType type;
+    private MutationType mutationType;
 
+    @Column(nullable = false, length = 10)
+    private String accountNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionPurpose transactionPurpose;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
 }
