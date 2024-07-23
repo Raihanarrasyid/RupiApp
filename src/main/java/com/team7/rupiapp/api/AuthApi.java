@@ -3,13 +3,11 @@ package com.team7.rupiapp.api;
 import java.security.Principal;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
-import com.team7.rupiapp.dto.auth.signin.SigninResponseDto;
 import com.team7.rupiapp.dto.auth.signup.ResendVerificationDto;
 import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
@@ -18,15 +16,22 @@ import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 
 public interface AuthApi {
     @Operation(summary = "Register")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "full_name": "Samsul Bahri",
+                "username": "samsul",
+                "email": "samsul@rupiapp.me",
+                "phone": "628123456789"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = {
+            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "No Password", value = """
                             {
                                 "message": "Signup success",
@@ -51,7 +56,7 @@ public interface AuthApi {
                             }
                             """)
             })),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = {
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "Required", value = """
                             {
                                 "message": "Validation failed",
@@ -71,11 +76,17 @@ public interface AuthApi {
                             """)
             }))
     })
-    public ResponseEntity<Object> signup(@Valid @RequestBody SignupDto signupDto);
+    public ResponseEntity<Object> signup(SignupDto signupDto);
 
     @Operation(summary = "Login")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "username": "samsul",
+                "password": "TUkpvX6u"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Signin success",
                         "data": {
@@ -87,12 +98,12 @@ public interface AuthApi {
                         }
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Invalid username or password"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -102,21 +113,26 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> signin(@Valid @RequestBody SigninDto signinDto);
+    public ResponseEntity<Object> signin(SigninDto signinDto);
 
     @Operation(summary = "Resend verification otp")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "username": "samsul"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success resend verification otp", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Success resend verification otp", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Resend verification success"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "User not registered"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -125,12 +141,17 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> resendVerificationEmail(
-            @Valid @RequestBody ResendVerificationDto resendVerificationDto);
+    public ResponseEntity<Object> resendVerificationEmail(ResendVerificationDto resendVerificationDto);
 
     @Operation(summary = "Verification")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "type": "REGISTRATION",
+                "otp": "975226"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = {
+            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "REGISTRATION", value = """
                             {
                                 "message": "Registration verified"
@@ -147,7 +168,7 @@ public interface AuthApi {
                             }
                             """)
             })),
-            @ApiResponse(responseCode = "400", description = "OTP Validate", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = {
+            @ApiResponse(responseCode = "400", description = "OTP Validate", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "Invalid", value = """
                             {
                                 "message": "Invalid OTP"
@@ -159,7 +180,7 @@ public interface AuthApi {
                             }
                             """)
             })),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -169,22 +190,27 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationDto,
+    public ResponseEntity<Object> verify(VerificationDto verificationDto,
             Principal principal);
 
     @Operation(summary = "Forgot Password")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "username": "samsul"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Forgot password success"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "User not registered"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -193,24 +219,30 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> forgotPasswordRequest(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto);
+    public ResponseEntity<Object> forgotPasswordRequest(ForgotPasswordDto forgotPasswordDto);
 
     @Operation(summary = "Login with PIN")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "refresh_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3NzI3OGJkMC1iYjI5LTQ2OGMtYTdmOS1kMjEyN2IwNmY0NDgiLCJzdWIiOiJzYW1zdWwiLCJpYXQiOjE3MjE1ODAxNTUsImV4cCI6MTcyNDE3MjE1NX0.hvnGA7sZIIpZVuwk_noF2CY3Qs9rWd6Ma7xGYB-pino",
+                "pin": "123456"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                        "message": "Successfully refreshed token"
+                        "message": "Successfully refreshed token",
                         "data": {
                             "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3YzQxYmVjZS0zZDI5LTQ4MWYtOTczMS0xMTJmYmU0NzU4ZTIiLCJzdWIiOiJzYW1zdWwiLCJpYXQiOjE3MjE1OTczOTQsImV4cCI6MTcyMTY4Mzc5NH0.HXEoKENW2WSfGE5YaLuZPIOUhzFJGqlibbWkZyvLp80"
                         }
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "400", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Invalid pin"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -220,56 +252,68 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto);
+    public ResponseEntity<Object> refreshToken(RefreshTokenDto refreshTokenDto);
 
     @Operation(summary = "Set New Password")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "password": "123#4a567U8",
+                "confirm_password": "123#4a567U8"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success set Password", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Success set Password", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Password has been successfully updated."
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "403", description = "Auth Not verified", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "403", description = "Auth Not verified", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Login is not verified"
                     }
                     """)))
     })
-    public ResponseEntity<Object> setPassword(@Valid @RequestBody SetPasswordDto setPasswordDto, Principal principal);
+    public ResponseEntity<Object> setPassword(SetPasswordDto setPasswordDto, Principal principal);
 
     @Operation(summary = "Set PIN")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            {
+                "pin": "123456",
+                "confirm_pin": "123456"
+            }
+            """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success set PIN", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Success set PIN", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "PIN has been successfully set."
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "403", description = "Auth Not verified ", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "403", description = "Auth Not verified ", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Login is not verified"
                     }
                     """)))
     })
-    public ResponseEntity<Object> setPin(@RequestBody SetPinDto setPinDto, Principal principal);
+    public ResponseEntity<Object> setPin(SetPinDto setPinDto, Principal principal);
 
     @Operation(summary = "Logout")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Logout success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Logout success", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Signout success"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SigninResponseDto.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Unauthorized"
                     }
