@@ -1,6 +1,5 @@
 package com.team7.rupiapp.exception;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -106,12 +105,11 @@ public class GlobalExceptionHandler {
                     .map(Reference::getFieldName)
                     .collect(Collectors.joining("."));
 
-            String validValues = Arrays.stream(ife.getTargetType().getEnumConstants())
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", ", "[", "]"));
+            String message = "Invalid value '" + ife.getValue() + "' for field '" + fieldName + "'";
 
-            String message = "Invalid value '" + ife.getValue() + "' for " + fieldName +
-                    ". Valid values are: " + validValues;
+            if (ife.getTargetType() == UUID.class) {
+                message = "Invalid UUID format for field '" + fieldName + "'";
+            }
 
             return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
         }
