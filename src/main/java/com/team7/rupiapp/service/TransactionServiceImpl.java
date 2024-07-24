@@ -160,6 +160,10 @@ public class TransactionServiceImpl implements TransactionService {
         Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1, requestDto.getAccountNumber());
         requestDto.setFullname(user.getFullName());
 
+        if (user==user1){
+            throw new BadRequestException("can't add your own account number");
+        }
+
         if (existingDestination.isPresent()) {
             log.info("nothing has been added");
         } else {
