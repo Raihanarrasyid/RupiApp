@@ -183,8 +183,7 @@ public interface TransferApi {
     @Operation(summary = "Add Destination")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
             {
-                "account_number":"1234567893",
-                "bank_name":"BCA"
+                "account_number":"1234567893"
             }
             """)))
     @ApiResponses(value = {
@@ -192,14 +191,10 @@ public interface TransferApi {
                     {
                         "data": {
                             "fullname": "asdfjkl1",
-                            "account_number": "1234567893",
-                            "bank_name": "BCA"
+                            "account_number": "1234567893"
                         },
                         "message": "transaction has been added"
                     }
-                    """))),
-            @ApiResponse(responseCode = "400", description = "No Body", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    Invalid request body
                     """))),
             @ApiResponse(responseCode = "400", description = "User didn't found", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
@@ -215,8 +210,7 @@ public interface TransferApi {
                     {
                         "message": "Validation failed",
                         "errors": {
-                            "account_number": "must not be null",
-                            "bank_name": "Type must not be null"
+                            "account_number": "must not be null"
                         }
                     }
                     """)))
