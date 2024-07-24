@@ -11,8 +11,4 @@ public class DestinationAddDto {
     @Column(length = 10)
     @NotNull(message = "account_number is required")
     private String accountNumber;
-    @NotNull(message = "Type must not be null")
-    private String bankName;
-
-
 }

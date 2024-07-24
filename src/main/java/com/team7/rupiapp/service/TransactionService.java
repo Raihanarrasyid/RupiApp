@@ -16,10 +16,10 @@ public interface TransactionService {
 
     public List<DestinationDto> getDestination(Principal principal);
 
-    public void addFavorites(String id, DestinationFavoriteDto destinationFavoriteDto);
+    public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto);
 
     public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal);
 
-    public DestinationDetailDto getDestinationDetail(String id);
+    public DestinationDetailDto getDestinationDetail(UUID id);
 }
 

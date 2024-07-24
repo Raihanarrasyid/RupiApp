@@ -9,7 +9,6 @@ import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
-import com.team7.rupiapp.exception.UUIDParsingException;
 import com.team7.rupiapp.model.Destination;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
@@ -148,12 +147,10 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void addFavorites(String id, DestinationFavoriteDto destinationFavoriteDto) {
-        try {
-            // change the id from string to UUId
-            UUID uuid = UUID.fromString(id);
+    public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
+
             // Fetch destination by user and account number
-            Destination destination = destinationRepository.findById(uuid)
+            Destination destination = destinationRepository.findById(id)
                     .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
             // Update the destination to set as favorite
@@ -162,9 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
             // Save the updated destination
             destinationRepository.save(destination);
             log.info("updated favorite for destination with id: {}", id);
-        } catch (IllegalArgumentException ex) {
-            throw new UUIDParsingException("Failed parsing id to UUID");
-        }
+
     }
 
     @Override
@@ -198,19 +193,15 @@ public class TransactionServiceImpl implements TransactionService {
             destinationRepository.save(newDestination);
             log.info("destination has been added with userID: {}", user1.getId());
         }
-
-
         return requestDto;
 
     }
 
     @Override
-    public DestinationDetailDto getDestinationDetail(String id) {
-        try {
-            // change the id from string to UUId
-            UUID uuid = UUID.fromString(id);
+    public DestinationDetailDto getDestinationDetail(UUID id) {
+
             // Fetch user based on id
-            Destination destination = destinationRepository.findById(uuid)
+            Destination destination = destinationRepository.findById(id)
                     .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
             // Create and populate DestinationDetailDto
@@ -219,9 +210,7 @@ public class TransactionServiceImpl implements TransactionService {
             destinationDetail.setAccountNumber(destination.getAccountNumber());
 
             return destinationDetail;
-        } catch (IllegalArgumentException ex) {
-            throw new UUIDParsingException("Failed parsing id to UUID");
-        }
+
     }
 
 

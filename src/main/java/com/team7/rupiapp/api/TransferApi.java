@@ -1,6 +1,7 @@
 package com.team7.rupiapp.api;
 
 import java.security.Principal;
+import java.util.UUID;
 
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
@@ -147,7 +148,7 @@ public interface TransferApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> addFavorites(@PathVariable("id") String id, @Valid @org.springframework.web.bind.annotation.RequestBody DestinationFavoriteDto requestDto);
+    public ResponseEntity<Object> addFavorites(@PathVariable("id") UUID id, @Valid @org.springframework.web.bind.annotation.RequestBody DestinationFavoriteDto requestDto);
 
     @Operation(summary = "Destination Detail")
     @ApiResponses(value = {
@@ -177,7 +178,7 @@ public interface TransferApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> getDetail(@PathVariable("id") String id);
+    public ResponseEntity<Object> getDetail(@PathVariable("id") UUID id);
 
     @Operation(summary = "Add Destination")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """

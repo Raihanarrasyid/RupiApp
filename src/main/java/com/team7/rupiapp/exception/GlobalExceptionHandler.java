@@ -23,6 +23,7 @@ import com.team7.rupiapp.util.ApiResponseUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @ControllerAdvice
@@ -132,10 +133,9 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
     }
 
-    @ExceptionHandler(UUIDParsingException.class)
-    public ResponseEntity<Object> handleUUIDException(UUIDParsingException ex) {
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         log.error(ex.getMessage());
-
-        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, "Failed parsing id to UUID");
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Invalid argument type");
     }
 }
