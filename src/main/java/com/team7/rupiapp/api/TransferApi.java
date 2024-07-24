@@ -112,11 +112,18 @@ public interface TransferApi {
                         "message": "List of destinations"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Unauthorized"
-                    }
-                    """)))
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Unauthorized", value = """
+                            {
+                                "message": "Unauthorized"
+                            }
+                            """),
+                    @ExampleObject(name = "Invalid", value = """
+                            {
+                                "message": "Invalid token signature"
+                            }
+                            """)
+            }))
     })
     public ResponseEntity<Object> getDestinations(@Valid Principal principal);
 
@@ -137,11 +144,18 @@ public interface TransferApi {
                           "message": "Destination not found"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Unauthorized"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Unauthorized", value = """
+                            {
+                                "message": "Unauthorized"
+                            }
+                            """),
+                    @ExampleObject(name = "Invalid", value = """
+                            {
+                                "message": "Invalid token signature"
+                            }
+                            """)
+            })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                           "message": "Failed parsing id to UUID"
@@ -167,11 +181,18 @@ public interface TransferApi {
                           "message": "Destination not found"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Unauthorized"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Unauthorized", value = """
+                            {
+                                "message": "Unauthorized"
+                            }
+                            """),
+                    @ExampleObject(name = "Invalid", value = """
+                            {
+                                "message": "Invalid token signature"
+                            }
+                            """)
+            })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                           "message": "Failed parsing id to UUID"
@@ -201,11 +222,18 @@ public interface TransferApi {
                         "message": "Account number not found"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Unauthorized"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Unauthorized", value = """
+                            {
+                                "message": "Unauthorized"
+                            }
+                            """),
+                    @ExampleObject(name = "Invalid", value = """
+                            {
+                                "message": "Invalid token signature"
+                            }
+                            """)
+            })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
