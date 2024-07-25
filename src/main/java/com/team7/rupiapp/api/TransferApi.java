@@ -4,9 +4,7 @@ import java.security.Principal;
 import java.util.UUID;
 
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
-import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
@@ -58,6 +56,18 @@ public interface TransferApi {
                         "message": "Unauthorized"
                     }
                     """))),
+            @ApiResponse(responseCode = "400", description = "Bad Request due to invalid input", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Invalid UUID Format", value = """
+                            {
+                                "message": "Invalid UUID format for field 'destination_id'"
+                            }
+                            """),
+                    @ExampleObject(name = "Destination Not Found", value = """
+                            {
+                                "message": "Destination not found"
+                            }
+                            """)
+            })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
