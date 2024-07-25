@@ -1,6 +1,5 @@
 package com.team7.rupiapp.exception;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,8 +20,10 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @ControllerAdvice
@@ -105,12 +106,11 @@ public class GlobalExceptionHandler {
                     .map(Reference::getFieldName)
                     .collect(Collectors.joining("."));
 
-            String validValues = Arrays.stream(ife.getTargetType().getEnumConstants())
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", ", "[", "]"));
+            String message = "Invalid value '" + ife.getValue() + "' for field '" + fieldName + "'";
 
-            String message = "Invalid value '" + ife.getValue() + "' for " + fieldName +
-                    ". Valid values are: " + validValues;
+            if (ife.getTargetType() == UUID.class) {
+                message = "Invalid UUID format for field '" + fieldName + "'";
+            }
 
             return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
         }
@@ -130,5 +130,19 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Invalid argument type");
+    }
+
+    @ExceptionHandler(MalformedJwtException.class)
+    public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex) {
+        log.error(ex.getMessage());
+
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token format");
     }
 }

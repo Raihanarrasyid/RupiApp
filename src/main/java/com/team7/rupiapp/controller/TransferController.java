@@ -1,5 +1,6 @@
 package com.team7.rupiapp.controller;
 
+import com.team7.rupiapp.api.TransferApi;
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
@@ -10,7 +11,6 @@ import com.team7.rupiapp.service.TransactionService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +21,9 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/transfer")
-public class TransferController {
+public class TransferController implements TransferApi {
     private final TransactionService transactionService;
 
-    @Autowired
     public TransferController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
