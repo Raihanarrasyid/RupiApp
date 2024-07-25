@@ -3,7 +3,6 @@ package com.team7.rupiapp.dto.destination;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 public class DestinationAddDto {

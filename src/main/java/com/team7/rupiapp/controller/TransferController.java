@@ -11,7 +11,6 @@ import com.team7.rupiapp.service.TransactionService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ import java.util.UUID;
 public class TransferController implements TransferApi {
     private final TransactionService transactionService;
 
-    @Autowired
     public TransferController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }

@@ -17,7 +17,6 @@ import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final DestinationRepository destinationRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
     public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.mutationRepository = mutationRepository;

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.web.bind.annotation.PathVariable;
 
 public interface TransferApi {
 
@@ -81,7 +79,7 @@ public interface TransferApi {
                     }
                     """)))
     })
-    ResponseEntity<Object> transferIntrabank(@Valid TransferRequestDto requestDto, Principal principal);
+    ResponseEntity<Object> transferIntrabank(TransferRequestDto requestDto, Principal principal);
 
     @Operation(summary = "List Destination")
     @ApiResponses(value = {
@@ -135,7 +133,7 @@ public interface TransferApi {
                             """)
             }))
     })
-    public ResponseEntity<Object> getDestinations(@Valid Principal principal);
+    public ResponseEntity<Object> getDestinations(Principal principal);
 
     @Operation(summary = "Add to Favorites")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
@@ -151,7 +149,7 @@ public interface TransferApi {
                     """))),
             @ApiResponse(responseCode = "400", description = "Wrong id destination", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                          "message": "Destination not found"
+                        "message": "Destination not found"
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
@@ -168,11 +166,11 @@ public interface TransferApi {
             })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                          "message": "Failed parsing id to UUID"
+                        "message": "Failed parsing id to UUID"
                     }
                     """)))
     })
-    public ResponseEntity<Object> addFavorites(@PathVariable("id") UUID id, @Valid @org.springframework.web.bind.annotation.RequestBody DestinationFavoriteDto requestDto);
+    public ResponseEntity<Object> addFavorites(UUID id, DestinationFavoriteDto requestDto);
 
     @Operation(summary = "Destination Detail")
     @ApiResponses(value = {
@@ -188,7 +186,7 @@ public interface TransferApi {
                     """))),
             @ApiResponse(responseCode = "400", description = "Wrong id destination", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                          "message": "Destination not found"
+                        "message": "Destination not found"
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = {
@@ -205,11 +203,11 @@ public interface TransferApi {
             })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                          "message": "Failed parsing id to UUID"
+                        "message": "Failed parsing id to UUID"
                     }
                     """)))
     })
-    public ResponseEntity<Object> getDetail(@PathVariable("id") UUID id);
+    public ResponseEntity<Object> getDetail(UUID id);
 
     @Operation(summary = "Add Destination")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
@@ -253,6 +251,6 @@ public interface TransferApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> addDestination(@Valid @org.springframework.web.bind.annotation.RequestBody DestinationAddDto requestDto, Principal principal);
+    public ResponseEntity<Object> addDestination(DestinationAddDto requestDto, Principal principal);
 
 }
