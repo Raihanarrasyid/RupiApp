@@ -2,7 +2,9 @@ package com.team7.rupiapp.service;
 
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
+import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
+import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.DataNotFoundException;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
@@ -11,6 +13,7 @@ import com.team7.rupiapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,23 +30,50 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDetailResponseDto getAccountDetail(Principal principal) {
-        try {
-            // Validate user
-            User foundUser = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new DataNotFoundException("User not found"));
+        User foundUser = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
 
-            AccountDetailResponseDto response = new AccountDetailResponseDto();
-            response.setFullName(foundUser.getFullName());
-            response.setEmail(foundUser.getEmail());
-            response.setAccountNumber(foundUser.getAccountNumber());
-            response.setBalance(foundUser.getBalance());
+        AccountDetailResponseDto response = new AccountDetailResponseDto();
+        response.setFullName(foundUser.getFullName());
+        response.setEmail(foundUser.getEmail());
+        response.setAccountNumber(foundUser.getAccountNumber());
+        response.setBalance(foundUser.getBalance());
 
-            return response;
-        } catch (Exception e) {
-            throw e;
-        }
+        return response;
     }
 
+    @Override
+    public AccountMutationSummaryResponseDto getAccountMutationSummary(Principal principal) {
+        User foundUser = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        List<Mutation> mutations = mutationRepository.findByUserId(foundUser.getId());
+
+        mutations = mutations.stream()
+                .filter(mutation -> mutation.getCreatedAt().getMonth().equals(LocalDateTime.now().getMonth()))
+                .toList();
+
+        Double totalIncome = mutations.stream()
+                .filter(mutation -> mutation.getTransactionType().equals(TransactionType.CREDIT))
+                .mapToDouble(Mutation::getAmount)
+                .sum();
+
+        Double totalExpense = mutations.stream()
+                .filter(mutation -> mutation.getTransactionType().equals(TransactionType.DEBIT))
+                .mapToDouble(Mutation::getAmount)
+                .sum();
+
+        AccountMutationSummaryResponseDto response = new AccountMutationSummaryResponseDto();
+        response.setTotalIncome(totalIncome);
+        response.setTotalExpense(totalExpense);
+        response.setTotalEarnings(totalIncome - totalExpense);
+        response.setRangeStartMutationDate(LocalDateTime.now().withDayOfMonth(1));
+        response.setRangeEndMutationDate(LocalDateTime.now().withDayOfMonth(LocalDateTime.now().toLocalDate().lengthOfMonth()));
+
+        return response;
+    }
+
+    @Override
     public AccountMutationsMonthlyDto getAccountMutation(Principal principal) {
         Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
 
