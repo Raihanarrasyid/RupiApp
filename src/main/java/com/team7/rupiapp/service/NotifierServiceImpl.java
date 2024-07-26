@@ -54,7 +54,7 @@ public class NotifierServiceImpl implements NotifierService {
                 "*" + otp + "* adalah kode verifikasi Anda. Demi keamanan, jangan bagikan kode ini kepada siapapun.");
 
         try {
-            whatsappClient.sendWhatsappMessage(data);
+            whatsappClient.sendMessage(data);
         } catch (FeignException e) {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
@@ -77,7 +77,7 @@ public class NotifierServiceImpl implements NotifierService {
                         + "Jika Anda tidak meminta kode ini, abaikan saja pesan ini.");
 
         try {
-            whatsappClient.sendWhatsappMessage(data);
+            whatsappClient.sendMessage(data);
         } catch (FeignException e) {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
@@ -99,7 +99,7 @@ public class NotifierServiceImpl implements NotifierService {
                         + "* adalah kode verifikasi login Anda. Demi keamanan, jangan bagikan kode ini kepada siapapun.");
 
         try {
-            whatsappClient.sendWhatsappMessage(data);
+            whatsappClient.sendMessage(data);
         } catch (FeignException e) {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");

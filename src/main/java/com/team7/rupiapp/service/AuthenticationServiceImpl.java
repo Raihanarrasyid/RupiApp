@@ -17,6 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.team7.rupiapp.client.WhatsappClient;
+import com.team7.rupiapp.client.data.CheckWhatsappNumberData;
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
@@ -35,6 +37,7 @@ import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.repository.UserRepository;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.team7.rupiapp.repository.OtpRepository;
@@ -51,6 +54,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final OtpRepository otpRepository;
 
+    private final WhatsappClient whatsappClient;
+
     public AuthenticationServiceImpl(
             ModelMapper modelMapper,
             JwtService jwtService,
@@ -59,7 +64,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             NotifierService notifierService,
             HttpServletRequest request,
             UserRepository userRepository,
-            OtpRepository otpRepository) {
+            OtpRepository otpRepository,
+            WhatsappClient whatsappClient) {
         this.modelMapper = modelMapper;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -68,6 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.request = request;
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
+        this.whatsappClient = whatsappClient;
     }
 
     @Value("${app.otp.code.length}")
@@ -75,6 +82,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Value("${app.otp.code.expiration-time}")
     private int otpExpirationTime;
+
+    @Value("${client.wahub.key}")
+    private String waApiKey;
 
     private Random random = new Random();
 
@@ -88,14 +98,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private Otp createOtp(User user, OtpType type) {
         int code = random.nextInt((int) Math.pow(10, otpCodeLength));
         String otpCode = String.format("%0" + otpCodeLength + "d", code);
-    
+
         Otp otp = new Otp();
         otp.setCode(passwordEncoder.encode(otpCode));
         otp.setUser(user);
         otp.setExpiryDate(LocalDateTime.now().plusMinutes(otpExpirationTime));
         otp.setType(type);
         otpRepository.save(otp);
-    
+
         return new Otp(user, otpCode, otp.getExpiryDate());
     }
 
@@ -110,6 +120,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public SignupResponseDto signup(SignupDto signupDto) {
+        CheckWhatsappNumberData data = new CheckWhatsappNumberData();
+        data.setAuthkey(waApiKey);
+        data.setNumber(signupDto.getPhone());
+
+        try {
+            whatsappClient.checkNumber(data);
+        } catch (FeignException e) {
+            if (e.status() == HttpStatus.BAD_REQUEST.value()) {
+                throw new BadRequestException("Number is not valid");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send verification message");
+        }
+
         if (signupDto.getPassword() == null || signupDto.getConfirmPassword() == null) {
             String password = generateSimplePassword(8);
 

@@ -1,7 +1,6 @@
 package com.team7.rupiapp.dto.destination;
 
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.UUID;
@@ -11,7 +10,7 @@ public class DestinationDto {
     private UUID id;
     private String fullname;
 
-    @Column(length = 10)
+    @Size(min = 10, max = 10, message = "account_number must be 10 characters")
     private String accountNumber;
 
     private boolean isFavorites;
