@@ -1,6 +1,7 @@
 package com.team7.rupiapp.controller;
 
 
+import com.team7.rupiapp.api.AccountApi;
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.service.AccountServiceImpl;
 import com.team7.rupiapp.util.ApiResponseUtil;
@@ -15,7 +16,7 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/account")
-public class AccountController {
+public class AccountController implements AccountApi {
 
     private final AccountServiceImpl accountService;
 

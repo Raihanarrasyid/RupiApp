@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.servers.ServerVariable;
 
 @OpenAPIDefinition(
         info = @Info(
@@ -22,8 +23,22 @@ import io.swagger.v3.oas.annotations.servers.Server;
         ),
         servers = {
                 @Server(
-                        description = "Production",
-                        url = "https://api.rupiapp.me"
+                        url = "https://{host}",
+                        variables = {
+                                @ServerVariable(
+                                        name = "host",
+                                        defaultValue = "api.rupiapp.me"
+                                )
+                        }
+                ),
+                @Server(
+                        url = "http://{host}",
+                        variables = {
+                                @ServerVariable(
+                                        name = "host",
+                                        defaultValue = "localhost:8080"
+                                )
+                        }
                 )
         },
         security = {
