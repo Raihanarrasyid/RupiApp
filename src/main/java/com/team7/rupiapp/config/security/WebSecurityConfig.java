@@ -21,7 +21,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class WebSecurityConfig {
         private final AuthenticationProvider authenticationProvider;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
         private final AuthEntryPointJwt authEntryPointJwt;
 
         public WebSecurityConfig(
@@ -56,10 +55,11 @@ public class WebSecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(List.of("*"));
-                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+                configuration.setAllowedOriginPatterns(List.of("*"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
                 configuration.setAllowCredentials(true);
+
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
                 return source;
