@@ -58,6 +58,10 @@ public class TransactionServiceImpl implements TransactionService {
         Destination destination = destinationRepository.findById(requestDto.getDestinationId())
                 .orElseThrow(() -> new DataNotFoundException("Destination not found"));
 
+        if (!destination.getUser().getId().equals(sender.getId())) {
+            throw new BadRequestException("Destination does not belong to the sender");
+        }
+
         User receiver = userRepository.findByAccountNumber(destination.getAccountNumber())
                 .orElseThrow(() -> new DataNotFoundException("Receiver not found with account number: " + destination.getAccountNumber()));
 

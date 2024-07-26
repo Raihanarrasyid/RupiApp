@@ -66,6 +66,21 @@ public interface TransferApi {
                             {
                                 "message": "Destination not found"
                             }
+                            """),
+                    @ExampleObject(name = "Destination does not belong to the sender", value = """
+                            {
+                                "message": "Destination does not belong to the sender"
+                            }
+                            """),
+                    @ExampleObject(name = "Invalid PIN", value = """
+                            {
+                                "message": "Invalid PIN"
+                            }
+                            """),
+                    @ExampleObject(name = "Insufficient balance", value = """
+                            {
+                                "message": "Insufficient balance"
+                            }
                             """)
             })),
             @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
