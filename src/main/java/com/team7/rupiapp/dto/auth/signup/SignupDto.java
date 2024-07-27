@@ -1,5 +1,6 @@
 package com.team7.rupiapp.dto.auth.signup;
 
+import com.team7.rupiapp.dto.validation.ValidPhoneNumber;
 import com.team7.rupiapp.dto.validation.ValidUnique;
 
 import jakarta.validation.constraints.Email;
@@ -22,6 +23,7 @@ public class SignupDto {
 
     @NotBlank(message = "Phone is required")
     @ValidUnique(column = "phone", message = "Phone already been taken")
+    @ValidPhoneNumber(message = "Phone must be a valid phone number")
     private String phone;
 
     private String password;

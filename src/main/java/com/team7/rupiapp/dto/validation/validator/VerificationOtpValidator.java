@@ -12,14 +12,14 @@ public class VerificationOtpValidator implements ConstraintValidator<ValidVerifi
     public boolean isValid(VerificationDto dto, ConstraintValidatorContext context) {
         boolean isValid = true;
 
-        if (dto.getType() == OtpType.PASSWORD_RESET) {
+        if (dto.getType() == OtpType.FORGOT_PASSWORD) {
             isValid = dto.getUsername() != null && !dto.getUsername().isBlank() &&
                     dto.getPassword() != null && !dto.getPassword().isBlank() &&
                     dto.getConfirmPassword() != null && !dto.getConfirmPassword().isBlank();
             if (!isValid) {
                 context.disableDefaultConstraintViolation();
                 context.buildConstraintViolationWithTemplate(
-                        "username, password and confirm_password must not be null when otp_type is PASSWORD_RESET")
+                        "username, password and confirm_password must not be null when otp_type is FORGOT_PASSWORD")
                         .addConstraintViolation();
             }
         }

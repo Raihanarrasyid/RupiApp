@@ -57,7 +57,7 @@ public class AuthController implements AuthApi {
     @PostMapping("/verify")
     public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationDto,
             Principal principal) {
-        if (principal == null && verificationDto.getType() != OtpType.PASSWORD_RESET) {
+        if (principal == null && verificationDto.getType() != OtpType.FORGOT_PASSWORD) {
             throw new BadCredentialsException("Unauthorized");
         }
         return authenticationService.verify(principal, verificationDto);
