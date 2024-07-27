@@ -13,9 +13,9 @@ public class AccountDetailResponseDto {
     @Schema(description = "Email of account holder", example = "john.doe@example.com")
     private String email;
 
-    @Schema(description = "Account number", example = "1234567890")
+    @Schema(description = "Account number", example = "0774014731")
     private String accountNumber;
 
-    @Schema(description = "Account balance", example = "1500000.0")
-    private Double balance;
+    @Schema(description = "Account balance. Examples (quoted): 'Rp3.900.000,00', 'Rp0,00'", example = "Rp3.900.000,00")
+    private String balance;
 }
