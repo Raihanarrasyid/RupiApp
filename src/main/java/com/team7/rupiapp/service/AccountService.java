@@ -10,10 +10,7 @@ public interface AccountService {
     public AccountDetailResponseDto getAccountDetail(Principal principal);
     public AccountMutationSummaryResponseDto getAccountMutationSummary(Principal principal);
 
-<<<<<<< HEAD
-    AccountMutationsMonthlyDto getAccountMutation(Principal principal);
-    AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size);
-=======
+
     public AccountMutationsMonthlyDto getAccountMutation(Principal principal);
->>>>>>> fd27da403db9c7567aaf016cd0174cc4d3e95191
+    public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size);
 }
