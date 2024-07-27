@@ -49,7 +49,7 @@ public class AccountController implements AccountApi {
         return ApiResponseUtil.success(HttpStatus.OK, "Account Mutations fetched", response);
     }
 
-    @GetMapping("/pageable")
+    @GetMapping("/mutations/page")
     public ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(Principal principal,
                                                                                   @RequestParam(defaultValue = "0") int page,
                                                                                   @RequestParam(defaultValue = "10") int size) {
