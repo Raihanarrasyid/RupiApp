@@ -24,14 +24,19 @@ public class AccountController implements AccountApi {
     private final AccountServiceImpl accountService;
 
     public AccountController(AccountServiceImpl accountService) {
-
         this.accountService = accountService;
     }
 
     @GetMapping("/detail")
     public ResponseEntity<Object> getAccountDetail(@Valid Principal principal) {
         AccountDetailResponseDto response = accountService.getAccountDetail(principal);
-        return ApiResponseUtil.success(HttpStatus.OK, "Account detail fetched", response);
+        return ApiResponseUtil.success(HttpStatus.OK, "Account Detail fetched", response);
+    }
+
+    @GetMapping("/mutations/summary")
+    public ResponseEntity<Object> getAccountMutationSummary(@Valid Principal principal) {
+        Object response = accountService.getAccountMutationSummary(principal);
+        return ApiResponseUtil.success(HttpStatus.OK, "Account Mutation Summary fetched", response);
     }
 
     @GetMapping("/mutations")

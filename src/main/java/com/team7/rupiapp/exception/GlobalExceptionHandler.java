@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
             return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
         }
 
-        return ResponseEntity.badRequest().body("Invalid request body");
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Invalid request body");
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
