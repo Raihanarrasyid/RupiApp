@@ -10,4 +10,7 @@ public class AccountMutationResponseDto {
     private String category;
     private String description;
     private Double amount;
+    private String accountNumber;
+    private String transactionPurpose;
+    private String transactionType;
 }

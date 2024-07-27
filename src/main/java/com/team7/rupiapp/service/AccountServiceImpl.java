@@ -8,6 +8,9 @@ import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -64,6 +67,44 @@ public class AccountServiceImpl implements AccountService {
                         dto.setCategory(mutation.getMutationType().name());
                         dto.setDescription(mutation.getDescription());
                         dto.setAmount(mutation.getAmount());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+
+            responseData.put(month.name().toLowerCase(), monthData);
+        }
+
+        AccountMutationsMonthlyDto response = new AccountMutationsMonthlyDto();
+        response.setData(responseData);
+
+        return response;
+    }
+
+    public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size) {
+        Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
+
+        UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Mutation> mutationsPage = mutationRepository.findByUserId(userId, pageable);
+        List<Mutation> mutations = mutationsPage.getContent();
+
+        Map<Month, List<Mutation>> groupedByMonth = mutations.stream()
+                .collect(Collectors.groupingBy(mutation -> mutation.getCreatedAt().getMonth()));
+
+        Map<String, List<AccountMutationResponseDto>> responseData = new LinkedHashMap<>();
+
+        for (Month month : Month.values()) {
+            List<AccountMutationResponseDto> monthData = groupedByMonth.getOrDefault(month, Collections.emptyList()).stream()
+                    .map(mutation -> {
+                        AccountMutationResponseDto dto = new AccountMutationResponseDto();
+                        dto.setDate(mutation.getCreatedAt());
+                        dto.setCategory(mutation.getMutationType().name());
+                        dto.setDescription(mutation.getDescription());
+                        dto.setAmount(mutation.getAmount());
+                        dto.setAccountNumber(mutation.getAccountNumber());
+                        dto.setTransactionPurpose(mutation.getTransactionPurpose().name());
+                        dto.setTransactionType(mutation.getTransactionType().name());
                         return dto;
                     })
                     .collect(Collectors.toList());
