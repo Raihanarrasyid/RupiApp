@@ -146,7 +146,7 @@ public interface AuthApi {
     @Operation(summary = "Verification")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
             {
-                "type": "REGISTRATION",
+                "type": "LOGIN",
                 "otp": "975226"
             }
             """)))
@@ -162,7 +162,7 @@ public interface AuthApi {
                                 "message": "Login verified"
                             }
                             """),
-                    @ExampleObject(name = "PASSWORD_RESET", value = """
+                    @ExampleObject(name = "FORGOT_PASSWORD", value = """
                             {
                                 "message": "Password changed"
                             }
@@ -185,7 +185,7 @@ public interface AuthApi {
                         "message": "Validation failed",
                         "errors": {
                             "otp": "OTP is required",
-                            "type": "otp type must be one of REGISTRATION, PASSWORD_RESET, LOGIN"
+                            "type": "otp type must be one of LOGIN, FORGOT_PASSWORD"
                         }
                     }
                     """)))

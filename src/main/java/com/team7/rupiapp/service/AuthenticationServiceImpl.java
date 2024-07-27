@@ -130,8 +130,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification message");
         }
 
         if (signupDto.getPassword() == null || signupDto.getConfirmPassword() == null) {
@@ -159,7 +157,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
-        Otp otp = createOtp(savedUser, OtpType.REGISTRATION);
+        Otp otp = createOtp(savedUser, OtpType.LOGIN);
         notifierService.sendVerification(savedUser.getPhone(), savedUser.getUsername(), otp.getCode());
 
         SignupResponseDto signupResponseDto = modelMapper.map(savedUser, SignupResponseDto.class);
@@ -191,9 +189,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otpRepository::delete);
 
         if (user.isDefaultPassword()) {
-            otpRepository.findByUserAndType(user, OtpType.REGISTRATION).ifPresent(otpRepository::delete);
+            otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otpRepository::delete);
 
-            Otp otp = createOtp(user, OtpType.REGISTRATION);
+            Otp otp = createOtp(user, OtpType.LOGIN);
             notifierService.sendVerification(user.getPhone(), user.getUsername(), otp.getCode());
         } else {
             Otp otp = createOtp(user, OtpType.LOGIN);
@@ -215,7 +213,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         otpRepository.findByUser(user).ifPresent(otpRepository::delete);
 
-        Otp otp = createOtp(user, OtpType.REGISTRATION);
+        Otp otp = createOtp(user, OtpType.LOGIN);
         notifierService.sendVerification(user.getPhone(), user.getUsername(), otp.getCode());
     }
 
@@ -224,75 +222,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userRepository.findByUsername(forgotPasswordDto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET).ifPresent(otpRepository::delete);
+        otpRepository.findByUserAndType(user, OtpType.FORGOT_PASSWORD).ifPresent(otpRepository::delete);
 
-        Otp otp = createOtp(user, OtpType.PASSWORD_RESET);
+        Otp otp = createOtp(user, OtpType.FORGOT_PASSWORD);
         notifierService.sendResetPasswordVerification(user.getPhone(), user.getUsername(), otp.getCode());
     }
 
     @Override
     public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationDto) {
         switch (verificationDto.getType()) {
-            case REGISTRATION:
-                return verifyRegistration(principal, verificationDto);
-            case PASSWORD_RESET:
-                return forgotPassword(verificationDto);
             case LOGIN:
-                return verifyLogin(principal, verificationDto);
+                return handleVerifyLogin(principal, verificationDto);
+            case FORGOT_PASSWORD:
+                return handleForgotPassword(verificationDto);
             default:
                 throw new BadRequestException("Invalid OTP type");
         }
     }
 
-    private ResponseEntity<Object> verifyRegistration(Principal principal, VerificationDto verificationDto) {
-        User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
-
-        Otp otp = otpRepository.findByUserAndType(user, OtpType.REGISTRATION)
-                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
-
-        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
-            otpRepository.delete(otp);
-            throw new BadRequestException("OTP expired");
-        }
-
-        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
-            user.setVerified(true);
-            userRepository.save(user);
-            otpRepository.delete(otp);
-
-            jwtService.verifyToken(getAuthenticationToken());
-
-            return ApiResponseUtil.success(HttpStatus.OK, "Registration verified");
-        } else {
-            throw new BadRequestException("Invalid OTP");
-        }
-    }
-
-    private ResponseEntity<Object> forgotPassword(VerificationDto verificationDto) {
-        User user = userRepository.findByUsername(verificationDto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
-
-        Otp otp = otpRepository.findByUserAndType(user, OtpType.PASSWORD_RESET)
-                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
-
-        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
-            otpRepository.delete(otp);
-            throw new BadRequestException("OTP expired");
-        }
-
-        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
-            user.setPassword(passwordEncoder.encode(verificationDto.getPassword()));
-            userRepository.save(user);
-            otpRepository.delete(otp);
-
-            return ApiResponseUtil.success(HttpStatus.OK, "Password changed");
-        } else {
-            throw new BadRequestException("Invalid OTP");
-        }
-    }
-
-    private ResponseEntity<Object> verifyLogin(Principal principal, VerificationDto verificationDto) {
+    private ResponseEntity<Object> handleVerifyLogin(Principal principal, VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
@@ -304,16 +252,47 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new BadRequestException("OTP expired");
         }
 
-        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
-            String token = getAuthenticationToken();
+        if (!passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            throw new BadRequestException("Invalid OTP");
+        }
 
-            if (jwtService.isTokenEnabled(token)) {
-                return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
-            }
+        otpRepository.delete(otp);
 
+        String token = getAuthenticationToken();
+
+        if (!jwtService.isTokenEnabled(token)) {
             jwtService.verifyToken(token);
+        }
 
-            return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
+        if (!user.isVerified()) {
+            user.setVerified(true);
+            userRepository.save(user);
+
+            return ApiResponseUtil.success(HttpStatus.OK, "Registration verified");
+        }
+
+        return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
+    }
+
+    private ResponseEntity<Object> handleForgotPassword(VerificationDto verificationDto) {
+        User user = userRepository.findByUsername(verificationDto.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.FORGOT_PASSWORD)
+                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
+
+        if (otp.getExpiryDate().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otp);
+            throw new BadRequestException("OTP expired");
+        }
+
+        if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            user.setPassword(passwordEncoder.encode(verificationDto.getPassword()));
+            user.setDefaultPassword(false);
+            userRepository.save(user);
+            otpRepository.delete(otp);
+
+            return ApiResponseUtil.success(HttpStatus.OK, "Password changed");
         } else {
             throw new BadRequestException("Invalid OTP");
         }
