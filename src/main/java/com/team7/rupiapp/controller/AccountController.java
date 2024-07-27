@@ -3,11 +3,13 @@ package com.team7.rupiapp.controller;
 
 import com.team7.rupiapp.api.AccountApi;
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
 import com.team7.rupiapp.service.AccountServiceImpl;
 import com.team7.rupiapp.util.ApiResponseUtil;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +36,10 @@ public class AccountController implements AccountApi {
     }
 
     @GetMapping("/mutations/summary")
-    public ResponseEntity<Object> getAccountMutationSummary(@Valid Principal principal) {
-        Object response = accountService.getAccountMutationSummary(principal);
+    public ResponseEntity<Object> getAccountMutationSummary(@Valid Principal principal,
+                                                            @NotNull @Min(1900) @Max(2100) Integer year,
+                                                            @NotNull @Min(1) @Max(12) Integer month) {
+        Object response = accountService.getAccountMutationSummary(principal, month, year);
         return ApiResponseUtil.success(HttpStatus.OK, "Account Mutation Summary fetched", response);
     }
 
