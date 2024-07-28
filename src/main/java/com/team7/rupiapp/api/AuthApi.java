@@ -157,11 +157,6 @@ public interface AuthApi {
             """)))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "REGISTRATION", value = """
-                            {
-                                "message": "Registration verified"
-                            }
-                            """),
                     @ExampleObject(name = "LOGIN", value = """
                             {
                                 "message": "Login verified"
