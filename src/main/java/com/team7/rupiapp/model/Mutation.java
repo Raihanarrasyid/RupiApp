@@ -42,6 +42,9 @@ public class Mutation {
     @Column(nullable = false, length = 10)
     private String accountNumber;
 
+    @Column // TO DO @rahmi (nullable = false)
+    private String fullName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionPurpose transactionPurpose;
