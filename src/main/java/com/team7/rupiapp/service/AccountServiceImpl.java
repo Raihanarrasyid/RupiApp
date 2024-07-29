@@ -107,6 +107,9 @@ public class AccountServiceImpl implements AccountService {
                         dto.setCategory(mutation.getMutationType().name());
                         dto.setDescription(mutation.getDescription());
                         dto.setAmount(mutation.getAmount());
+                        dto.setAccountNumber(mutation.getAccountNumber());
+                        dto.setTransactionPurpose(mutation.getTransactionPurpose().name());
+                        dto.setTransactionType(mutation.getTransactionType().name());
                         return dto;
                     })
                     .collect(Collectors.toList());

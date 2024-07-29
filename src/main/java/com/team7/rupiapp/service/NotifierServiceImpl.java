@@ -59,8 +59,6 @@ public class NotifierServiceImpl implements NotifierService {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification message");
         }
     }
 
@@ -82,8 +80,6 @@ public class NotifierServiceImpl implements NotifierService {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification message");
         }
     }
 
@@ -104,8 +100,6 @@ public class NotifierServiceImpl implements NotifierService {
             if (e.status() == HttpStatus.BAD_REQUEST.value()) {
                 throw new BadRequestException("Number is not valid");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification message");
         }
     }
 }
