@@ -2,6 +2,7 @@ package com.team7.rupiapp.api;
 
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
+import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +16,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 
@@ -151,4 +154,106 @@ public interface AccountApi {
 
     public ResponseEntity<Object> getAccountMutation(@Valid Principal principal);
 
+    @Operation(
+            summary = "Get paginated account mutations with optional filtering",
+            description = "Retrieve a paginated list of account mutations with optional filtering by year, month, transaction purpose, and transaction type.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successful retrieval of account mutations",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = AccountMutationsMonthlyDto.class),
+                                    examples = @ExampleObject(
+                                            name = "example-response",
+                                            value = "{\n" +
+                                                    "  \"data\": {\n" +
+                                                    "    \"january\": [\n" +
+                                                    "      {\n" +
+                                                    "        \"date\": \"2023-01-01T10:00:00\",\n" +
+                                                    "        \"category\": \"CREDIT\",\n" +
+                                                    "        \"description\": \"Salary\",\n" +
+                                                    "        \"amount\": 1000.0,\n" +
+                                                    "        \"accountNumber\": \"123456\",\n" +
+                                                    "        \"transactionPurpose\": \"INVESTMENT\",\n" +
+                                                    "        \"transactionType\": \"DEBIT\",\n" +
+                                                    "        \"mutationType\": \"QRIS\"\n" +
+                                                    "      }\n" +
+                                                    "    ],\n" +
+                                                    "    \"february\": [\n" +
+                                                    "      {\n" +
+                                                    "        \"date\": \"2023-02-10T12:00:00\",\n" +
+                                                    "        \"category\": \"DEBIT\",\n" +
+                                                    "        \"description\": \"Groceries\",\n" +
+                                                    "        \"amount\": 150.0,\n" +
+                                                    "        \"accountNumber\": \"123456\",\n" +
+                                                    "        \"transactionPurpose\": \"PURCHASE\",\n" +
+                                                    "        \"transactionType\": \"DEBIT\",\n" +
+                                                    "        \"mutationType\": \"QRIS\"\n" +
+                                                    "      }\n" +
+                                                    "    ]\n" +
+                                                    "  }\n" +
+                                                    "}"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    examples = @ExampleObject(
+                                            name = "error-response",
+                                            value = "{ \"message\": \"User not found\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid request parameters",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    examples = @ExampleObject(
+                                            name = "error-response",
+                                            value = "{ \"message\": \"Invalid request parameters\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    examples = @ExampleObject(
+                                            name = "error-response",
+                                            value = "{ \"message\": \"Unauthorized\" }"
+                                    )
+                            )
+                    )
+            }
+    )
+    @GetMapping("/mutations/page/filter")
+    ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(
+            Principal principal,
+            @Parameter(description = "Page number", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "Page size", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+
+            @Parameter(description = "Year for filtering mutations", example = "2023")
+            @RequestParam(required = false) Integer year,
+
+            @Parameter(description = "Month for filtering mutations", example = "7")
+            @RequestParam(required = false) Integer month,
+
+            @Parameter(description = "Transaction purpose for filtering mutations", example = "PURCHASE")
+            @RequestParam(required = false) String transactionPurpose,
+
+            @Parameter(description = "Transaction type for filtering mutations", example = "CREDIT")
+            @RequestParam(required = false) String transactionType,
+
+            @Parameter(description = "Transaction type for filtering mutations", example = "TRANSFER")
+            @RequestParam(required = false) String mutationType
+    );
 }
