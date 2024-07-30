@@ -1,6 +1,7 @@
 package com.team7.rupiapp.service;
 
 import java.security.Principal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -210,6 +211,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (user.isVerified()) {
             throw new BadRequestException("User already verified");
         }
+
+        otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otp -> {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = otp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                long secondsLeft = Duration.between(now, nextAllowedTime).getSeconds();
+                String message = secondsLeft > 60
+                        ? String.format("OTP already sent, please wait for %d minutes", (secondsLeft / 60))
+                        : String.format("OTP already sent, please wait for %d seconds", secondsLeft);
+                throw new BadRequestException(message);
+            }
+        });
 
         otpRepository.findByUser(user).ifPresent(otpRepository::delete);
 

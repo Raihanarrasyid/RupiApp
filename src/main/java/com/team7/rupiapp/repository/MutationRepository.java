@@ -18,5 +18,9 @@ public interface MutationRepository extends JpaRepository<Mutation, UUID> {
                                                    LocalDateTime rangeStartMutationDate,
                                                    LocalDateTime rangeEndMutationDate);
 
+    Page<Mutation> findByUserIdAndCreatedAtBetween(UUID userId,
+                                                   LocalDateTime rangeStartMutationDate,
+                                                   LocalDateTime rangeEndMutationDate, Pageable pageable);
+
     Page<Mutation> findByUserId(UUID userId, Pageable pageable);
 }

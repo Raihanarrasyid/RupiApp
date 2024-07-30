@@ -31,7 +31,7 @@ public interface AuthApi {
             }
             """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
+            @ApiResponse(responseCode = "201", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "No Password", value = """
                             {
                                 "message": "Signup success",
@@ -127,6 +127,11 @@ public interface AuthApi {
                         "message": "Resend verification success"
                     }
                     """))),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                    {
+                        "message": "OTP already sent, please wait for 59 seconds"
+                    }
+                    """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
                         "message": "User not registered"
@@ -152,11 +157,6 @@ public interface AuthApi {
             """)))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "REGISTRATION", value = """
-                            {
-                                "message": "Registration verified"
-                            }
-                            """),
                     @ExampleObject(name = "LOGIN", value = """
                             {
                                 "message": "Login verified"

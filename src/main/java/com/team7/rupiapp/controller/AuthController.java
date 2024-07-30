@@ -38,7 +38,7 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/signup")
     public ResponseEntity<Object> signup(@Valid @RequestBody SignupDto signupDto) {
-        return ApiResponseUtil.success(HttpStatus.OK, "Signup success", authenticationService.signup(signupDto));
+        return ApiResponseUtil.success(HttpStatus.CREATED, "Signup success", authenticationService.signup(signupDto));
     }
 
     @PostMapping("/signin")
