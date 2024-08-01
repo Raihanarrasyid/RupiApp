@@ -80,6 +80,7 @@ public class TransactionServiceImpl implements TransactionService {
         senderMutation.setCreatedAt(LocalDateTime.now());
         senderMutation.setMutationType(requestDto.getType());
         senderMutation.setAccountNumber(destination.getAccountNumber());
+        senderMutation.setFullName(sender.getFullName());
         senderMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
         senderMutation.setTransactionType(TransactionType.DEBIT);
         mutationRepository.save(senderMutation);
@@ -91,6 +92,7 @@ public class TransactionServiceImpl implements TransactionService {
         receiverMutation.setCreatedAt(LocalDateTime.now());
         receiverMutation.setMutationType(requestDto.getType());
         receiverMutation.setAccountNumber(sender.getAccountNumber());
+        receiverMutation.setFullName(receiver.getFullName());
         receiverMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
         receiverMutation.setTransactionType(TransactionType.CREDIT);
         mutationRepository.save(receiverMutation);
