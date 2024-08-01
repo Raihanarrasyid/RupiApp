@@ -39,10 +39,11 @@ public interface AccountApi {
                                                     {
                                                         "message": "Account detail fetched",
                                                         "data": {
-                                                            "full_name": "John Doe",
-                                                            "email": "john.doe@example.com",
+                                                            "user_id": "0bacf52e-f940-4cfa-9c5b-ed1508f5e2d1",
                                                             "account_number": "7484357077",
-                                                            "balance": "Rp39.000.000,00"
+                                                            "full_name": "Samsul Coba",
+                                                            "email": "samsul@coba.com",
+                                                            "balance": "Rp3.410.000,00"
                                                         }
                                                     }
                                                     """

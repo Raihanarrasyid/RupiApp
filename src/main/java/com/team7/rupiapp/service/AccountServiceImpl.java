@@ -40,13 +40,13 @@ public class AccountServiceImpl implements AccountService {
         User foundUser = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
-        AccountDetailResponseDto response = new AccountDetailResponseDto();
-        response.setFullName(foundUser.getFullName());
-        response.setEmail(foundUser.getEmail());
-        response.setAccountNumber(foundUser.getAccountNumber());
-        response.setBalance(CurrencyFormatter.formatToIDR(foundUser.getBalance()));
-
-        return response;
+        return AccountDetailResponseDto.builder()
+                .userId(foundUser.getId())
+                .fullName(foundUser.getFullName())
+                .email(foundUser.getEmail())
+                .accountNumber(foundUser.getAccountNumber())
+                .balance(CurrencyFormatter.formatToIDR(foundUser.getBalance()))
+                .build();
     }
 
     @Override

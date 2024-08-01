@@ -1,11 +1,18 @@
 package com.team7.rupiapp.dto.account;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
+@Builder
 @Schema(description = "Account detail response")
 public class AccountDetailResponseDto {
+
+    @Schema(description = "User ID", example = "0bacf52e-f940-4cfa-9c5b-ed1508f5e2d1")
+    private UUID userId;
 
     @Schema(description = "Full name of account holder", example = "John Doe")
     private String fullName;
