@@ -159,7 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (existingDestination.isPresent()) {
             log.info("nothing has been added");
-            requestDto.setDestinationid(existingDestination.get().getId().toString());
+            requestDto.setDestinationId(existingDestination.get().getId().toString());
         } else {
             Destination newDestination = new Destination();
             newDestination.setUser(user1);
@@ -168,7 +168,7 @@ public class TransactionServiceImpl implements TransactionService {
             newDestination.setFavorites(false);
 
             destinationRepository.save(newDestination);
-            requestDto.setDestinationid(newDestination.getId().toString());
+            requestDto.setDestinationId(newDestination.getId().toString());
             log.info("destination has been added with userID: {}", user1.getId());
         }
         return requestDto;
