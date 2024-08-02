@@ -10,5 +10,5 @@ public class DestinationAddDto {
     @Column(length = 10)
     @NotNull(message = "account_number is required")
     private String accountNumber;
-    private String destinationid;
+    private String destinationId;
 }
