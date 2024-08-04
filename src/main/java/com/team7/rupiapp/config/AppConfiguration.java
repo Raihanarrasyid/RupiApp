@@ -2,6 +2,7 @@ package com.team7.rupiapp.config;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +12,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -19,12 +22,15 @@ import com.team7.rupiapp.repository.UserRepository;
 import io.swagger.v3.core.jackson.ModelResolver;
 
 @Configuration
-public class AppConfiguration {
+public class AppConfiguration implements WebMvcConfigurer {
   private final UserRepository userRepository;
 
   public AppConfiguration(UserRepository userRepository) {
     this.userRepository = userRepository;
   }
+
+  @Value("${spring.upload.directory}")
+  private String uploadDirectory;
 
   @Bean
   public ModelMapper modelMapper() {
@@ -63,5 +69,10 @@ public class AppConfiguration {
   @Bean
   public ModelResolver modelResolver(ObjectMapper objectMapper) {
     return new ModelResolver(objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE));
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadDirectory + "/");
   }
 }

@@ -2,7 +2,7 @@ package com.team7.rupiapp.dto.validation.validator;
 
 import com.team7.rupiapp.dto.auth.verify.VerificationDto;
 import com.team7.rupiapp.dto.validation.ValidVerificationOtp;
-import com.team7.rupiapp.enums.OtpType;
+import com.team7.rupiapp.enums.VerificationType;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -12,7 +12,7 @@ public class VerificationOtpValidator implements ConstraintValidator<ValidVerifi
     public boolean isValid(VerificationDto dto, ConstraintValidatorContext context) {
         boolean isValid = true;
 
-        if (dto.getType() == OtpType.FORGOT_PASSWORD) {
+        if (dto.getType() == VerificationType.FORGOT_PASSWORD) {
             isValid = dto.getUsername() != null && !dto.getUsername().isBlank() &&
                     dto.getPassword() != null && !dto.getPassword().isBlank() &&
                     dto.getConfirmPassword() != null && !dto.getConfirmPassword().isBlank();

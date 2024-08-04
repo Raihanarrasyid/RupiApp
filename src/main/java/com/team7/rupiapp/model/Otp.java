@@ -47,9 +47,5 @@ public class Otp {
     @Enumerated(EnumType.STRING)
     private OtpType type;
 
-    public Otp(User user, String code, LocalDateTime expiryDate) {
-        this.user = user;
-        this.code = code;
-        this.expiryDate = expiryDate;
-    }
+    private String newValue;
 }
