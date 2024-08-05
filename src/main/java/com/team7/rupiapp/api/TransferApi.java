@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.qris.QrisDto;
 import org.springframework.http.ResponseEntity;
 
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
@@ -44,7 +45,9 @@ public interface TransferApi {
                             "user_detail": {
                                 "name": "asep",
                                 "account_number": "7749261880"
-                            }
+                            },
+                            "description": "thr untuk samsul",
+                            "transaction_purpose": "OTHER"
                         },
                         "message": "Transfer success"
                     }
@@ -267,5 +270,86 @@ public interface TransferApi {
                     """)))
     })
     public ResponseEntity<Object> addDestination(DestinationAddDto requestDto, Principal principal);
+
+    @Operation(summary = "QRIS Transaction")
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = {
+            @ExampleObject(name = "Static QRIS Transaction", value = """
+                {
+                    "qris": "00020101021126570011ID.DANA.WWW011893600915310714782702091071478270303UMI51440014ID.CO.QRIS.WWW0215ID10210611835340303UMI5204594553033605802ID5910ZeRo Store6013Kab. Sidoarjo61056127563048170",
+                    "amount": "10000",
+                    "description": "jajan",
+                    "pin": "123456"
+                }
+            """),
+            @ExampleObject(name = "Dynamic QRIS Transaction", value = """
+                {
+                    "qris": "00020101021226590016ID.CO.SHOPEE.WWW011893600918000093289502069328950303UME51440014ID.CO.QRIS.WWW0215ID20200175965170303UME520453995303360540811100.005802ID5908Exabytes6015KOTA JAKARTA SE61051295062250521669117d81e5a1-2223304630411F5",
+                    "description": "lala",
+                    "pin": "123456"
+                }
+            """)
+    }))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "QRIS Transaction Created", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Static QRIS Transaction Response", value = """
+                        {
+                            "data": {
+                                "merchant": "ZeRo Store",
+                                "amount": "10000.0",
+                                "description": "jajan"
+                            },
+                            "message": "Qris transaction has been created"
+                        }
+                    """),
+                    @ExampleObject(name = "Dynamic QRIS Transaction Response", value = """
+                        {
+                            "data": {
+                                "transaction_id": "0521669117d81e5a1-2223304",
+                                "merchant": "Exabytes",
+                                "amount": "11100.0",
+                                "description": "lala"
+                            },
+                            "message": "Qris transaction has been created"
+                        }
+                    """)
+            })),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Invalid PIN", value = """
+                            {
+                                "message": "Invalid PIN"
+                            }
+                            """),
+                    @ExampleObject(name = "Insufficient Balance", value = """
+                            {
+                                "message": "Insufficient balance"
+                            }
+                            """),
+                    @ExampleObject(name = "Transaction Already Exists", value = """
+                            {
+                                "message": "Transaction already exists"
+                            }
+                            """),
+                    @ExampleObject(name = "Amount is required", value = """
+                            {
+                                "message": "Amount is required"
+                            }
+                            """)
+            })),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                    {
+                        "message": "Unauthorized"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "422", description = "Validation Failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                    {
+                        "message": "Validation failed",
+                        "errors": {
+                            "pin": "PIN must not be blank",
+                            "qris": "QRIS code must not be blank"
+                        }
+                    }
+                    """)))
+    })
+    ResponseEntity<Object> createTransactionQris(QrisDto qrisDto, Principal principal);
 
 }

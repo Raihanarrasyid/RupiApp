@@ -6,6 +6,7 @@ import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
 import com.team7.rupiapp.dto.qris.QrisDto;
 import com.team7.rupiapp.dto.qris.QrisResponseDto;
+import com.team7.rupiapp.dto.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.MutationType;
@@ -108,6 +109,8 @@ public class TransactionServiceImpl implements TransactionService {
         mutationRepository.save(receiverMutation);
 
         TransferResponseDto responseDto = new TransferResponseDto();
+        responseDto.setDescription(requestDto.getDescription());
+        responseDto.setTransactionPurpose(requestDto.getTransactionPurpose().toString());
 
         TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
         destinationDetail.setName(destination.getName());
@@ -237,11 +240,19 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void createTransactionQris(Principal principal, QrisDto qrisDto) {
+    public QrisTransferResponseDto createTransactionQris(Principal principal, QrisDto qrisDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
+        if (!passwordEncoder.matches(qrisDto.getPin(), user.getPin())) {
+            throw new BadRequestException("Invalid PIN");
+        }
+
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
+        double amount;
+        String transactionId = null;
+        String merchant = null;
+
         if (qrisMap.containsKey("62")) {
             Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
@@ -252,45 +263,63 @@ public class TransactionServiceImpl implements TransactionService {
                 newQris.setTransactionId(qrisMap.get("62"));
                 qrisRepository.save(newQris);
 
-                if (user.getBalance() < Double.parseDouble(qrisMap.get("54"))) {
+                amount = Double.parseDouble(qrisMap.get("54"));
+                if (user.getBalance() < amount) {
                     throw new BadRequestException("Insufficient balance");
                 }
 
-                user.setBalance(user.getBalance() - Double.parseDouble(qrisMap.get("54")));
+                user.setBalance(user.getBalance() - amount);
                 userRepository.save(user);
 
-                Mutation mutation = new Mutation();
+                Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
                 mutation.setUser(user);
-                mutation.setAmount(Double.parseDouble(qrisMap.get("54")));
+                mutation.setAmount(amount);
                 mutation.setCreatedAt(LocalDateTime.now());
                 mutation.setTransactionType(TransactionType.DEBIT);
                 mutation.setMutationType(MutationType.QRIS);
                 mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
+                mutation.setDescription(qrisDto.getDescription());
                 mutationRepository.save(mutation);
+
+                transactionId = newQris.getTransactionId();
+                merchant = qrisMap.get("59");
             }
         } else if (qrisMap.containsKey("52")) {
             if (qrisDto.getAmount() == null) {
                 throw new BadRequestException("Amount is required");
             }
 
-            if (user.getBalance() < Double.parseDouble(qrisDto.getAmount())) {
+            amount = Double.parseDouble(qrisDto.getAmount());
+            if (user.getBalance() < amount) {
                 throw new BadRequestException("Insufficient balance");
             }
 
-            user.setBalance(user.getBalance() - Double.parseDouble(qrisDto.getAmount()));
+            user.setBalance(user.getBalance() - amount);
             userRepository.save(user);
 
-            Mutation mutation = new Mutation();
+            Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
             mutation.setUser(user);
-            mutation.setAmount(Double.parseDouble(qrisDto.getAmount()));
+            mutation.setAmount(amount);
             mutation.setCreatedAt(LocalDateTime.now());
             mutation.setTransactionType(TransactionType.DEBIT);
             mutation.setMutationType(MutationType.QRIS);
             mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
+            mutation.setDescription(qrisDto.getDescription());
             mutationRepository.save(mutation);
+
+            transactionId = qrisMap.get("62");
+            merchant = qrisMap.get("59");
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
+
+        QrisTransferResponseDto responseDto = new QrisTransferResponseDto();
+        responseDto.setTransactionId(transactionId);
+        responseDto.setMerchant(merchant);
+        responseDto.setAmount(String.valueOf(amount));
+        responseDto.setDescription(qrisDto.getDescription());
+
+        return responseDto;
     }
 
 }
