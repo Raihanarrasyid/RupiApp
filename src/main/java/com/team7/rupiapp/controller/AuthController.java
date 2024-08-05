@@ -12,7 +12,7 @@ import com.team7.rupiapp.dto.auth.signup.ResendVerificationDto;
 import com.team7.rupiapp.dto.auth.signup.SetPasswordDto;
 import com.team7.rupiapp.dto.auth.signup.SignupDto;
 import com.team7.rupiapp.dto.auth.verify.VerificationDto;
-import com.team7.rupiapp.enums.OtpType;
+import com.team7.rupiapp.enums.VerificationType;
 import com.team7.rupiapp.service.AuthenticationService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
@@ -57,7 +57,7 @@ public class AuthController implements AuthApi {
     @PostMapping("/verify")
     public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationDto,
             Principal principal) {
-        if (principal == null && verificationDto.getType() != OtpType.FORGOT_PASSWORD) {
+        if (principal == null && verificationDto.getType() != VerificationType.FORGOT_PASSWORD) {
             throw new BadCredentialsException("Unauthorized");
         }
         return authenticationService.verify(principal, verificationDto);

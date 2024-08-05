@@ -31,8 +31,14 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
+    private String avatar;
+
     @Column(name = "full_name", nullable = false)
     private String fullName;
+
+    @Column(nullable = false)
+    private String alias;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -50,7 +56,7 @@ public class User implements UserDetails {
 
     private String pin;
 
-    @Column(unique = true, length = 10)
+    @Column(nullable = false, unique = true, length = 10)
     private String accountNumber;
 
     private Double balance = 0.0;
@@ -67,7 +73,7 @@ public class User implements UserDetails {
 
     @PrePersist
     public void prePersist() {
-        if (accountNumber == null || accountNumber.isEmpty()) {
+        if (accountNumber == null) {
             int length = 10;
             Random random = new Random();
             String numbers = "0123456789";
@@ -75,7 +81,16 @@ public class User implements UserDetails {
             for (int i = 0; i < length; i++) {
                 sb.append(numbers.charAt(random.nextInt(numbers.length())));
             }
+
             accountNumber = sb.toString();
+        }
+
+        if (alias == null) {
+            alias = fullName;
+        }
+
+        if (avatar == null) {
+            avatar = "uploads/default.png";
         }
     }
 }

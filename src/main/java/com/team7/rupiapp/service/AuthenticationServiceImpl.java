@@ -3,7 +3,6 @@ package com.team7.rupiapp.service;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final OtpRepository otpRepository;
 
     private final WhatsappClient whatsappClient;
+    private final GenerateService generateService;
 
     public AuthenticationServiceImpl(
             ModelMapper modelMapper,
@@ -66,7 +66,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             HttpServletRequest request,
             UserRepository userRepository,
             OtpRepository otpRepository,
-            WhatsappClient whatsappClient) {
+            WhatsappClient whatsappClient,
+            GenerateService generateService) {
         this.modelMapper = modelMapper;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -76,47 +77,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
         this.whatsappClient = whatsappClient;
+        this.generateService = generateService;
     }
-
-    @Value("${app.otp.code.length}")
-    private int otpCodeLength;
-
-    @Value("${app.otp.code.expiration-time}")
-    private int otpExpirationTime;
 
     @Value("${client.wahub.key}")
     private String waApiKey;
-
-    private Random random = new Random();
 
     private String getAuthenticationToken() {
         String authorizationHeader = request.getHeader("Authorization");
         return authorizationHeader != null && authorizationHeader.startsWith("Bearer ")
                 ? authorizationHeader.substring(7)
                 : "";
-    }
-
-    private Otp createOtp(User user, OtpType type) {
-        int code = random.nextInt((int) Math.pow(10, otpCodeLength));
-        String otpCode = String.format("%0" + otpCodeLength + "d", code);
-
-        Otp otp = new Otp();
-        otp.setCode(passwordEncoder.encode(otpCode));
-        otp.setUser(user);
-        otp.setExpiryDate(LocalDateTime.now().plusMinutes(otpExpirationTime));
-        otp.setType(type);
-        otpRepository.save(otp);
-
-        return new Otp(user, otpCode, otp.getExpiryDate());
-    }
-
-    private String generateSimplePassword(int length) {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(characters.charAt(random.nextInt(characters.length())));
-        }
-        return sb.toString();
     }
 
     @Override
@@ -134,7 +105,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (signupDto.getPassword() == null || signupDto.getConfirmPassword() == null) {
-            String password = generateSimplePassword(8);
+            String password = generateService.generatePassword(8);
 
             User user = modelMapper.map(signupDto, User.class);
             user.setPassword(passwordEncoder.encode(password));
@@ -158,8 +129,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
-        Otp otp = createOtp(savedUser, OtpType.LOGIN);
-        notifierService.sendVerification(savedUser.getPhone(), savedUser.getUsername(), otp.getCode());
+        String otp = generateService.generateOtp(savedUser, OtpType.LOGIN);
+        notifierService.sendVerification(savedUser.getPhone(), otp);
 
         SignupResponseDto signupResponseDto = modelMapper.map(savedUser, SignupResponseDto.class);
         String[] tokens = jwtService.generateToken(savedUser);
@@ -187,17 +158,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         responseSigninDto.setAccessToken(tokens[0]);
         responseSigninDto.setRefreshToken(tokens[1]);
 
-        otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otpRepository::delete);
-
         if (user.isDefaultPassword()) {
-            otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otpRepository::delete);
-
-            Otp otp = createOtp(user, OtpType.LOGIN);
-            notifierService.sendVerification(user.getPhone(), user.getUsername(), otp.getCode());
+            String otp = generateService.generateOtp(user, OtpType.LOGIN);
+            notifierService.sendVerification(user.getPhone(), otp);
         } else {
-            Otp otp = createOtp(user, OtpType.LOGIN);
-            notifierService.sendVerificationLogin(user.getPhone(), user.getUsername(),
-                    otp.getCode());
+            String otp = generateService.generateOtp(user, OtpType.LOGIN);
+            notifierService.sendVerificationLogin(user.getPhone(), otp);
         }
 
         return responseSigninDto;
@@ -225,10 +191,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         });
 
-        otpRepository.findByUser(user).ifPresent(otpRepository::delete);
-
-        Otp otp = createOtp(user, OtpType.LOGIN);
-        notifierService.sendVerification(user.getPhone(), user.getUsername(), otp.getCode());
+        String otp = generateService.generateOtp(user, OtpType.LOGIN);
+        notifierService.sendVerification(user.getPhone(), otp);
     }
 
     @Override
@@ -236,10 +200,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userRepository.findByUsername(forgotPasswordDto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        otpRepository.findByUserAndType(user, OtpType.FORGOT_PASSWORD).ifPresent(otpRepository::delete);
-
-        Otp otp = createOtp(user, OtpType.FORGOT_PASSWORD);
-        notifierService.sendResetPasswordVerification(user.getPhone(), user.getUsername(), otp.getCode());
+        String otp = generateService.generateOtp(user, OtpType.FORGOT_PASSWORD);
+        notifierService.sendResetPasswordVerification(user.getPhone(), otp);
     }
 
     @Override
