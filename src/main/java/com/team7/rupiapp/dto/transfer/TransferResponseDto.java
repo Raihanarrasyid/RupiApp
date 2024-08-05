@@ -9,6 +9,8 @@ public class TransferResponseDto {
     private ReceiverDetail destinationDetail;
     private MutationDetail mutationDetail;
     private SenderDetail userDetail;
+    private String description;
+    private String transactionPurpose;
 
     @Data
     public static class ReceiverDetail {

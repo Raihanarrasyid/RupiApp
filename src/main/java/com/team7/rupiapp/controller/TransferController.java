@@ -7,6 +7,7 @@ import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
 import com.team7.rupiapp.dto.qris.QrisDto;
 import com.team7.rupiapp.dto.qris.QrisResponseDto;
+import com.team7.rupiapp.dto.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.service.TransactionService;
@@ -21,7 +22,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -71,7 +71,7 @@ public class TransferController implements TransferApi {
 
     @PostMapping("/qris")
     public ResponseEntity<Object> createTransactionQris(@Valid @RequestBody QrisDto qrisDto, Principal principal){
-        transactionService.createTransactionQris(principal,qrisDto);
-        return ApiResponseUtil.success(HttpStatus.OK,"Qris transaction has been created");
+        QrisTransferResponseDto responseDto = transactionService.createTransactionQris(principal, qrisDto);
+        return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }
 }
