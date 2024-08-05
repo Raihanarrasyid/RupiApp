@@ -89,27 +89,21 @@ public class TransactionServiceImpl implements TransactionService {
         userRepository.save(sender);
         userRepository.save(receiver);
 
-        Mutation senderMutation = new Mutation();
+        Mutation senderMutation = modelMapper.map(requestDto, Mutation.class);
         senderMutation.setUser(sender);
-        senderMutation.setAmount(requestDto.getAmount());
-        senderMutation.setDescription(requestDto.getDescription());
         senderMutation.setCreatedAt(LocalDateTime.now());
         senderMutation.setMutationType(requestDto.getType());
         senderMutation.setAccountNumber(destination.getAccountNumber());
         senderMutation.setFullName(sender.getFullName());
-        senderMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
         senderMutation.setTransactionType(TransactionType.DEBIT);
         mutationRepository.save(senderMutation);
 
-        Mutation receiverMutation = new Mutation();
+        Mutation receiverMutation = modelMapper.map(requestDto, Mutation.class);
         receiverMutation.setUser(receiver);
-        receiverMutation.setAmount(requestDto.getAmount());
-        receiverMutation.setDescription(requestDto.getDescription());
         receiverMutation.setCreatedAt(LocalDateTime.now());
         receiverMutation.setMutationType(requestDto.getType());
         receiverMutation.setAccountNumber(sender.getAccountNumber());
         receiverMutation.setFullName(receiver.getFullName());
-        receiverMutation.setTransactionPurpose(requestDto.getTransactionPurpose());
         receiverMutation.setTransactionType(TransactionType.CREDIT);
         mutationRepository.save(receiverMutation);
 
@@ -258,6 +252,10 @@ public class TransactionServiceImpl implements TransactionService {
                 newQris.setTransactionId(qrisMap.get("62"));
                 qrisRepository.save(newQris);
 
+                if (user.getBalance() < Double.parseDouble(qrisMap.get("54"))) {
+                    throw new BadRequestException("Insufficient balance");
+                }
+
                 user.setBalance(user.getBalance() - Double.parseDouble(qrisMap.get("54")));
                 userRepository.save(user);
 
@@ -273,6 +271,10 @@ public class TransactionServiceImpl implements TransactionService {
         } else if (qrisMap.containsKey("52")) {
             if (qrisDto.getAmount() == null) {
                 throw new BadRequestException("Amount is required");
+            }
+
+            if (user.getBalance() < Double.parseDouble(qrisDto.getAmount())) {
+                throw new BadRequestException("Insufficient balance");
             }
 
             user.setBalance(user.getBalance() - Double.parseDouble(qrisDto.getAmount()));
