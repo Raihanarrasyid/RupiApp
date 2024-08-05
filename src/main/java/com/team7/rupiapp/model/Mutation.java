@@ -39,14 +39,14 @@ public class Mutation {
     @Column(nullable = false)
     private MutationType mutationType;
 
-    @Column(nullable = false, length = 10)
+    // @Column(nullable = false, length = 10)
     private String accountNumber;
 
-    @Column // TO DO @rahmi (nullable = false)
+    // @Column(nullable = false)
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private TransactionPurpose transactionPurpose;
 
     @Enumerated(EnumType.STRING)

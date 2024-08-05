@@ -4,43 +4,58 @@ import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.qris.QrisDto;
+import com.team7.rupiapp.dto.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
+import com.team7.rupiapp.enums.MutationType;
+import com.team7.rupiapp.enums.TransactionPurpose;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
 import com.team7.rupiapp.model.Destination;
 import com.team7.rupiapp.model.Mutation;
+import com.team7.rupiapp.model.Qris;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.DestinationRepository;
 import com.team7.rupiapp.repository.MutationRepository;
+import com.team7.rupiapp.repository.QrisRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 
 @Service
 @Slf4j
 public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
+    private final QrisRepository qrisRepository;
     private final MutationRepository mutationRepository;
     private final DestinationRepository destinationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    public TransactionServiceImpl(UserRepository userRepository, MutationRepository mutationRepository, DestinationRepository destinationRepository, PasswordEncoder passwordEncoder) {
+    public TransactionServiceImpl(UserRepository userRepository, QrisRepository qrisRepository,
+            MutationRepository mutationRepository, DestinationRepository destinationRepository,
+            PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.userRepository = userRepository;
+        this.qrisRepository = qrisRepository;
         this.mutationRepository = mutationRepository;
         this.destinationRepository = destinationRepository;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -61,7 +76,8 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         User receiver = userRepository.findByAccountNumber(destination.getAccountNumber())
-                .orElseThrow(() -> new DataNotFoundException("Receiver not found with account number: " + destination.getAccountNumber()));
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Receiver not found with account number: " + destination.getAccountNumber()));
 
         if (sender.getBalance() < requestDto.getAmount()) {
             throw new BadRequestException("Insufficient balance");
@@ -137,11 +153,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto) {
-            Destination destination = destinationRepository.findById(id)
-                    .orElseThrow(() -> new DataNotFoundException("Destination not found"));
-            destination.setFavorites(destinationFavoriteDto.getIsFavorites());
-            destinationRepository.save(destination);
-            log.info("updated favorite for destination with id: {}", id);
+        Destination destination = destinationRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
+        destination.setFavorites(destinationFavoriteDto.getIsFavorites());
+        destinationRepository.save(destination);
+        log.info("updated favorite for destination with id: {}", id);
     }
 
     @Override
@@ -150,10 +166,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new DataNotFoundException("Account number not found"));
         User user1 = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
-        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1, requestDto.getAccountNumber());
+        Optional<Destination> existingDestination = destinationRepository.findByUserAndAccountNumber(user1,
+                requestDto.getAccountNumber());
         requestDto.setFullname(user.getFullName());
 
-        if (user==user1){
+        if (user == user1) {
             throw new BadRequestException("can't add your own account number");
         }
 
@@ -176,12 +193,102 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public DestinationDetailDto getDestinationDetail(UUID id) {
-            Destination destination = destinationRepository.findById(id)
-                    .orElseThrow(() -> new DataNotFoundException("Destination not found"));
-            DestinationDetailDto destinationDetail = new DestinationDetailDto();
-            destinationDetail.setFullname(destination.getName());
-            destinationDetail.setAccountNumber(destination.getAccountNumber());
+        Destination destination = destinationRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Destination not found"));
+        DestinationDetailDto destinationDetail = new DestinationDetailDto();
+        destinationDetail.setFullname(destination.getName());
+        destinationDetail.setAccountNumber(destination.getAccountNumber());
 
-            return destinationDetail;
+        return destinationDetail;
     }
+
+    private Map<String, String> parseQRIS(String qris) {
+        Map<String, String> result = new java.util.HashMap<>();
+        int index = 0;
+
+        while (index < qris.length()) {
+            String tag = qris.substring(index, index + 2);
+            index += 2;
+
+            int length = Integer.parseInt(qris.substring(index, index + 2));
+            index += 2;
+
+            String value = qris.substring(index, index + length);
+            index += length;
+
+            result.put(tag, value);
+        }
+
+        return result;
+    }
+
+    @Override
+    public QrisResponseDto detailQris(String qris) {
+        Map<String, String> qrisMap = parseQRIS(qris);
+        QrisResponseDto qrisResponse = new QrisResponseDto();
+        if (qrisMap.containsKey("54") && qrisMap.containsKey("59") && qrisMap.containsKey("62")) {
+            qrisResponse.setType("dynamic");
+        } else if (qrisMap.containsKey("52")) {
+            qrisResponse.setType("static");
+        } else {
+            qrisResponse.setType("unknown");
+        }
+
+        qrisResponse.setTransactionId(qrisMap.get("62"));
+        qrisResponse.setMerchant(qrisMap.get("59"));
+        qrisResponse.setAmount(qrisMap.get("54"));
+
+        return qrisResponse;
+    }
+
+    @Override
+    @Transactional
+    public void createTransactionQris(Principal principal, QrisDto qrisDto) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
+        if (qrisMap.containsKey("62")) {
+            Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
+
+            if (qris != null) {
+                throw new BadRequestException("Transaction already exists");
+            } else {
+                Qris newQris = new Qris();
+                newQris.setTransactionId(qrisMap.get("62"));
+                qrisRepository.save(newQris);
+
+                user.setBalance(user.getBalance() - Double.parseDouble(qrisMap.get("54")));
+                userRepository.save(user);
+
+                Mutation mutation = new Mutation();
+                mutation.setUser(user);
+                mutation.setAmount(Double.parseDouble(qrisMap.get("54")));
+                mutation.setCreatedAt(LocalDateTime.now());
+                mutation.setTransactionType(TransactionType.DEBIT);
+                mutation.setMutationType(MutationType.QRIS);
+                mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
+                mutationRepository.save(mutation);
+            }
+        } else if (qrisMap.containsKey("52")) {
+            if (qrisDto.getAmount() == null) {
+                throw new BadRequestException("Amount is required");
+            }
+
+            user.setBalance(user.getBalance() - Double.parseDouble(qrisDto.getAmount()));
+            userRepository.save(user);
+
+            Mutation mutation = new Mutation();
+            mutation.setUser(user);
+            mutation.setAmount(Double.parseDouble(qrisDto.getAmount()));
+            mutation.setCreatedAt(LocalDateTime.now());
+            mutation.setTransactionType(TransactionType.DEBIT);
+            mutation.setMutationType(MutationType.QRIS);
+            mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
+            mutationRepository.save(mutation);
+        } else {
+            throw new BadRequestException("Invalid QRIS");
+        }
+    }
+
 }
