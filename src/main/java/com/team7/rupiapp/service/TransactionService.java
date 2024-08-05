@@ -4,6 +4,8 @@ import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.qris.QrisDto;
+import com.team7.rupiapp.dto.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 
@@ -21,5 +23,9 @@ public interface TransactionService {
     public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal);
 
     public DestinationDetailDto getDestinationDetail(UUID id);
+
+    public QrisResponseDto detailQris(String qris);
+
+    public void createTransactionQris(Principal principal, QrisDto qrisDto);
 }
 

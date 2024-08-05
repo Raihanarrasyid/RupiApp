@@ -5,6 +5,8 @@ import com.team7.rupiapp.dto.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.destination.DestinationDto;
 import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.qris.QrisDto;
+import com.team7.rupiapp.dto.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.TransferResponseDto;
 import com.team7.rupiapp.service.TransactionService;
@@ -18,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/transfer")
@@ -56,5 +61,17 @@ public class TransferController implements TransferApi {
     public ResponseEntity<Object> getDetail(@PathVariable("id") UUID id){
         DestinationDetailDto destinationDetail = transactionService.getDestinationDetail(id);
         return ApiResponseUtil.success(HttpStatus.OK,"transaction detail has been sent", destinationDetail);
+    }
+
+    @GetMapping("/qris/{data}")
+    public ResponseEntity<Object> getDetailQris(@PathVariable("data") String qris){
+        QrisResponseDto qrisResponse = transactionService.detailQris(qris);
+        return ApiResponseUtil.success(HttpStatus.OK,"Qris detail has been sent", qrisResponse);
+    }
+
+    @PostMapping("/qris")
+    public ResponseEntity<Object> createTransactionQris(@Valid @RequestBody QrisDto qrisDto, Principal principal){
+        transactionService.createTransactionQris(principal,qrisDto);
+        return ApiResponseUtil.success(HttpStatus.OK,"Qris transaction has been created");
     }
 }
