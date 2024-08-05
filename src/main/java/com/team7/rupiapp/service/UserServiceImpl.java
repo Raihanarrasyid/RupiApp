@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
                 }
 
                 String previousAvatar = user.getAvatar();
-                if (previousAvatar != null) {
+                if (previousAvatar != null && !previousAvatar.equals("default.png")) {
                     Path previousFilePath = uploadPath.resolve(previousAvatar);
                     Files.deleteIfExists(previousFilePath);
                 }
