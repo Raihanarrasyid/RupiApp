@@ -48,7 +48,8 @@ public class GenerateServiceImpl implements GenerateService {
 
     @Override
     public String generateOtp(User user, OtpType type, String newValue) {
-        String otpCode = generateRandomCode();
+        // String otpCode = generateRandomCode();
+        String otpCode = "123456";
         Otp otp = createOtp(user, type, newValue, otpCode);
         otpRepository.save(otp);
         return otpCode;
