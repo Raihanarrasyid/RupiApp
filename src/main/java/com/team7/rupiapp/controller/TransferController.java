@@ -74,4 +74,10 @@ public class TransferController implements TransferApi {
         QrisTransferResponseDto responseDto = transactionService.createTransactionQris(principal, qrisDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<Object> getTransactionDetails(@PathVariable UUID transactionId) {
+        Object responseDto = transactionService.getTransactionDetails(transactionId);
+        return ApiResponseUtil.success(HttpStatus.OK, "Transaction details retrieved", responseDto);
+    }
 }

@@ -28,5 +28,7 @@ public interface TransactionService {
     public QrisResponseDto detailQris(String qris);
 
     public QrisTransferResponseDto createTransactionQris(Principal principal, QrisDto qrisDto);
+
+    Object getTransactionDetails(UUID transactionId);
 }
 

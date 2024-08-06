@@ -279,6 +279,7 @@ public class TransactionServiceImpl implements TransactionService {
                 mutation.setMutationType(MutationType.QRIS);
                 mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
                 mutation.setDescription(qrisDto.getDescription());
+                mutation.setAccountNumber(qrisMap.get("59"));
                 mutationRepository.save(mutation);
 
                 transactionId = newQris.getTransactionId();
@@ -305,6 +306,7 @@ public class TransactionServiceImpl implements TransactionService {
             mutation.setMutationType(MutationType.QRIS);
             mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
             mutation.setDescription(qrisDto.getDescription());
+            mutation.setAccountNumber(qrisMap.get("59"));
             mutationRepository.save(mutation);
 
             transactionId = qrisMap.get("62");
@@ -320,6 +322,63 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setDescription(qrisDto.getDescription());
 
         return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public Object getTransactionDetails(UUID transactionId) {
+        Mutation mutation = mutationRepository.findById(transactionId)
+                .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+
+        if (mutation.getMutationType() == MutationType.QRIS) {
+            QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
+//            qrisResponseDto.setTransactionId(mutation.getId().toString());
+            qrisResponseDto.setMerchant(mutation.getAccountNumber());
+            qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
+            qrisResponseDto.setDescription(mutation.getDescription());
+            return qrisResponseDto;
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            User sender = mutation.getUser();
+            User receiver = userRepository.findByAccountNumber(mutation.getAccountNumber())
+                    .orElseThrow(() -> new DataNotFoundException("Receiver not found"));
+
+            TransferResponseDto transferResponseDto = new TransferResponseDto();
+
+            if (mutation.getTransactionType() == TransactionType.DEBIT) {
+                TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
+                userDetail.setName(sender.getFullName());
+                userDetail.setAccountNumber(sender.getAccountNumber());
+                transferResponseDto.setUserDetail(userDetail);
+
+                TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
+                destinationDetail.setName(receiver.getFullName());
+                destinationDetail.setAccountNumber(receiver.getAccountNumber());
+                transferResponseDto.setDestinationDetail(destinationDetail);
+            } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
+                TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
+                destinationDetail.setName(sender.getFullName());
+                destinationDetail.setAccountNumber(sender.getAccountNumber());
+                transferResponseDto.setDestinationDetail(destinationDetail);
+
+                TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
+                userDetail.setName(mutation.getFullName());
+                userDetail.setAccountNumber(mutation.getAccountNumber());
+                transferResponseDto.setUserDetail(userDetail);
+            }
+
+            TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
+            mutationDetail.setAmount(mutation.getAmount());
+            mutationDetail.setCreatedAt(mutation.getCreatedAt());
+            transferResponseDto.setMutationDetail(mutationDetail);
+
+            transferResponseDto.setDescription(mutation.getDescription());
+            transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
+            transferResponseDto.setTransactionType(mutation.getTransactionType().toString());
+
+            return transferResponseDto;
+        } else {
+            throw new DataNotFoundException("Invalid mutation type");
+        }
     }
 
 }
