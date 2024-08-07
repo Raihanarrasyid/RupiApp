@@ -8,12 +8,11 @@ import java.time.LocalDateTime;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransferResponseDto {
-    private ReceiverDetail destinationDetail;
+    private ReceiverDetail receiverDetail;
     private MutationDetail mutationDetail;
-    private SenderDetail userDetail;
+    private SenderDetail senderDetail;
     private String description;
     private String transactionPurpose;
-    private String transactionType;
 
     @Data
     public static class ReceiverDetail {

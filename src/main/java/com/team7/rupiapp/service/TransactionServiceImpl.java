@@ -112,20 +112,20 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setDescription(requestDto.getDescription());
         responseDto.setTransactionPurpose(requestDto.getTransactionPurpose().toString());
 
-        TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
-        destinationDetail.setName(destination.getName());
-        destinationDetail.setAccountNumber(destination.getAccountNumber());
-        responseDto.setDestinationDetail(destinationDetail);
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+        receiverDetail.setName(destination.getName());
+        receiverDetail.setAccountNumber(destination.getAccountNumber());
+        responseDto.setReceiverDetail(receiverDetail);
 
         TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
         mutationDetail.setAmount(requestDto.getAmount());
         mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
         responseDto.setMutationDetail(mutationDetail);
 
-        TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
-        userDetail.setName(sender.getUsername());
-        userDetail.setAccountNumber(sender.getAccountNumber());
-        responseDto.setUserDetail(userDetail);
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        senderDetail.setName(sender.getUsername());
+        senderDetail.setAccountNumber(sender.getAccountNumber());
+        responseDto.setSenderDetail(senderDetail);
 
         return responseDto;
     }
@@ -331,54 +331,59 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
 
         if (mutation.getMutationType() == MutationType.QRIS) {
-            QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
-//            qrisResponseDto.setTransactionId(mutation.getId().toString());
-            qrisResponseDto.setMerchant(mutation.getAccountNumber());
-            qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
-            qrisResponseDto.setDescription(mutation.getDescription());
-            return qrisResponseDto;
+            return buildQrisResponseDto(mutation);
         } else if (mutation.getMutationType() == MutationType.TRANSFER) {
-            User sender = mutation.getUser();
-            User receiver = userRepository.findByAccountNumber(mutation.getAccountNumber())
-                    .orElseThrow(() -> new DataNotFoundException("Receiver not found"));
-
-            TransferResponseDto transferResponseDto = new TransferResponseDto();
-
-            if (mutation.getTransactionType() == TransactionType.DEBIT) {
-                TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
-                userDetail.setName(sender.getFullName());
-                userDetail.setAccountNumber(sender.getAccountNumber());
-                transferResponseDto.setUserDetail(userDetail);
-
-                TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
-                destinationDetail.setName(receiver.getFullName());
-                destinationDetail.setAccountNumber(receiver.getAccountNumber());
-                transferResponseDto.setDestinationDetail(destinationDetail);
-            } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
-                TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
-                destinationDetail.setName(sender.getFullName());
-                destinationDetail.setAccountNumber(sender.getAccountNumber());
-                transferResponseDto.setDestinationDetail(destinationDetail);
-
-                TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
-                userDetail.setName(mutation.getFullName());
-                userDetail.setAccountNumber(mutation.getAccountNumber());
-                transferResponseDto.setUserDetail(userDetail);
-            }
-
-            TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
-            mutationDetail.setAmount(mutation.getAmount());
-            mutationDetail.setCreatedAt(mutation.getCreatedAt());
-            transferResponseDto.setMutationDetail(mutationDetail);
-
-            transferResponseDto.setDescription(mutation.getDescription());
-            transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
-            transferResponseDto.setTransactionType(mutation.getTransactionType().toString());
-
-            return transferResponseDto;
+            return buildTransferResponseDto(mutation);
         } else {
             throw new DataNotFoundException("Invalid mutation type");
         }
+    }
+
+    private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
+        QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
+        qrisResponseDto.setTransactionId(mutation.getId().toString());
+        qrisResponseDto.setMerchant(mutation.getFullName());
+        qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
+        qrisResponseDto.setDescription(mutation.getDescription());
+        return qrisResponseDto;
+    }
+
+    private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
+//        User sender = mutation.getUser();
+        User sender = userRepository.findById(mutation.getUser().getId())
+                .orElseThrow(() -> new DataNotFoundException("Sender not found"));
+        User receiver = userRepository.findByAccountNumber(mutation.getAccountNumber())
+                .orElseThrow(() -> new DataNotFoundException("Receiver not found"));
+
+        TransferResponseDto transferResponseDto = new TransferResponseDto();
+
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+
+        if (mutation.getTransactionType() == TransactionType.DEBIT) {
+            senderDetail.setName(sender.getFullName());
+            senderDetail.setAccountNumber(sender.getAccountNumber());
+            receiverDetail.setName(receiver.getFullName());
+            receiverDetail.setAccountNumber(receiver.getAccountNumber());
+        } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
+            senderDetail.setName(receiver.getFullName());
+            senderDetail.setAccountNumber(receiver.getAccountNumber());
+            receiverDetail.setName(sender.getFullName());
+            receiverDetail.setAccountNumber(sender.getAccountNumber());
+        }
+
+        transferResponseDto.setSenderDetail(senderDetail);
+        transferResponseDto.setReceiverDetail(receiverDetail);
+
+        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
+        mutationDetail.setAmount(mutation.getAmount());
+        mutationDetail.setCreatedAt(mutation.getCreatedAt());
+        transferResponseDto.setMutationDetail(mutationDetail);
+
+        transferResponseDto.setDescription(mutation.getDescription());
+        transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
+
+        return transferResponseDto;
     }
 
 }
