@@ -376,19 +376,9 @@ public interface TransferApi {
                                 }
                             """)
             })),
-            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            {
-                                "message": "Invalid QRIS format"
-                            }
-                    """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                             {
                                 "message": "Unauthorized"
-                            }
-                    """))),
-            @ApiResponse(responseCode = "404", description = "QRIS Not Found", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            {
-                                "message": "QRIS not found"
                             }
                     """)))
     })
