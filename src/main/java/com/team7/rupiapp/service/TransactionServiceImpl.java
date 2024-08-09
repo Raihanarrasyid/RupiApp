@@ -204,11 +204,24 @@ public class TransactionServiceImpl implements TransactionService {
         int index = 0;
 
         while (index < qris.length()) {
+            if (index + 4 > qris.length()) {
+                throw new IllegalArgumentException("QRIS format is not suitable");
+            }
+
             String tag = qris.substring(index, index + 2);
             index += 2;
 
-            int length = Integer.parseInt(qris.substring(index, index + 2));
+            int length;
+            try {
+                length = Integer.parseInt(qris.substring(index, index + 2));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("QRIS format is not suitable", e);
+            }
             index += 2;
+
+            if (index + length > qris.length()) {
+                throw new IllegalArgumentException("QRIS format is not suitable");
+            }
 
             String value = qris.substring(index, index + length);
             index += length;
@@ -327,7 +340,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public Object getTransactionDetails(UUID transactionId) {
-        //trnsaksi puya user lg login
         Mutation mutation = mutationRepository.findById(transactionId)
                 .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
 
