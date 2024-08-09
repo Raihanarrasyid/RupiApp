@@ -250,8 +250,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         double amount;
-        String transactionId = null;
-        String merchant = null;
+        String transactionId;
+        String merchant;
 
         if (qrisMap.containsKey("62")) {
             Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
