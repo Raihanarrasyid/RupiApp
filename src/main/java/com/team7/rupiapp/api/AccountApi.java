@@ -95,9 +95,9 @@ public interface AccountApi {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "1981198675",
-                                                                                "full_name": "Samsul2",
+                                                                                "full_name": "Samsul 3",
                                                                                 "amount": "Rp10.000,00",
-                                                                                "description": "Samsul3 to Samsul2",
+                                                                                "description": "Samsul 3 to Samsul 2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:30:10.88022"
                                                                             }
@@ -111,7 +111,7 @@ public interface AccountApi {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul2",
+                                                                                "full_name": "Samsul 1",
                                                                                 "amount": "Rp10.000,00",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
@@ -119,7 +119,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul2",
+                                                                                "full_name": "Samsul 1",
                                                                                 "amount": "Rp15.000,00",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
@@ -127,7 +127,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul2",
+                                                                                "full_name": "Samsul 1",
                                                                                 "amount": "Rp25.000,00",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
@@ -135,9 +135,9 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "1981198675",
-                                                                                "full_name": "Samsul2",
+                                                                                "full_name": "Samsul 3",
                                                                                 "amount": "Rp15.000,00",
-                                                                                "description": "Samsul3 to Samsul2",
+                                                                                "description": "Samsul 3 to Samsul 2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:21:33.407203"
                                                                             }
@@ -157,7 +157,7 @@ public interface AccountApi {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp45.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -165,7 +165,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp90.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -173,7 +173,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp90.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -181,7 +181,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp90.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -197,7 +197,7 @@ public interface AccountApi {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp150.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -205,7 +205,7 @@ public interface AccountApi {
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul1",
+                                                                                "full_name": "Samsul 2",
                                                                                 "amount": "Rp200.000,00",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
@@ -223,7 +223,7 @@ public interface AccountApi {
                                                             },
                                                             "total_earnings": "-Rp590.000,00",
                                                             "range_start_mutation_date": "2024-07-01T00:00:00",
-                                                            "range_end_mutation_date": "2024-07-29T22:53:41.3317565"
+                                                            "range_end_mutation_date": "2024-07-31T23:59:59.999999999"
                                                         }
                                                     }
                                                     """
