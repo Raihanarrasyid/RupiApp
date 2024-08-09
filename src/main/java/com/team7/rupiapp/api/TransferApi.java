@@ -84,18 +84,48 @@ public interface TransferApi {
                             }
                             """)
             })),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Validation failed",
-                        "errors": {
-                            "amount": "Amount must not be null",
-                            "pin": "PIN must not be blank",
-                            "destination_id": "Destination ID must not be null",
-                            "type": "Type must not be null",
-                            "transaction_purpose": "Transaction Purpose must not be null"
-                        }
-                    }
-                    """)))
+            @ApiResponse(responseCode = "422", description = "Validation Failed", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "PIN must not be blank", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "pin": "PIN must not be blank"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Amount must not be null", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "amount": "Amount must not be null"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Destination ID must not be null", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "destination_id": "Destination ID must not be null"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Type must not be null", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "type": "Type must not be null"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Transaction Purpose must not be null", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "transaction_purpose": "Transaction Purpose must not be null"
+                                }
+                            }
+                            """)
+            }))
     })
     ResponseEntity<Object> transferIntrabank(TransferRequestDto requestDto, Principal principal);
 
@@ -340,15 +370,32 @@ public interface TransferApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation Failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Validation failed",
-                        "errors": {
-                            "pin": "PIN must not be blank",
-                            "qris": "QRIS code must not be blank"
-                        }
-                    }
-                    """)))
+            @ApiResponse(responseCode = "422", description = "Validation Failed", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "PIN must not be blank", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "pin": "PIN must not be blank"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "QRIS code must not be blank", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "qris": "QRIS code must not be blank"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Amount must be greater than zero", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "amount": "Amount must be greater than zero"
+                                }
+                            }
+                            """)
+            }))
     })
     ResponseEntity<Object> createTransactionQris(QrisDto qrisDto, Principal principal);
 
@@ -376,6 +423,11 @@ public interface TransferApi {
                                 }
                             """)
             })),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                            {
+                                "message": "QRIS format is not suitable"
+                            }
+                    """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                             {
                                 "message": "Unauthorized"
