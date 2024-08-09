@@ -95,7 +95,7 @@ public class TransactionServiceImpl implements TransactionService {
         senderMutation.setCreatedAt(LocalDateTime.now());
         senderMutation.setMutationType(requestDto.getType());
         senderMutation.setAccountNumber(destination.getAccountNumber());
-        senderMutation.setFullName(sender.getFullName());
+        senderMutation.setFullName(receiver.getFullName());
         senderMutation.setTransactionType(TransactionType.DEBIT);
         mutationRepository.save(senderMutation);
 
@@ -104,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
         receiverMutation.setCreatedAt(LocalDateTime.now());
         receiverMutation.setMutationType(requestDto.getType());
         receiverMutation.setAccountNumber(sender.getAccountNumber());
-        receiverMutation.setFullName(receiver.getFullName());
+        receiverMutation.setFullName(sender.getFullName());
         receiverMutation.setTransactionType(TransactionType.CREDIT);
         mutationRepository.save(receiverMutation);
 
@@ -112,20 +112,20 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setDescription(requestDto.getDescription());
         responseDto.setTransactionPurpose(requestDto.getTransactionPurpose().toString());
 
-        TransferResponseDto.ReceiverDetail destinationDetail = new TransferResponseDto.ReceiverDetail();
-        destinationDetail.setName(destination.getName());
-        destinationDetail.setAccountNumber(destination.getAccountNumber());
-        responseDto.setDestinationDetail(destinationDetail);
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+        receiverDetail.setName(destination.getName());
+        receiverDetail.setAccountNumber(destination.getAccountNumber());
+        responseDto.setReceiverDetail(receiverDetail);
 
         TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
         mutationDetail.setAmount(requestDto.getAmount());
         mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
         responseDto.setMutationDetail(mutationDetail);
 
-        TransferResponseDto.SenderDetail userDetail = new TransferResponseDto.SenderDetail();
-        userDetail.setName(sender.getUsername());
-        userDetail.setAccountNumber(sender.getAccountNumber());
-        responseDto.setUserDetail(userDetail);
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        senderDetail.setName(sender.getUsername());
+        senderDetail.setAccountNumber(sender.getAccountNumber());
+        responseDto.setSenderDetail(senderDetail);
 
         return responseDto;
     }
@@ -204,11 +204,24 @@ public class TransactionServiceImpl implements TransactionService {
         int index = 0;
 
         while (index < qris.length()) {
+            if (index + 4 > qris.length()) {
+                throw new IllegalArgumentException("QRIS format is not suitable");
+            }
+
             String tag = qris.substring(index, index + 2);
             index += 2;
 
-            int length = Integer.parseInt(qris.substring(index, index + 2));
+            int length;
+            try {
+                length = Integer.parseInt(qris.substring(index, index + 2));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("QRIS format is not suitable", e);
+            }
             index += 2;
+
+            if (index + length > qris.length()) {
+                throw new IllegalArgumentException("QRIS format is not suitable");
+            }
 
             String value = qris.substring(index, index + length);
             index += length;
@@ -250,8 +263,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         double amount;
-        String transactionId = null;
-        String merchant = null;
+        String transactionId;
+        String merchant;
 
         if (qrisMap.containsKey("62")) {
             Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
@@ -279,6 +292,7 @@ public class TransactionServiceImpl implements TransactionService {
                 mutation.setMutationType(MutationType.QRIS);
                 mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
                 mutation.setDescription(qrisDto.getDescription());
+                mutation.setFullName(qrisMap.get("59"));
                 mutationRepository.save(mutation);
 
                 transactionId = newQris.getTransactionId();
@@ -305,6 +319,7 @@ public class TransactionServiceImpl implements TransactionService {
             mutation.setMutationType(MutationType.QRIS);
             mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
             mutation.setDescription(qrisDto.getDescription());
+            mutation.setFullName(qrisMap.get("59"));
             mutationRepository.save(mutation);
 
             transactionId = qrisMap.get("62");
@@ -320,6 +335,63 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setDescription(qrisDto.getDescription());
 
         return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public Object getTransactionDetails(UUID transactionId) {
+        Mutation mutation = mutationRepository.findById(transactionId)
+                .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+
+        if (mutation.getMutationType() == MutationType.QRIS) {
+            return buildQrisResponseDto(mutation);
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return buildTransferResponseDto(mutation);
+        } else {
+            throw new DataNotFoundException("Invalid mutation type");
+        }
+    }
+
+    private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
+        QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
+        qrisResponseDto.setTransactionId(mutation.getId().toString());
+        qrisResponseDto.setMerchant(mutation.getFullName());
+        qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
+        qrisResponseDto.setDescription(mutation.getDescription());
+        return qrisResponseDto;
+    }
+
+    private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
+        User sender = mutation.getUser();
+        TransferResponseDto transferResponseDto = new TransferResponseDto();
+
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+
+        if (mutation.getTransactionType() == TransactionType.DEBIT) {
+            senderDetail.setName(sender.getFullName());
+            senderDetail.setAccountNumber(sender.getAccountNumber());
+            receiverDetail.setName(mutation.getFullName());
+            receiverDetail.setAccountNumber(mutation.getAccountNumber());
+        } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
+            senderDetail.setName(mutation.getFullName());
+            senderDetail.setAccountNumber(mutation.getAccountNumber());
+            receiverDetail.setName(sender.getFullName());
+            receiverDetail.setAccountNumber(sender.getAccountNumber());
+        }
+
+        transferResponseDto.setSenderDetail(senderDetail);
+        transferResponseDto.setReceiverDetail(receiverDetail);
+
+        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
+        mutationDetail.setAmount(mutation.getAmount());
+        mutationDetail.setCreatedAt(mutation.getCreatedAt());
+        transferResponseDto.setMutationDetail(mutationDetail);
+
+        transferResponseDto.setDescription(mutation.getDescription());
+        transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
+
+        return transferResponseDto;
     }
 
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class UserChangeEmailDto {
     @NotBlank(message = "Email is required")
-    @Email(message = "email must be a valid email")
+    @Email(message = "Invalid email format")
     @ValidUnique(column = "email", message = "Email already been taken")
     private String email;
 }

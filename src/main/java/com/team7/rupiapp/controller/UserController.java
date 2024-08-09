@@ -1,5 +1,6 @@
 package com.team7.rupiapp.controller;
 
+import com.team7.rupiapp.api.UserApi;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/users")
-public class UserController {
+public class UserController implements UserApi {
     UserService userService;
 
     public UserController(UserService userService) {
@@ -48,7 +49,7 @@ public class UserController {
     }
 
     @PostMapping("/change-email")
-    public ResponseEntity<Object> changeEmail(Principal principal, @RequestBody UserChangeEmailDto userChangeEmailDto) {
+    public ResponseEntity<Object> changeEmail(Principal principal, @Valid @RequestBody UserChangeEmailDto userChangeEmailDto) {
         userService.changeEmail(principal, userChangeEmailDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Email change request has been sent");
     }
