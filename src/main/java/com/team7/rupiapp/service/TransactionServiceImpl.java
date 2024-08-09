@@ -95,7 +95,7 @@ public class TransactionServiceImpl implements TransactionService {
         senderMutation.setCreatedAt(LocalDateTime.now());
         senderMutation.setMutationType(requestDto.getType());
         senderMutation.setAccountNumber(destination.getAccountNumber());
-        senderMutation.setFullName(sender.getFullName());
+        senderMutation.setFullName(receiver.getFullName());
         senderMutation.setTransactionType(TransactionType.DEBIT);
         mutationRepository.save(senderMutation);
 
@@ -104,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
         receiverMutation.setCreatedAt(LocalDateTime.now());
         receiverMutation.setMutationType(requestDto.getType());
         receiverMutation.setAccountNumber(sender.getAccountNumber());
-        receiverMutation.setFullName(receiver.getFullName());
+        receiverMutation.setFullName(sender.getFullName());
         receiverMutation.setTransactionType(TransactionType.CREDIT);
         mutationRepository.save(receiverMutation);
 
@@ -279,7 +279,7 @@ public class TransactionServiceImpl implements TransactionService {
                 mutation.setMutationType(MutationType.QRIS);
                 mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
                 mutation.setDescription(qrisDto.getDescription());
-                mutation.setAccountNumber(qrisMap.get("59"));
+                mutation.setFullName(qrisMap.get("59"));
                 mutationRepository.save(mutation);
 
                 transactionId = newQris.getTransactionId();
@@ -306,7 +306,7 @@ public class TransactionServiceImpl implements TransactionService {
             mutation.setMutationType(MutationType.QRIS);
             mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
             mutation.setDescription(qrisDto.getDescription());
-            mutation.setAccountNumber(qrisMap.get("59"));
+            mutation.setFullName(qrisMap.get("59"));
             mutationRepository.save(mutation);
 
             transactionId = qrisMap.get("62");
@@ -327,6 +327,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public Object getTransactionDetails(UUID transactionId) {
+        //trnsaksi puya user lg login
         Mutation mutation = mutationRepository.findById(transactionId)
                 .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
 
@@ -349,12 +350,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
-//        User sender = mutation.getUser();
-        User sender = userRepository.findById(mutation.getUser().getId())
-                .orElseThrow(() -> new DataNotFoundException("Sender not found"));
-        User receiver = userRepository.findByAccountNumber(mutation.getAccountNumber())
-                .orElseThrow(() -> new DataNotFoundException("Receiver not found"));
-
+        User sender = mutation.getUser();
         TransferResponseDto transferResponseDto = new TransferResponseDto();
 
         TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
@@ -363,11 +359,11 @@ public class TransactionServiceImpl implements TransactionService {
         if (mutation.getTransactionType() == TransactionType.DEBIT) {
             senderDetail.setName(sender.getFullName());
             senderDetail.setAccountNumber(sender.getAccountNumber());
-            receiverDetail.setName(receiver.getFullName());
-            receiverDetail.setAccountNumber(receiver.getAccountNumber());
+            receiverDetail.setName(mutation.getFullName());
+            receiverDetail.setAccountNumber(mutation.getAccountNumber());
         } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
-            senderDetail.setName(receiver.getFullName());
-            senderDetail.setAccountNumber(receiver.getAccountNumber());
+            senderDetail.setName(mutation.getFullName());
+            senderDetail.setAccountNumber(mutation.getAccountNumber());
             receiverDetail.setName(sender.getFullName());
             receiverDetail.setAccountNumber(sender.getAccountNumber());
         }

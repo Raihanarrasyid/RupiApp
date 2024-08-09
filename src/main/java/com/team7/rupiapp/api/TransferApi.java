@@ -391,6 +391,7 @@ public interface TransferApi {
                                 {
                                     "data": {
                                         "transaction_id": "3a83dc93-9f62-4d8a-995a-885d9d3a0353",
+                                        "merchant": "ZeRo Store",
                                         "amount": "10000.0",
                                         "description": "jajan baru"
                                     },
