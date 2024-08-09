@@ -43,20 +43,6 @@ public class AccountController implements AccountApi {
     }
 
     @GetMapping("/mutations")
-    public ResponseEntity<Object> getAccountMutation(@Valid Principal principal) {
-        Object response = accountService.getAccountMutation(principal);
-        return ApiResponseUtil.success(HttpStatus.OK, "Account Mutations fetched", response);
-    }
-
-    @GetMapping("/mutations/page")
-    public ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(Principal principal,
-                                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                                  @RequestParam(defaultValue = "10") int size) {
-        AccountMutationsMonthlyDto response = accountService.getAccountMutationPageable(principal, page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/mutations/page/filter")
     public ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(Principal principal,
                                                                                   @RequestParam(defaultValue = "0") int page,
                                                                                   @RequestParam(defaultValue = "10") int size,

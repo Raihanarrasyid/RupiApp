@@ -71,8 +71,6 @@ public interface AccountApi {
     })
     public ResponseEntity<Object> getAccountDetail(@Valid Principal principal);
 
-    public ResponseEntity<Object> getAccountMutation(@Valid Principal principal);
-
     @Operation(summary = "Account Mutation Summary")
     @ApiResponses(value = {
             @ApiResponse(

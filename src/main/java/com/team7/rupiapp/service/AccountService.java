@@ -12,7 +12,5 @@ public interface AccountService {
                                                                        Integer year,
                                                                        Integer month);
 
-
-    public AccountMutationsMonthlyDto getAccountMutation(Principal principal);
-    public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size);
+    public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size, Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType);
 }
