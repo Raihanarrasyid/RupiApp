@@ -83,7 +83,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        user.setAlias(userChangeProfileDto.getName());
+        String alias = userChangeProfileDto.getName();
+        if (alias != null && !alias.isBlank()) {
+            user.setAlias(alias);
+        }
+
         MultipartFile avatar = userChangeProfileDto.getAvatar();
         if (avatar != null) {
             if (!avatar.getContentType().startsWith("image/")) {
