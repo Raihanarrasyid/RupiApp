@@ -14,6 +14,7 @@ import com.team7.rupiapp.enums.TransactionPurpose;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
+import com.team7.rupiapp.exception.UnauthorizedException;
 import com.team7.rupiapp.model.Destination;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.Qris;
@@ -339,9 +340,16 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public Object getTransactionDetails(UUID transactionId) {
+    public Object getTransactionDetails(UUID transactionId, Principal principal) {
         Mutation mutation = mutationRepository.findById(transactionId)
                 .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+
+        User requestingUser = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        if (!isUserAuthorized(mutation, requestingUser)) {
+            throw new UnauthorizedException("Not authorized to access this transaction");
+        }
 
         if (mutation.getMutationType() == MutationType.QRIS) {
             return buildQrisResponseDto(mutation);
@@ -350,6 +358,16 @@ public class TransactionServiceImpl implements TransactionService {
         } else {
             throw new DataNotFoundException("Invalid mutation type");
         }
+    }
+
+    private boolean isUserAuthorized(Mutation mutation, User requestingUser) {
+        if (mutation.getMutationType() == MutationType.QRIS) {
+            return mutation.getUser().getId().equals(requestingUser.getId());
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return mutation.getUser().getId().equals(requestingUser.getId()) ||
+                    mutation.getAccountNumber().equals(requestingUser.getAccountNumber());
+        }
+        return false;
     }
 
     private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {

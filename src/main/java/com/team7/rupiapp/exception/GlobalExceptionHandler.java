@@ -178,4 +178,10 @@ public class GlobalExceptionHandler {
 
         return ApiResponseUtil.error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex) {
+        log.error(ex.getMessage());
+        return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
 }
