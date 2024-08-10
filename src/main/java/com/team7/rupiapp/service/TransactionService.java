@@ -29,6 +29,6 @@ public interface TransactionService {
 
     public QrisTransferResponseDto createTransactionQris(Principal principal, QrisDto qrisDto);
 
-    Object getTransactionDetails(UUID transactionId);
+    Object getTransactionDetails(UUID transactionId, Principal principal);
 }
 

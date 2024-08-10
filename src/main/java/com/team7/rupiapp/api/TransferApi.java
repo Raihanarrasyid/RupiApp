@@ -490,5 +490,5 @@ public interface TransferApi {
                             }
                     """)))
     })
-    ResponseEntity<Object> getTransactionDetails(UUID transactionId);
+    ResponseEntity<Object> getTransactionDetails(UUID transactionId, Principal principal);
 }

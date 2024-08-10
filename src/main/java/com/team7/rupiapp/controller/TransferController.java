@@ -76,8 +76,8 @@ public class TransferController implements TransferApi {
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<Object> getTransactionDetails(@PathVariable UUID transactionId) {
-        Object responseDto = transactionService.getTransactionDetails(transactionId);
+    public ResponseEntity<Object> getTransactionDetails(@PathVariable UUID transactionId, Principal principal) {
+        Object responseDto = transactionService.getTransactionDetails(transactionId, principal);
         return ApiResponseUtil.success(HttpStatus.OK, "Transaction details retrieved", responseDto);
     }
 }
