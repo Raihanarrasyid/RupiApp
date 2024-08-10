@@ -1,4 +1,4 @@
-package com.team7.rupiapp.dto.destination;
+package com.team7.rupiapp.dto.transfer.destination;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

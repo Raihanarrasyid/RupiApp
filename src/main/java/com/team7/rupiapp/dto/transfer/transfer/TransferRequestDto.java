@@ -1,4 +1,4 @@
-package com.team7.rupiapp.dto.transfer;
+package com.team7.rupiapp.dto.transfer.transfer;
 
 import com.team7.rupiapp.enums.MutationType;
 import com.team7.rupiapp.enums.TransactionPurpose;

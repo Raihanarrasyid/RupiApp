@@ -1,4 +1,4 @@
-package com.team7.rupiapp.dto.qris;
+package com.team7.rupiapp.dto.transfer.qris;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package com.team7.rupiapp.dto.transfer;
+package com.team7.rupiapp.dto.transfer.transfer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
