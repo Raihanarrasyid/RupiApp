@@ -89,8 +89,10 @@ public class AccountServiceImpl implements AccountService {
         double denominatorBalance = totalIncome + totalExpense;
         double totalEarnings = totalIncome - totalExpense;
 
-        List<AccountMutationSummaryResponseDto.CategoryDetail> creditCategories = getCategoryDetails(mutations, TransactionType.CREDIT, denominatorBalance);
-        List<AccountMutationSummaryResponseDto.CategoryDetail> debitCategories = getCategoryDetails(mutations, TransactionType.DEBIT, denominatorBalance);
+        List<AccountMutationSummaryResponseDto.CategoryDetail> creditCategories = getCategoryDetails(mutations,
+                TransactionType.CREDIT, denominatorBalance, foundUser);
+        List<AccountMutationSummaryResponseDto.CategoryDetail> debitCategories = getCategoryDetails(mutations,
+                TransactionType.DEBIT, denominatorBalance, foundUser);
 
         return AccountMutationSummaryResponseDto.builder()
                 .income(AccountMutationSummaryResponseDto.IncomeDetail.builder()
@@ -220,7 +222,7 @@ public class AccountServiceImpl implements AccountService {
                 .sum();
     }
 
-    private List<AccountMutationSummaryResponseDto.CategoryDetail> getCategoryDetails(List<Mutation> mutations, TransactionType transactionType, double denominatorBalance) {
+    private List<AccountMutationSummaryResponseDto.CategoryDetail> getCategoryDetails(List<Mutation> mutations, TransactionType transactionType, double denominatorBalance, User user) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .collect(Collectors.groupingBy(
@@ -236,7 +238,7 @@ public class AccountServiceImpl implements AccountService {
                         .totalBalancePercentage(calculateBalancePercentage(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
                         .mutations(
                                 extractMutations(mutations, transactionType,
-                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
+                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey(), user))
                         .build())
                 .toList();
     }
@@ -250,12 +252,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private List<AccountMutationSummaryResponseDto.MutationDetail> extractMutations(List<Mutation> mutations,
-                                                                                 TransactionType transactionType, MutationType mutationType) {
+                                                                                    TransactionType transactionType, MutationType mutationType, User user) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
                 .map(mutation -> AccountMutationSummaryResponseDto.MutationDetail.builder()
-                        .fullName(mutation.getFullName())
+                        .fullName(transactionType.equals(TransactionType.CREDIT) ? mutation.getFullName() : user.getFullName())
                         .accountNumber(mutation.getAccountNumber())
                         .amount(CurrencyFormatter.formatToIDR(mutation.getAmount()))
                         .description(mutation.getDescription())
