@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.team7.rupiapp.api.AuthApi;
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
+import com.team7.rupiapp.dto.auth.forgot.ForgotUsernameDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.signin.SigninDto;
@@ -17,6 +18,7 @@ import com.team7.rupiapp.service.AuthenticationService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
 
@@ -25,8 +27,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 public class AuthController implements AuthApi {
@@ -55,17 +59,24 @@ public class AuthController implements AuthApi {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Object> verify(@Valid @RequestBody VerificationDto verificationDto,
+    public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent, // TODO: remove me
+            @Valid @RequestBody VerificationDto verificationDto,
             Principal principal) {
+        log.info("User-Agent" + userAgent);
         if (principal == null && verificationDto.getType() != VerificationType.FORGOT_PASSWORD) {
             throw new BadCredentialsException("Unauthorized");
         }
         return authenticationService.verify(principal, verificationDto);
     }
 
+    @PostMapping("/forgot-username")
+    public ResponseEntity<Object> forgotUsernameRequest(@Valid @RequestBody ForgotUsernameDto forgotUsernameDto) {
+        String response = authenticationService.forgotUsername(forgotUsernameDto);
+        return ApiResponseUtil.success(HttpStatus.OK, response);
+    }
+
     @PostMapping("/forgot-password")
-    public ResponseEntity<Object> forgotPasswordRequest(
-            @Valid @RequestBody ForgotPasswordDto forgotPasswordDto) {
+    public ResponseEntity<Object> forgotPasswordRequest(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto) {
         authenticationService.forgotPassword(forgotPasswordDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Forgot password success");
     }
@@ -83,7 +94,7 @@ public class AuthController implements AuthApi {
     }
 
     @PostMapping("/set-pin")
-    public ResponseEntity<Object> setPin(@RequestBody SetPinDto setPinDto, Principal principal) {
+    public ResponseEntity<Object> setPin(@Valid @RequestBody SetPinDto setPinDto, Principal principal) {
         authenticationService.setPin(principal, setPinDto);
         return ApiResponseUtil.success(HttpStatus.OK, "PIN has been successfully set.");
     }

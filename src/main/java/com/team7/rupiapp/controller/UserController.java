@@ -23,7 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -41,15 +43,16 @@ public class UserController implements UserApi {
         return ApiResponseUtil.success(HttpStatus.OK, "User profile", userService.getUserProfile(principal));
     }
 
-    @PostMapping("/change-profile")
+    @PutMapping("/profile")
     public ResponseEntity<Object> changeProfile(Principal principal,
             @Valid @ModelAttribute UserChangeProfileDto userChangeProfileDto) {
         userService.changeProfile(principal, userChangeProfileDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Profile has been changed");
     }
 
-    @PostMapping("/change-email")
-    public ResponseEntity<Object> changeEmail(Principal principal, @Valid @RequestBody UserChangeEmailDto userChangeEmailDto) {
+    @PatchMapping("/change-email")
+    public ResponseEntity<Object> changeEmail(Principal principal,
+            @Valid @RequestBody UserChangeEmailDto userChangeEmailDto) {
         userService.changeEmail(principal, userChangeEmailDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Email change request has been sent");
     }
@@ -61,7 +64,7 @@ public class UserController implements UserApi {
         return ApiResponseUtil.success(HttpStatus.OK, "Email has been verified");
     }
 
-    @PostMapping("/change-number")
+    @PatchMapping("/change-number")
     public ResponseEntity<Object> changeNumber(Principal principal,
             @Valid @RequestBody UserChangePhoneDto userChangePhoneDto) {
         userService.changeNumber(principal, userChangePhoneDto);
@@ -82,7 +85,7 @@ public class UserController implements UserApi {
                 userService.verifyPassword(principal, userVerifyPasswordDto));
     }
 
-    @PostMapping("/change-password")
+    @PatchMapping("/change-password")
     public ResponseEntity<Object> changePassword(Principal principal, @RequestHeader("X-SIGNATURE") String signature,
             @Valid @RequestBody UserChangePasswordDto userChangePasswordDto) {
         userService.changePassword(principal, signature, userChangePasswordDto);
@@ -96,7 +99,7 @@ public class UserController implements UserApi {
                 userService.verifyPin(principal, userVerifyPinDto));
     }
 
-    @PostMapping("/change-pin")
+    @PatchMapping("/change-pin")
     public ResponseEntity<Object> changePin(Principal principal, @RequestHeader("X-SIGNATURE") String signature,
             @Valid @RequestBody UserChangePinDto userChangePinDto) {
         userService.changePin(principal, signature, userChangePinDto);

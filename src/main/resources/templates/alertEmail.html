@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>RupiApp - Verification Email</title>
+    <title>RupiApp - Important</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -17,10 +17,8 @@
                     RupiApp
                 </a>
             </div>
-            <p style="font-size:1.1em">Hai, <strong th:text="${name}">Name</strong></p>
+            <p style="font-size:1.1em">Hai, <strong an th:text="${name}">Name</strong></p>
             <p th:text="${message}">Message</p>
-            <h2 style="background: #2D59BA;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;"
-                th:text="${otp}">Verification OTP</h2>
             <p style="font-size:0.9em;">Regards,<br />RupiApp Team</p>
             <hr style="border:none;border-top:1px solid #eee" />
         </div>

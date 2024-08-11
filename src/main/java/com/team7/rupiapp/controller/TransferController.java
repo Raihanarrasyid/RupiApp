@@ -63,8 +63,8 @@ public class TransferController implements TransferApi {
         return ApiResponseUtil.success(HttpStatus.OK,"transaction detail has been sent", destinationDetail);
     }
 
-    @GetMapping("/qris/{data}")
-    public ResponseEntity<Object> getDetailQris(@PathVariable("data") String qris){
+    @GetMapping("/qris/{qris}")
+    public ResponseEntity<Object> getDetailQris(@PathVariable("qris") String qris){
         QrisResponseDto qrisResponse = transactionService.detailQris(qris);
         return ApiResponseUtil.success(HttpStatus.OK,"Qris detail has been sent", qrisResponse);
     }
