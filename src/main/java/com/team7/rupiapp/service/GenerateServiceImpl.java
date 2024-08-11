@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 
 import javax.crypto.Mac;
@@ -19,16 +21,18 @@ import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.OtpRepository;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 public class GenerateServiceImpl implements GenerateService {
     private static final String ALGORITHM = "HmacSHA256";
-
     private final Random random = new Random();
     private final PasswordEncoder passwordEncoder;
     private final OtpRepository otpRepository;
+
+    private List<String> testerList;
 
     @Value("${app.otp.code.length}")
     private int otpCodeLength;
@@ -36,23 +40,17 @@ public class GenerateServiceImpl implements GenerateService {
     @Value("${app.otp.code.expiration-time}")
     private int otpExpirationTime;
 
+    @Value("${test.tester:}")
+    private String tester;
+
     public GenerateServiceImpl(PasswordEncoder passwordEncoder, OtpRepository otpRepository) {
         this.passwordEncoder = passwordEncoder;
         this.otpRepository = otpRepository;
     }
 
-    @Override
-    public String generateOtp(User user, OtpType type) {
-        return generateOtp(user, type, null);
-    }
-
-    @Override
-    public String generateOtp(User user, OtpType type, String newValue) {
-        // String otpCode = generateRandomCode();
-        String otpCode = "123456";
-        Otp otp = createOtp(user, type, newValue, otpCode);
-        otpRepository.save(otp);
-        return otpCode;
+    @PostConstruct
+    private void init() {
+        this.testerList = Arrays.asList(tester.split(","));
     }
 
     private String generateRandomCode() {
@@ -70,6 +68,24 @@ public class GenerateServiceImpl implements GenerateService {
         otp.setType(type);
         otp.setNewValue(newValue);
         return otp;
+    }
+
+    @Override
+    public String generateOtp(User user, OtpType type) {
+        return generateOtp(user, type, null);
+    }
+
+    @Override
+    public String generateOtp(User user, OtpType type, String newValue) {
+        String otpCode = generateRandomCode();
+        if (testerList.contains(user.getUsername())) {
+            otpCode = "123456";
+        }
+
+        Otp otp = createOtp(user, type, newValue, otpCode);
+        otpRepository.save(otp);
+
+        return otpCode;
     }
 
     @Override

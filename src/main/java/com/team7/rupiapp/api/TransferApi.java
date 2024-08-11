@@ -3,12 +3,12 @@ package com.team7.rupiapp.api;
 import java.security.Principal;
 import java.util.UUID;
 
-import com.team7.rupiapp.dto.destination.DestinationAddDto;
-import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
-import com.team7.rupiapp.dto.qris.QrisDto;
-import org.springframework.http.ResponseEntity;
+import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
+import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisDto;
+import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 
-import com.team7.rupiapp.dto.transfer.TransferRequestDto;
+import org.springframework.http.ResponseEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

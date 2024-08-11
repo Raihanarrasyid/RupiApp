@@ -1,15 +1,15 @@
 package com.team7.rupiapp.controller;
 
 import com.team7.rupiapp.api.TransferApi;
-import com.team7.rupiapp.dto.destination.DestinationAddDto;
-import com.team7.rupiapp.dto.destination.DestinationDetailDto;
-import com.team7.rupiapp.dto.destination.DestinationDto;
-import com.team7.rupiapp.dto.destination.DestinationFavoriteDto;
-import com.team7.rupiapp.dto.qris.QrisDto;
-import com.team7.rupiapp.dto.qris.QrisResponseDto;
-import com.team7.rupiapp.dto.qris.QrisTransferResponseDto;
-import com.team7.rupiapp.dto.transfer.TransferRequestDto;
-import com.team7.rupiapp.dto.transfer.TransferResponseDto;
+import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
+import com.team7.rupiapp.dto.transfer.destination.DestinationDetailDto;
+import com.team7.rupiapp.dto.transfer.destination.DestinationDto;
+import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
+import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
+import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 import com.team7.rupiapp.service.TransactionService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
@@ -63,8 +63,8 @@ public class TransferController implements TransferApi {
         return ApiResponseUtil.success(HttpStatus.OK,"transaction detail has been sent", destinationDetail);
     }
 
-    @GetMapping("/qris/{data}")
-    public ResponseEntity<Object> getDetailQris(@PathVariable("data") String qris){
+    @GetMapping("/qris/{qris}")
+    public ResponseEntity<Object> getDetailQris(@PathVariable("qris") String qris){
         QrisResponseDto qrisResponse = transactionService.detailQris(qris);
         return ApiResponseUtil.success(HttpStatus.OK,"Qris detail has been sent", qrisResponse);
     }

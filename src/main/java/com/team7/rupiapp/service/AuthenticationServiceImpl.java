@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.team7.rupiapp.client.WhatsappClient;
 import com.team7.rupiapp.client.data.CheckWhatsappNumberData;
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
+import com.team7.rupiapp.dto.auth.forgot.ForgotUsernameDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenDto;
 import com.team7.rupiapp.dto.auth.refresh.RefreshTokenResponseDto;
@@ -196,6 +197,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    public String forgotUsername(ForgotUsernameDto forgotUsernameDto) {
+        if (forgotUsernameDto.getDestination().contains("@")) {
+            User user = userRepository.findByEmail(forgotUsernameDto.getDestination())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+            notifierService.sendUsernameByEmail(user.getEmail(), user.getAlias(), user.getUsername());
+
+            return "Username has been sent to your email";
+        } else {
+            User user = userRepository.findByPhone(forgotUsernameDto.getDestination())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+            notifierService.sendUsernameByPhone(user.getPhone(), user.getUsername());
+
+            return "Username has been sent to your phone";
+        }
+    }
+
+    @Override
     public void forgotPassword(ForgotPasswordDto forgotPasswordDto) {
         User user = userRepository.findByUsername(forgotPasswordDto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
@@ -263,6 +283,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (passwordEncoder.matches(verificationDto.getOtp(), otp.getCode())) {
+            notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Reset Password Berhasil",
+                    "Password Anda berhasil diubah per tanggal {time}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi kami.");
+
             user.setPassword(passwordEncoder.encode(verificationDto.getPassword()));
             user.setDefaultPassword(false);
             userRepository.save(user);

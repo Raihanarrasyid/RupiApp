@@ -3,6 +3,7 @@ package com.team7.rupiapp.api;
 import java.security.Principal;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.team7.rupiapp.dto.auth.forgot.ForgotPasswordDto;
 import com.team7.rupiapp.dto.auth.pin.SetPinDto;
@@ -190,7 +191,8 @@ public interface AuthApi {
                     }
                     """)))
     })
-    public ResponseEntity<Object> verify(VerificationDto verificationDto,
+    public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent,
+            VerificationDto verificationDto,
             Principal principal);
 
     @Operation(summary = "Forgot Password")

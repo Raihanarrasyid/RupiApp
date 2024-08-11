@@ -1,47 +1,54 @@
-{"properties": [
-  {
-    "name": "spring.security.jwt.secret-key",
-    "type": "java.lang.String",
-    "description": "Secret key for JWT token generation"
-  },
-  {
-    "name": "spring.security.jwt.expiration-time",
-    "type": "java.lang.String",
-    "description": "Expiration time for JWT token"
-  },
-  {
-    "name": "spring.security.jwt.refresh-token.secret-key",
-    "type": "java.lang.String",
-    "description": "Secret key for JWT refresh token generation"
-  },
-  {
-    "name": "spring.security.jwt.refresh-token.expiration-time",
-    "type": "java.lang.String",
-    "description": "Expiration time for JWT refresh token"
-  },
-  {
-    "name": "client.wahub.key",
-    "type": "java.lang.String",
-    "description": "WAHub API Key"
-  },
-  {
-    "name": "client.wahub.number",
-    "type": "java.lang.String",
-    "description": "WAHub Number"
-  },
-  {
-    "name": "app.otp.code.length",
-    "type": "java.lang.String",
-    "description": "Length of OTP code"
-  },
-  {
-    "name": "app.otp.code.expiration-time",
-    "type": "java.lang.String",
-    "description": "Expiration time for OTP code"
-  },
-  {
-    "name": "spring.upload.directory",
-    "type": "java.lang.String",
-    "description": "Upload directory"
-  }
-]}
+{
+  "properties": [
+    {
+      "name": "spring.security.jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "Secret key for JWT token generation"
+    },
+    {
+      "name": "spring.security.jwt.expiration-time",
+      "type": "java.lang.String",
+      "description": "Expiration time for JWT token"
+    },
+    {
+      "name": "spring.security.jwt.refresh-token.secret-key",
+      "type": "java.lang.String",
+      "description": "Secret key for JWT refresh token generation"
+    },
+    {
+      "name": "spring.security.jwt.refresh-token.expiration-time",
+      "type": "java.lang.String",
+      "description": "Expiration time for JWT refresh token"
+    },
+    {
+      "name": "client.wahub.key",
+      "type": "java.lang.String",
+      "description": "WAHub API Key"
+    },
+    {
+      "name": "client.wahub.number",
+      "type": "java.lang.String",
+      "description": "WAHub Number"
+    },
+    {
+      "name": "app.otp.code.length",
+      "type": "java.lang.String",
+      "description": "Length of OTP code"
+    },
+    {
+      "name": "app.otp.code.expiration-time",
+      "type": "java.lang.String",
+      "description": "Expiration time for OTP code"
+    },
+    {
+      "name": "spring.upload.directory",
+      "type": "java.lang.String",
+      "description": "Upload directory"
+    },
+    {
+      "name": "test.tester",
+      "type": "java.lang.String",
+      "description": "for testing"
+    }
+  ]
+}

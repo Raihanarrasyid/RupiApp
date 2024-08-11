@@ -37,7 +37,9 @@ import com.team7.rupiapp.repository.OtpRepository;
 import com.team7.rupiapp.repository.UserRepository;
 
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
@@ -112,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
                 Path filePath = uploadPath.resolve(filename);
                 Files.copy(avatar.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                user.setAvatar("uploads/"+filename);
+                user.setAvatar("uploads/" + filename);
             } catch (Exception e) {
                 throw new BadRequestException("Failed to upload avatar");
             }
@@ -131,7 +133,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String otp = generateService.generateOtp(user, OtpType.CHANGE_EMAIL, userChangeEmailDto.getEmail());
-        notifierService.sendVerificationEmail(user.getEmail(), user.getAlias(), otp);
+        notifierService.sendVerificationEmail(userChangeEmailDto.getEmail(), user.getAlias(), otp);
     }
 
     @Override
@@ -148,9 +150,15 @@ public class UserServiceImpl implements UserService {
         }
 
         if (passwordEncoder.matches(userVerifyOtpDto.getOtp(), otp.getCode())) {
+            notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Email Berhasil Diubah",
+                    "Email Anda berhasil diubah menjadi " + otp.getNewValue()
+                            + " per tanggal {time}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi kami.");
+
             user.setEmail(otp.getNewValue());
             userRepository.save(user);
             otpRepository.delete(otp);
+
+            log.info("Email changed for user {}", user.getUsername());
         } else {
             throw new BadRequestException("Invalid OTP");
         }
@@ -196,6 +204,11 @@ public class UserServiceImpl implements UserService {
         }
 
         if (passwordEncoder.matches(userVerifyOtpDto.getOtp(), otp.getCode())) {
+            notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Nomor Telepon Berhasil Diubah",
+                    "Nomor telepon Anda berhasil diubah menjadi *****"
+                            + otp.getNewValue().substring(otp.getNewValue().length() - 4)
+                            + " per tanggal {time}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi kami.");
+
             user.setPhone(otp.getNewValue());
             userRepository.save(user);
             otpRepository.delete(otp);
@@ -236,6 +249,9 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("New password cannot be the same as the old password");
         }
 
+        notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Password Berhasil Diubah",
+                "Password Anda berhasil diubah per tanggal {time}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi kami.");
+
         user.setPassword(passwordEncoder.encode(userChangePasswordDto.getPassword()));
         userRepository.save(user);
     }
@@ -271,6 +287,9 @@ public class UserServiceImpl implements UserService {
         if (passwordEncoder.matches(userChangePinDto.getPin(), user.getPin())) {
             throw new BadRequestException("New pin cannot be the same as the old pin");
         }
+
+        notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Pin Berhasil Diubah",
+                "Pin Anda berhasil diubah per tanggal {time}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi kami.");
 
         user.setPin(passwordEncoder.encode(userChangePinDto.getPin()));
         userRepository.save(user);
