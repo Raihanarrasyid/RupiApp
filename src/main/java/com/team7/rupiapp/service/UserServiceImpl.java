@@ -237,8 +237,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        if (!generateService.verifySignature(user.getId().toString(), user.getPassword(), signature)) {
-            throw new BadRequestException("Invalid signature");
+        if (signature == null || !generateService.verifySignature(user.getId().toString(), user.getPassword(), signature)) {
+            throw new BadRequestException("Invalid or missing signature");
         }
 
         if (!userChangePasswordDto.getPassword().equals(userChangePasswordDto.getConfirmPassword())) {
@@ -276,8 +276,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        if (!generateService.verifySignature(user.getId().toString(), user.getPin(), signature)) {
-            throw new BadRequestException("Invalid signature");
+        if (signature == null ||  !generateService.verifySignature(user.getId().toString(), user.getPin(), signature)) {
+            throw new BadRequestException("Invalid or missing signature");
         }
 
         if (!userChangePinDto.getPin().equals(userChangePinDto.getConfirmPin())) {
