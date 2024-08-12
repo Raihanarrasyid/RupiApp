@@ -175,10 +175,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userRepository.findByUsername(resendVerificationDto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        if (user.isVerified()) {
-            throw new BadRequestException("User already verified");
-        }
-
         otpRepository.findByUserAndType(user, OtpType.LOGIN).ifPresent(otp -> {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime nextAllowedTime = otp.getExpiryDate().minusMinutes(4);

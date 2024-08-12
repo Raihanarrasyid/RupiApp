@@ -1,6 +1,7 @@
 package com.team7.rupiapp.api;
 
 import com.team7.rupiapp.dto.user.UserChangeEmailDto;
+import com.team7.rupiapp.dto.user.UserChangePhoneDto;
 import com.team7.rupiapp.dto.user.UserChangeProfileDto;
 import com.team7.rupiapp.dto.user.UserVerifyOtpDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -283,4 +284,185 @@ public interface UserApi {
             )
     })
     public ResponseEntity<Object> verifyEmail(Principal principal, @RequestBody UserVerifyOtpDto userVerifyOtpDto);
+
+    @Operation(summary = "Change User Phone Number")
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    examples = @ExampleObject(
+                            value = """
+                                    {
+                                        "phone": "6281234567890"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Phone number change request sent successfully.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "message": "Number change request has been sent"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad Request due to invalid input.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = {
+                                    @ExampleObject(name = "Phone Already Registered", value = """
+                                            {
+                                                "message": "Phone number already registered"
+                                            }
+                                            """),
+                                    @ExampleObject(name = "Invalid Phone Number", value = """
+                                            {
+                                                "message": "Number is not valid"
+                                            }
+                                            """)
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "message": "Unauthorized"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation failed due to invalid input.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = {
+                                    @ExampleObject(name = "Phone is required", value = """
+                                            {
+                                                "message": "Validation failed",
+                                                "errors": {
+                                                    "phone": "Phone is required"
+                                                }
+                                            }
+                                            """),
+                                    @ExampleObject(name = "Invalid Phone Format", value = """
+                                            {
+                                                "message": "Validation failed",
+                                                "errors": {
+                                                    "phone": "Phone must be a valid phone number"
+                                                }
+                                            }
+                                            """),
+                                    @ExampleObject(name = "Phone already been taken", value = """
+                                            {
+                                                "message": "Validation failed",
+                                                "errors": {
+                                                    "phone": "Phone already been taken"
+                                                }
+                                            }
+                                            """)
+                            }
+                    )
+            )
+    })
+    public ResponseEntity<Object> changeNumber(Principal principal, @RequestBody UserChangePhoneDto userChangePhoneDto);
+
+    @Operation(summary = "Verify Phone Number OTP")
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    examples = @ExampleObject(
+                            value = """
+                                    {
+                                        "otp": "123456"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Phone number verified successfully.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "message": "Number has been verified"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad Request due to invalid or expired OTP.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = {
+                                    @ExampleObject(name = "Invalid OTP", value = """
+                                            {
+                                                "message": "Invalid OTP"
+                                            }
+                                            """),
+                                    @ExampleObject(name = "OTP Expired", value = """
+                                            {
+                                                "message": "OTP expired"
+                                            }
+                                            """)
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "message": "Unauthorized"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation failed due to missing or invalid OTP.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "message": "Validation failed",
+                                                "errors": {
+                                                    "otp": "OTP is required"
+                                                }
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    public ResponseEntity<Object> verifyNumber(Principal principal, @RequestBody UserVerifyOtpDto userVerifyOtpDto);
+
 }
