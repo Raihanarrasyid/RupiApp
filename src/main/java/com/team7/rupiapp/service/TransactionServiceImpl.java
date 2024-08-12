@@ -160,6 +160,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public DestinationAddDto addDestination(DestinationAddDto requestDto, Principal principal) {
+        try {
+            Long.parseLong(requestDto.getAccountNumber());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Account number must be a number");
+        }
         User user = userRepository.findByAccountNumber(requestDto.getAccountNumber())
                 .orElseThrow(() -> new DataNotFoundException("Account number not found"));
         User user1 = userRepository.findByUsername(principal.getName())
