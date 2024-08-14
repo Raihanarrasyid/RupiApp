@@ -54,7 +54,11 @@ public class TransferController implements TransferApi {
     @PatchMapping("/destinations/{id}")
     public ResponseEntity<Object> addFavorites(@PathVariable("id") UUID id,@Valid @RequestBody DestinationFavoriteDto requestDto){
         transactionService.addFavorites(id,requestDto);
-        return ApiResponseUtil.success(HttpStatus.OK,"transaction added to favorites");
+        String message = requestDto.getIsFavorites() ?
+                "Transaction added to favorites" :
+                "Transaction deleted from favorites";
+
+        return ApiResponseUtil.success(HttpStatus.OK,message);
     }
 
     @GetMapping("/destinations/{id}")

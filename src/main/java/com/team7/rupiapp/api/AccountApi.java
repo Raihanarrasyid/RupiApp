@@ -287,7 +287,8 @@ public interface AccountApi {
                                     ),
                                     @ExampleObject(
                                             name = "Default: Parameters are not provided",
-                                            description = "Data queried from current month (past) or first date of month until current date (most present).",
+                                            description = "Data will be queried from the first date of the current " +
+                                                    "month until the current date (today).",
                                             value = """
                                                     {
                                                         "message": "Account Mutations Summary fetched",
@@ -384,10 +385,10 @@ public interface AccountApi {
                                                     """
                                     ),
                                     @ExampleObject(
-                                            name = "Year and Month fields required",
+                                            name = "Default: Year and Month fields are required",
                                             value = """
                                                     {
-                                                        "message": "Both 'year' and 'month' parameters must be provided, or none at all—default (no parameter provided)."
+                                                        "message": "Both 'year' and 'month' parameters must be provided, or none at all—default behavior (no parameter provided)."
                                                     }
                                                     """
                                     )

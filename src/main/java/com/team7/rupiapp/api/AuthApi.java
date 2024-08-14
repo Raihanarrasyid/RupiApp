@@ -2,6 +2,8 @@ package com.team7.rupiapp.api;
 
 import java.security.Principal;
 
+import com.team7.rupiapp.dto.auth.forgot.ForgotUsernameDto;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -192,8 +194,8 @@ public interface AuthApi {
                     """)))
     })
     public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent,
-            VerificationDto verificationDto,
-            Principal principal);
+                                         VerificationDto verificationDto,
+                                         Principal principal);
 
     @Operation(summary = "Forgot Password")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
@@ -322,4 +324,62 @@ public interface AuthApi {
                     """)))
     })
     public ResponseEntity<Object> signOut();
+
+    @Operation(summary = "Forgot Username")
+    @RequestBody(
+            required = true, content = @Content(
+            mediaType = "application/json", examples = {
+            @ExampleObject(
+                    name = "Forgot Username by Email", value = """
+                    {
+                        "destination": "samsul@rupiapp.me"
+                    }
+                    """
+            ),
+            @ExampleObject(
+                    name = "Forgot Username by Phone", value = """
+                    {
+                        "destination": "628123456789"
+                    }
+                    """
+            )
+    }
+    )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Forgot username success", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Via Email", value = """
+                            {
+                                "message": "Username has been sent to your email"
+                            }
+                            """),
+                    @ExampleObject(name = "Via Phone", value = """
+                            {
+                                "message": "Username has been sent to your phone"
+                            }
+                            """)
+            })),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Invalid Request Body", value = """
+                            {
+                                "message": "Invalid request body"
+                            }
+                            """),
+                    @ExampleObject(name = "User Not Registered", value = """
+                            {
+                                "message": "User not registered"
+                            }
+                            """)
+            })),
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                    {
+                        "message": "Validation failed",
+                        "errors": {
+                            "destination": "Destination is required"
+                        }
+                    }
+                    """)))
+    })
+    public ResponseEntity<Object> forgotUsernameRequest(@Valid @RequestBody ForgotUsernameDto forgotUsernameDto);
+
 }
