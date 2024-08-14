@@ -16,9 +16,12 @@ import com.team7.rupiapp.util.CurrencyFormatter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
@@ -115,6 +118,12 @@ public class AccountServiceImpl implements AccountService {
 
     public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size,
                                                                  Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType) {
+        int currentYear = LocalDate.now().getYear();
+
+        if (year != null && year > currentYear) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot query data for future dates.");
+        }
+
         Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
 
         UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
