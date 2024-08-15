@@ -57,4 +57,4 @@ client:
         key: ${WAHUB_API_KEY}
 
 test:
-    tester: ${TESTER}
+    tester: ${TESTER:}

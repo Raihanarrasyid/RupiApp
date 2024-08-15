@@ -5,6 +5,8 @@ import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisCPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisCPMResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
@@ -21,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
@@ -83,5 +84,11 @@ public class TransferController implements TransferApi {
     public ResponseEntity<Object> getTransactionDetails(@PathVariable UUID transactionId, Principal principal) {
         Object responseDto = transactionService.getTransactionDetails(transactionId, principal);
         return ApiResponseUtil.success(HttpStatus.OK, "Transaction details retrieved", responseDto);
+    }
+
+    @PostMapping("/qris/generate/cpm")
+    public ResponseEntity<Object> createTransactionQrisCPM(@Valid @RequestBody QrisCPMDto qrisDto, Principal principal){
+        QrisCPMResponseDto responseDto = transactionService.createQrisCPM(principal, qrisDto);
+        return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }
 }
