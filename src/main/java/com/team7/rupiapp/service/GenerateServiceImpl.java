@@ -175,7 +175,8 @@ public class GenerateServiceImpl implements GenerateService {
 
             return image;
         } catch (WriterException e) {
-            throw new RuntimeException("Error generating QR code", e);
+            log.error("Error generating QR code", e);
+            throw new RuntimeException("Error generating QR code");
         }
     }
 

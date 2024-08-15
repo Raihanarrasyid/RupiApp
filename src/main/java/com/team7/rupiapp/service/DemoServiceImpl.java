@@ -33,15 +33,15 @@ public class DemoServiceImpl implements DemoService {
         Qris qris = qrisRepository.findByPayload(demoQrisCPMDto.getQris());
 
         if (qris == null) {
-            throw new BadRequestException("Qris not found");
-        }
-
-        if (qris.getExpiredAt().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Qris is expired");
+            throw new BadRequestException("Qris not valid");
         }
 
         if (qris.isUsed()) {
             throw new BadRequestException("Qris is already used");
+        }
+
+        if (qris.getExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Qris is expired");
         }
 
         Mutation mutation = modelMapper.map(demoQrisCPMDto, Mutation.class);

@@ -1,5 +1,6 @@
 package com.team7.rupiapp.dto.demo;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -13,5 +14,6 @@ public class DemoQrisCPMDto {
     private String merchant;
 
     @NotNull(message = "Amount is required")
+    @Min(value = 0, message = "Amount cannot be less than 0")
     private Double amount;
 }

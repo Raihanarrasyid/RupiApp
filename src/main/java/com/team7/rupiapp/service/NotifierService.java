@@ -20,6 +20,8 @@ public interface NotifierService {
 
     void sendAlertEmail(String to, String name, String subject, String message);
 
+    void sendAlertEmail(String to, String name, String subject, String message, Map<String, String> details);
+
     void sendUsernameByEmail(String to, String name, String username);
 
     void sendUsernameByPhone(String to, String username);

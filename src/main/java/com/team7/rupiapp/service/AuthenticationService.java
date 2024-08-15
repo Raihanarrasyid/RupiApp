@@ -24,7 +24,7 @@ public interface AuthenticationService {
 
     public RefreshTokenResponseDto refreshToken(RefreshTokenDto refreshTokenDto);
 
-    public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationEmailDto);
+    public ResponseEntity<Object> verify(Principal principal, String userAgent, VerificationDto verificationEmailDto);
 
     public void resendVerification(ResendVerificationDto resendVerificationDto);
 
