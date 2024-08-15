@@ -42,7 +42,7 @@ public class WebSecurityConfig {
                                                 .requestMatchers("/docs*/**", "/swagger-ui/**").permitAll()
                                                 .requestMatchers("/auth/set-password", "/auth/set-pin", "/auth/signout")
                                                 .authenticated()
-                                                .requestMatchers("/auth/**", "/login").permitAll()
+                                                .requestMatchers("/auth/**", "/demo/**").permitAll()
                                                 .anyRequest()
                                                 .authenticated())
                                 .sessionManagement(management -> management

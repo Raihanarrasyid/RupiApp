@@ -1,5 +1,6 @@
 package com.team7.rupiapp.service;
 
+import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -16,10 +17,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.team7.rupiapp.enums.OtpType;
 import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.OtpRepository;
+import com.team7.rupiapp.util.QrisUtil;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -154,4 +160,55 @@ public class GenerateServiceImpl implements GenerateService {
             return false;
         }
     }
+
+    @Override
+    public BufferedImage generateQRCodeImage(String qrContent, int width, int height) {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        try {
+            BitMatrix bitMatrix = qrCodeWriter.encode(qrContent, BarcodeFormat.QR_CODE, width, height);
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    image.setRGB(x, y, bitMatrix.get(x, y) ? 0x000000 : 0xFFFFFF);
+                }
+            }
+
+            return image;
+        } catch (WriterException e) {
+            throw new RuntimeException("Error generating QR code", e);
+        }
+    }
+
+    @Override
+    public String generateQrisCPM(User user, String transactionId) {
+        QrisUtil.QRIS qris = new QrisUtil.QRIS();
+        qris.setDataPayloadFormatIndicator("CPV01");
+
+        QrisUtil.ApplicationTemplate appTemplate = new QrisUtil.ApplicationTemplate();
+        appTemplate.getBertlv().setDataApplicationDefinitionFileName("A0000000888888");
+        appTemplate.getBertlv().setDataApplicationLabel("QRISCPMZ");
+        qris.getApplicationTemplates().add(appTemplate);
+
+        QrisUtil.CommonDataTemplate cdt = new QrisUtil.CommonDataTemplate();
+        cdt.getBertlv().setDataApplicationPAN("1234567891011121");
+        cdt.getBertlv().setDataCardholderName("RUPIAPP");
+        cdt.getBertlv().setDataIssuerURL("RUPIAPP.ME");
+        cdt.getBertlv().setDataLanguagePreference("id");
+
+        QrisUtil.CommonDataTransparentTemplate cdtt = new QrisUtil.CommonDataTransparentTemplate();
+        cdtt.getBertlv().setDataIssuerApplicationData("08010Z03000000");
+        cdtt.getBertlv().setDataTokenRequestorID(user.getId().toString());
+        cdtt.getBertlv().setDataTransactionId(transactionId);
+        cdt.getCommonDataTransparentTemplates().add(cdtt);
+
+        qris.getCommonDataTemplates().add(cdt);
+
+        try {
+            return qris.generatePayload();
+        } catch (Exception e) {
+            log.error("Error generating QRIS", e);
+            throw new RuntimeException("Error generating QRIS");
+        }
+    }
+
 }

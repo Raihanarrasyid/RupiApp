@@ -4,12 +4,15 @@ import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisCPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisCPMResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.MutationType;
+import com.team7.rupiapp.enums.QrisType;
 import com.team7.rupiapp.enums.TransactionPurpose;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
@@ -23,6 +26,8 @@ import com.team7.rupiapp.repository.DestinationRepository;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.QrisRepository;
 import com.team7.rupiapp.repository.UserRepository;
+import com.team7.rupiapp.util.Base64Util;
+
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,8 +44,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
 public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final QrisRepository qrisRepository;
@@ -48,16 +53,18 @@ public class TransactionServiceImpl implements TransactionService {
     private final DestinationRepository destinationRepository;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    private final GenerateService generateService;
 
     public TransactionServiceImpl(UserRepository userRepository, QrisRepository qrisRepository,
             MutationRepository mutationRepository, DestinationRepository destinationRepository,
-            PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+            PasswordEncoder passwordEncoder, ModelMapper modelMapper, GenerateService generateService) {
         this.userRepository = userRepository;
         this.qrisRepository = qrisRepository;
         this.mutationRepository = mutationRepository;
         this.destinationRepository = destinationRepository;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
+        this.generateService = generateService;
     }
 
     @Override
@@ -242,10 +249,10 @@ public class TransactionServiceImpl implements TransactionService {
     public QrisResponseDto detailQris(String qris) {
         Map<String, String> qrisMap = parseQRIS(qris);
         QrisResponseDto qrisResponse = new QrisResponseDto();
-        if (qrisMap.containsKey("54") && qrisMap.containsKey("59") && qrisMap.containsKey("62")) {
-            qrisResponse.setType("dynamic");
-        } else if (qrisMap.containsKey("52")) {
+        if (qrisMap.get("01").equals("11")) {
             qrisResponse.setType("static");
+        } else if (qrisMap.get("01").equals("12")) {
+            qrisResponse.setType("dynamic");
         } else {
             qrisResponse.setType("unknown");
         }
@@ -272,13 +279,14 @@ public class TransactionServiceImpl implements TransactionService {
         String transactionId;
         String merchant;
 
-        if (qrisMap.containsKey("62")) {
+        if (qrisMap.get("01").equals("12")) {
             Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
             if (qris != null) {
                 throw new BadRequestException("Transaction already exists");
             } else {
                 Qris newQris = new Qris();
+                newQris.setType(QrisType.MPM);
                 newQris.setTransactionId(qrisMap.get("62"));
                 qrisRepository.save(newQris);
 
@@ -304,7 +312,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transactionId = newQris.getTransactionId();
                 merchant = qrisMap.get("59");
             }
-        } else if (qrisMap.containsKey("52")) {
+        } else if (qrisMap.get("01").equals("11")) {
             if (qrisDto.getAmount() == null) {
                 throw new BadRequestException("Amount is required");
             }
@@ -339,6 +347,37 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setMerchant(merchant);
         responseDto.setAmount(String.valueOf(amount));
         responseDto.setDescription(qrisDto.getDescription());
+
+        return responseDto;
+    }
+
+    @Override
+    public QrisCPMResponseDto createQrisCPM(Principal principal, QrisCPMDto qrisCPMDto) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        if (!passwordEncoder.matches(qrisCPMDto.getPin(), user.getPin())) {
+            throw new BadRequestException("Invalid PIN");
+        }
+
+        String transactionId = UUID.randomUUID().toString();
+        String qr = generateService.generateQrisCPM(user, transactionId);
+        LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(1);
+
+        Qris qris = new Qris();
+        qris.setUser(user);
+        qris.setType(QrisType.CPM);
+        qris.setTransactionId(transactionId);
+        qris.setPayload(qr);
+        qris.setUsed(false);
+        qris.setExpiredAt(expiredAt);
+        qrisRepository.save(qris);
+
+        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300));
+
+        QrisCPMResponseDto responseDto = new QrisCPMResponseDto();
+        responseDto.setQris(qrImage);
+        responseDto.setExpiredAt(expiredAt);
 
         return responseDto;
     }
@@ -416,5 +455,4 @@ public class TransactionServiceImpl implements TransactionService {
 
         return transferResponseDto;
     }
-
 }
