@@ -14,6 +14,6 @@ public class DemoQrisCPMDto {
     private String merchant;
 
     @NotNull(message = "Amount is required")
-    @Min(value = 0, message = "Amount cannot be less than 0")
+    @Min(value = 1, message = "Amount must be greater than zero")
     private Double amount;
 }

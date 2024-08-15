@@ -43,6 +43,10 @@ public class DemoServiceImpl implements DemoService {
         if (qris.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Qris is expired");
         }
+        
+        if (demoQrisCPMDto.getAmount() > qris.getUser().getBalance()) {
+            throw new BadRequestException("Insufficient balance");
+        }
 
         Mutation mutation = modelMapper.map(demoQrisCPMDto, Mutation.class);
         mutation.setUser(qris.getUser());
