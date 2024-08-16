@@ -23,6 +23,6 @@ public class AccountDetailResponseDto {
     @Schema(description = "Account number", example = "0774014731")
     private String accountNumber;
 
-    @Schema(description = "Account balance. Examples (quoted): 'Rp3.900.000,00', 'Rp0,00'", example = "Rp3.900.000,00")
+    @Schema(description = "Account balance. Examples (quoted): '3900000', '0'", example = "3900000")
     private String balance;
 }
