@@ -43,7 +43,7 @@ public interface AccountApi {
                                                             "account_number": "7484357077",
                                                             "full_name": "Samsul Coba",
                                                             "email": "samsul@coba.com",
-                                                            "balance": "Rp3.410.000,00"
+                                                            "balance": "3410000"
                                                         }
                                                     }
                                                     """
@@ -96,7 +96,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "1981198675",
                                                                                 "full_name": "Samsul 3",
-                                                                                "amount": "Rp10.000,00",
+                                                                                "amount": "10000",
                                                                                 "description": "Samsul 3 to Samsul 2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:30:10.88022"
@@ -104,15 +104,15 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "QRIS",
                                                                         "number_of_transactions": 1,
-                                                                        "total_balance": "Rp10.000,00",
-                                                                        "total_balance_percentage": 1.3513513513513513
+                                                                        "total_balance": "10000",
+                                                                        "total_balance_percentage": 1.33333333333333
                                                                     },
                                                                     {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
                                                                                 "full_name": "Samsul 1",
-                                                                                "amount": "Rp10.000,00",
+                                                                                "amount": "10000",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
                                                                                 "created_at": "2024-07-25T02:01:56.385388"
@@ -120,7 +120,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "0774014731",
                                                                                 "full_name": "Samsul 1",
-                                                                                "amount": "Rp15.000,00",
+                                                                                "amount": "15000",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
                                                                                 "created_at": "2024-07-25T02:02:12.323242"
@@ -128,7 +128,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "0774014731",
                                                                                 "full_name": "Samsul 1",
-                                                                                "amount": "Rp25.000,00",
+                                                                                "amount": "25000",
                                                                                 "description": "Samsul1 to Samsul2",
                                                                                 "transaction_purpose": "OTHER",
                                                                                 "created_at": "2024-07-25T02:02:18.348473"
@@ -136,7 +136,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "1981198675",
                                                                                 "full_name": "Samsul 3",
-                                                                                "amount": "Rp15.000,00",
+                                                                                "amount": "15000",
                                                                                 "description": "Samsul 3 to Samsul 2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:21:33.407203"
@@ -144,11 +144,11 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "TRANSFER",
                                                                         "number_of_transactions": 4,
-                                                                        "total_balance": "Rp65.000,00",
-                                                                        "total_balance_percentage": 8.783783783783784
+                                                                        "total_balance": "65000",
+                                                                        "total_balance_percentage": 86.66666666666666
                                                                     }
                                                                 ],
-                                                                "total_income": "Rp75.000,00",
+                                                                "total_income": "75000",
                                                                 "total_income_percentage": 10.135135135135135
                                                             },
                                                             "expense": {
@@ -157,32 +157,32 @@ public interface AccountApi {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp45.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "45000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-29T19:11:07.904872"
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp90.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "90000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-29T19:11:23.743897"
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp90.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "90000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-29T22:07:06.748712"
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp90.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "90000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-29T22:53:11.764992"
@@ -190,23 +190,23 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "QRIS",
                                                                         "number_of_transactions": 4,
-                                                                        "total_balance": "Rp315.000,00",
-                                                                        "total_balance_percentage": 42.567567567567565
+                                                                        "total_balance": "315000",
+                                                                        "total_balance_percentage": 0.47368421052631
                                                                     },
                                                                     {
                                                                         "mutations": [
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp150.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "150000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-26T15:47:28.468631"
                                                                             },
                                                                             {
                                                                                 "account_number": "0774014731",
-                                                                                "full_name": "Samsul 2",
-                                                                                "amount": "Rp200.000,00",
+                                                                                "full_name": "Samsul 1",
+                                                                                "amount": "200000",
                                                                                 "description": "Samsul2 to Samsul1",
                                                                                 "transaction_purpose": "PURCHASE",
                                                                                 "created_at": "2024-07-27T16:20:12.472383"
@@ -214,14 +214,14 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "TRANSFER",
                                                                         "number_of_transactions": 2,
-                                                                        "total_balance": "Rp350.000,00",
-                                                                        "total_balance_percentage": 47.2972972972973
+                                                                        "total_balance": "350000",
+                                                                        "total_balance_percentage": 0.52631578947368
                                                                     }
                                                                 ],
-                                                                "total_expense": "Rp665.000,00",
+                                                                "total_expense": "665000",
                                                                 "total_expense_percentage": 89.86486486486487
                                                             },
-                                                            "total_earnings": "-Rp590.000,00",
+                                                            "total_earnings": "-590000",
                                                             "range_start_mutation_date": "2024-07-01T00:00:00",
                                                             "range_end_mutation_date": "2024-07-31T23:59:59.999999999"
                                                         }
@@ -237,7 +237,7 @@ public interface AccountApi {
                                                         "data": {
                                                             "income": {
                                                                 "categories": [],
-                                                                "total_income": "Rp0,00",
+                                                                "total_income": "0",
                                                                 "total_income_percentage": 0.0
                                                             },
                                                             "expense": {
@@ -247,7 +247,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "7484357077",
                                                                                 "full_name": "Samsul2",
-                                                                                "amount": "Rp10.000,00",
+                                                                                "amount": "10000",
                                                                                 "description": "Samsul3 to Samsul2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:30:10.87222"
@@ -255,7 +255,7 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "QRIS",
                                                                         "number_of_transactions": 1,
-                                                                        "total_balance": "Rp10.000,00",
+                                                                        "total_balance": "10000",
                                                                         "total_balance_percentage": 40.0
                                                                     },
                                                                     {
@@ -263,7 +263,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "7484357077",
                                                                                 "full_name": "Samsul2",
-                                                                                "amount": "Rp15.000,00",
+                                                                                "amount": "15000",
                                                                                 "description": "Samsul3 to Samsul2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:21:33.405838"
@@ -271,14 +271,14 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "TRANSFER",
                                                                         "number_of_transactions": 1,
-                                                                        "total_balance": "Rp15.000,00",
+                                                                        "total_balance": "15000",
                                                                         "total_balance_percentage": 60.0
                                                                     }
                                                                 ],
-                                                                "total_expense": "Rp25.000,00",
+                                                                "total_expense": "25000",
                                                                 "total_expense_percentage": 100.0
                                                             },
-                                                            "total_earnings": "-Rp25.000,00",
+                                                            "total_earnings": "-25000",
                                                             "range_start_mutation_date": "2024-07-01T00:00:00",
                                                             "range_end_mutation_date": "2024-07-29T23:02:28.330633"
                                                         }
@@ -295,7 +295,7 @@ public interface AccountApi {
                                                         "data": {
                                                             "income": {
                                                                 "categories": [],
-                                                                "total_income": "Rp0,00",
+                                                                "total_income": "0",
                                                                 "total_income_percentage": 0.0
                                                             },
                                                             "expense": {
@@ -305,7 +305,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "7484357077",
                                                                                 "full_name": "Samsul2",
-                                                                                "amount": "Rp10.000,00",
+                                                                                "amount": "10000",
                                                                                 "description": "Samsul3 to Samsul2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:30:10.87222"
@@ -313,7 +313,7 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "QRIS",
                                                                         "number_of_transactions": 1,
-                                                                        "total_balance": "Rp10.000,00",
+                                                                        "total_balance": "10000",
                                                                         "total_balance_percentage": 40.0
                                                                     },
                                                                     {
@@ -321,7 +321,7 @@ public interface AccountApi {
                                                                             {
                                                                                 "account_number": "7484357077",
                                                                                 "full_name": "Samsul2",
-                                                                                "amount": "Rp15.000,00",
+                                                                                "amount": "15000",
                                                                                 "description": "Samsul3 to Samsul2",
                                                                                 "transaction_purpose": "INVESTMENT",
                                                                                 "created_at": "2024-07-29T20:21:33.405838"
@@ -329,14 +329,14 @@ public interface AccountApi {
                                                                         ],
                                                                         "type": "TRANSFER",
                                                                         "number_of_transactions": 1,
-                                                                        "total_balance": "Rp15.000,00",
+                                                                        "total_balance": "15000",
                                                                         "total_balance_percentage": 60.0
                                                                     }
                                                                 ],
-                                                                "total_expense": "Rp25.000,00",
+                                                                "total_expense": "25000",
                                                                 "total_expense_percentage": 100.0
                                                             },
-                                                            "total_earnings": "-Rp25.000,00",
+                                                            "total_earnings": "-25000",
                                                             "range_start_mutation_date": "2024-07-01T00:00:00",
                                                             "range_end_mutation_date": "2024-07-29T23:02:28.330633"
                                                         }
@@ -352,15 +352,15 @@ public interface AccountApi {
                                                         "data": {
                                                             "income": {
                                                                 "categories": [],
-                                                                "total_income": "Rp0,00",
+                                                                "total_income": "0",
                                                                 "total_income_percentage": 0.0
                                                             },
                                                             "expense": {
                                                                 "categories": [],
-                                                                "total_expense": "Rp0,00",
+                                                                "total_expense": "0",
                                                                 "total_expense_percentage": 0.0
                                                             },
-                                                            "total_earnings": "Rp0,00",
+                                                            "total_earnings": "0",
                                                             "range_start_mutation_date": "2024-06-01T00:00:00",
                                                             "range_end_mutation_date": "2024-06-30T23:59:59.999999999"
                                                         }

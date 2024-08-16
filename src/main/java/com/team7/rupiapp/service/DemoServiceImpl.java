@@ -2,6 +2,8 @@ package com.team7.rupiapp.service;
 
 import java.time.LocalDateTime;
 
+import com.team7.rupiapp.model.User;
+import com.team7.rupiapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +22,14 @@ public class DemoServiceImpl implements DemoService {
     private final ModelMapper modelMapper;
     private final QrisRepository qrisRepository;
     private final MutationRepository mutationRepository;
+    private final UserRepository userRepository;
 
     public DemoServiceImpl(ModelMapper modelMapper, QrisRepository qrisRepository,
-            MutationRepository mutationRepository) {
+                           MutationRepository mutationRepository, UserRepository userRepository) {
         this.modelMapper = modelMapper;
         this.qrisRepository = qrisRepository;
         this.mutationRepository = mutationRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -47,6 +51,11 @@ public class DemoServiceImpl implements DemoService {
         if (demoQrisCPMDto.getAmount() > qris.getUser().getBalance()) {
             throw new BadRequestException("Insufficient balance");
         }
+
+        User user = qris.getUser();
+
+        user.setBalance(user.getBalance() - demoQrisCPMDto.getAmount());
+        userRepository.save(user);
 
         Mutation mutation = modelMapper.map(demoQrisCPMDto, Mutation.class);
         mutation.setUser(qris.getUser());

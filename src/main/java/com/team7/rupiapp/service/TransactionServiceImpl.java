@@ -249,6 +249,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public QrisResponseDto detailQris(String qris) {
         Map<String, String> qrisMap = parseQRIS(qris);
+
         QrisResponseDto qrisResponse = new QrisResponseDto();
         if (qrisMap.get("01").equals("11")) {
             qrisResponse.setType("static");
@@ -261,6 +262,20 @@ public class TransactionServiceImpl implements TransactionService {
         qrisResponse.setTransactionId(qrisMap.get("62"));
         qrisResponse.setMerchant(qrisMap.get("59"));
         qrisResponse.setAmount(qrisMap.get("54"));
+
+        if (qrisMap.containsKey("62")) {
+            String transactionId = qrisMap.get("62");
+
+            if (transactionId.contains("00")) {
+                int indexOfLength = transactionId.lastIndexOf("00");
+
+                if (indexOfLength == -1 || indexOfLength + 2 > transactionId.length() - 2) {
+                }
+
+                int length = Integer.parseInt(transactionId.substring(indexOfLength + 2, indexOfLength + 4));
+                qrisResponse.setAccountNumber(transactionId.substring(indexOfLength - length, indexOfLength));
+            }
+        }
 
         return qrisResponse;
     }
@@ -278,16 +293,16 @@ public class TransactionServiceImpl implements TransactionService {
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
-        double amount = 0.0;
+        double amount;
         String transactionId = qrisMap.get("62");
         String merchant = qrisMap.get("59");
 
         if (qrisMap.get("52").equals("0000")) {
             amount = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
         } else if (qrisMap.get("01").equals("12")) {
-            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
-        } else if (qrisMap.get("01").equals("11")) {
             amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
+        } else if (qrisMap.get("01").equals("11")) {
+            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
@@ -326,21 +341,24 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private double handleMerchantTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap, Qris qris,
-            boolean isMpm) {
-        double amount = Double.parseDouble(isMpm ? qrisMap.get("54") : qrisDto.getAmount());
+            boolean isStatic) {
+        double amount = Double.parseDouble(isStatic ? qrisDto.getAmount() : qrisMap.get("54"));
 
         if (qris != null && qris.isUsed()) {
             throw new BadRequestException("Transaction already exists");
         }
 
-        Qris newQris = new Qris();
-        newQris.setType(QrisType.MPM);
-        newQris.setTransactionId(qrisMap.get("62"));
-        newQris.setPayload(qrisDto.getQris());
-        newQris.setUsed(true);
-        qrisRepository.save(newQris);
+        if (!isStatic) {
+            Qris newQris = new Qris();
+            newQris.setType(QrisType.MPM);
+            newQris.setTransactionId(qrisMap.get("62"));
+            newQris.setPayload(qrisDto.getQris());
+            newQris.setUsed(true);
+            newQris.setExpiredAt(LocalDateTime.now());
+            qrisRepository.save(newQris);
 
-        processTransaction(user, null, amount, qrisDto.getDescription(), newQris, qrisDto);
+            processTransaction(user, null, amount, qrisDto.getDescription(), newQris, qrisDto);
+        }
 
         return amount;
     }
@@ -397,6 +415,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public QrisGenerateResponseDto createQris(Principal principal, QrisGenerateMPMDto qrisMPMDto) {
+        if (qrisMPMDto != null && qrisMPMDto.getAmount() != null) {
+            if (qrisMPMDto.getAmount() <= 0) {
+                throw new BadRequestException("Amount must be greater than zero");
+            }
+        } else {
+            qrisMPMDto = new QrisGenerateMPMDto();
+            qrisMPMDto.setAmount(null);
+        }
+
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
