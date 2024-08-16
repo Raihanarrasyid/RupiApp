@@ -4,7 +4,9 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -62,7 +64,7 @@ public class QrisUtil {
 
     @Data
     @NoArgsConstructor
-    public static class QRIS {
+    public static class CPM {
         private String dataPayloadFormatIndicator;
         private List<ApplicationTemplate> applicationTemplates = new ArrayList<>();
         private List<CommonDataTemplate> commonDataTemplates = new ArrayList<>();
@@ -115,7 +117,7 @@ public class QrisUtil {
 
         private String formattingTemplate(BERTLV tlv) {
             StringBuilder template = new StringBuilder();
-            
+
             appendIfNotNull(template, "4F", tlv.getDataApplicationDefinitionFileName());
             appendIfNotNull(template, "50", tlv.getDataApplicationLabel());
             appendIfNotNull(template, "57", tlv.getDataTrack2EquivalentData());
@@ -132,14 +134,187 @@ public class QrisUtil {
             appendIfNotNull(template, "9F36", tlv.getDataApplicationTransactionCounter());
             appendIfNotNull(template, "9F37", tlv.getDataUnpredictableNumber());
             appendIfNotNull(template, "9F4E", tlv.getDataTransactionId());
-        
+
             return template.toString();
         }
-        
+
         private void appendIfNotNull(StringBuilder sb, String id, String value) {
             if (value != null) {
                 sb.append(format(id, toHex(value)));
             }
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class MPM {
+        private String payloadFormatIndicator;
+        private String pointOfInitiationMethod;
+        private Map<String, MerchantAccountInformation> merchantAccountInformationMap = new HashMap<>();
+        private String merchantCategoryCode;
+        private String transactionCurrency;
+        private String transactionAmount;
+        private String countryCode;
+        private String merchantName;
+        private String merchantCity;
+        private String postalCode;
+        private AdditionalDataFieldTemplate additionalDataFieldTemplate;
+
+        public void setPayloadFormatIndicator(String payloadFormatIndicator) {
+            this.payloadFormatIndicator = payloadFormatIndicator;
+        }
+
+        public void setPointOfInitiationMethod(String pointOfInitiationMethod) {
+            this.pointOfInitiationMethod = pointOfInitiationMethod;
+        }
+
+        public void addMerchantAccountInformation(String id, MerchantAccountInformation info) {
+            merchantAccountInformationMap.put(id, info);
+        }
+
+        public void setMerchantCategoryCode(String merchantCategoryCode) {
+            this.merchantCategoryCode = merchantCategoryCode;
+        }
+
+        public void setTransactionCurrency(String transactionCurrency) {
+            this.transactionCurrency = transactionCurrency;
+        }
+
+        public void setTransactionAmount(String transactionAmount) {
+            this.transactionAmount = transactionAmount;
+        }
+
+        public void setCountryCode(String countryCode) {
+            this.countryCode = countryCode;
+        }
+
+        public void setMerchantName(String merchantName) {
+            this.merchantName = merchantName;
+        }
+
+        public void setMerchantCity(String merchantCity) {
+            this.merchantCity = merchantCity;
+        }
+
+        public void setPostalCode(String postalCode) {
+            this.postalCode = postalCode;
+        }
+
+        public void setAdditionalDataFieldTemplate(AdditionalDataFieldTemplate additionalDataFieldTemplate) {
+            this.additionalDataFieldTemplate = additionalDataFieldTemplate;
+        }
+
+        public static String encode(MPM mpm) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("00").append(padLeft(mpm.payloadFormatIndicator.length(), 2)).append(mpm.payloadFormatIndicator);
+
+            if (mpm.pointOfInitiationMethod != null) {
+                sb.append("01").append(padLeft(mpm.pointOfInitiationMethod.length(), 2))
+                        .append(mpm.pointOfInitiationMethod);
+            }
+
+            for (Map.Entry<String, MerchantAccountInformation> entry : mpm.merchantAccountInformationMap.entrySet()) {
+                String info = entry.getValue().toString();
+                sb.append(entry.getKey()).append(padLeft(info.length(), 2)).append(info);
+            }
+
+            sb.append("52").append(padLeft(mpm.merchantCategoryCode.length(), 2)).append(mpm.merchantCategoryCode);
+            sb.append("53").append(padLeft(mpm.transactionCurrency.length(), 2)).append(mpm.transactionCurrency);
+            if (mpm.transactionAmount != null) {
+                sb.append("54").append(padLeft(mpm.transactionAmount.length(), 2)).append(mpm.transactionAmount);
+            }
+            sb.append("58").append(padLeft(mpm.countryCode.length(), 2)).append(mpm.countryCode);
+            sb.append("59").append(padLeft(mpm.merchantName.length(), 2)).append(mpm.merchantName);
+            sb.append("60").append(padLeft(mpm.merchantCity.length(), 2)).append(mpm.merchantCity);
+
+            if (mpm.postalCode != null) {
+                sb.append("61").append(padLeft(mpm.postalCode.length(), 2)).append(mpm.postalCode);
+            }
+
+            if (mpm.additionalDataFieldTemplate != null) {
+                String additionalData = mpm.additionalDataFieldTemplate.toString();
+                sb.append("62").append(padLeft(additionalData.length(), 2)).append(additionalData);
+            }
+
+            sb.append("63").append("04").append("CEAB");
+
+            return sb.toString();
+        }
+
+        private static String padLeft(int length, int padLength) {
+            StringBuilder result = new StringBuilder(String.valueOf(length));
+            while (result.length() < padLength) {
+                result.insert(0, "0");
+            }
+            return result.toString();
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class MerchantAccountInformation {
+        private String globallyUniqueIdentifier;
+        private Map<String, String> paymentNetworkSpecific = new HashMap<>();
+
+        public void setGloballyUniqueIdentifier(String globallyUniqueIdentifier) {
+            this.globallyUniqueIdentifier = globallyUniqueIdentifier;
+        }
+
+        public void addPaymentNetworkSpecific(String key, String value) {
+            paymentNetworkSpecific.put(key, value);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("00").append(padLeft(globallyUniqueIdentifier.length(), 2)).append(globallyUniqueIdentifier);
+            for (Map.Entry<String, String> entry : paymentNetworkSpecific.entrySet()) {
+                sb.append(entry.getKey()).append(padLeft(entry.getValue().length(), 2)).append(entry.getValue());
+            }
+            return sb.toString();
+        }
+
+        private static String padLeft(int length, int padLength) {
+            String result = String.valueOf(length);
+            while (result.length() < padLength) {
+                result = "0" + result;
+            }
+            return result;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class AdditionalDataFieldTemplate {
+        private String referenceLabel;
+        private String terminalLabel;
+
+        public void setReferenceLabel(String referenceLabel) {
+            this.referenceLabel = referenceLabel;
+        }
+
+        public void setTerminalLabel(String terminalLabel) {
+            this.terminalLabel = terminalLabel;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (referenceLabel != null) {
+                sb.append("05").append(padLeft(referenceLabel.length(), 2)).append(referenceLabel);
+            }
+            if (terminalLabel != null) {
+                sb.append("07").append(padLeft(terminalLabel.length(), 2)).append(terminalLabel);
+            }
+            return sb.toString();
+        }
+
+        private static String padLeft(int length, int padLength) {
+            String result = String.valueOf(length);
+            while (result.length() < padLength) {
+                result = "0" + result;
+            }
+            return result;
         }
     }
 }

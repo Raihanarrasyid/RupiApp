@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class QrisCPMResponseDto {
+public class QrisGenerateResponseDto {
     private String qris;
 
     private LocalDateTime expiredAt;
