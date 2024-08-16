@@ -406,8 +406,6 @@ public class TransactionServiceImpl implements TransactionService {
 
         Map<String, String> qrisMap = parseQRIS(qr);
 
-        System.out.println(qrisMap);
-
         Qris qris = new Qris();
         qris.setUser(user);
         qris.setType(QrisType.MPM);
