@@ -11,4 +11,5 @@ public class QrisResponseDto {
     private String transactionId;
     private String merchant;
     private String amount;
+    private String accountNumber;
 }

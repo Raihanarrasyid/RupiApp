@@ -249,6 +249,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public QrisResponseDto detailQris(String qris) {
         Map<String, String> qrisMap = parseQRIS(qris);
+
         QrisResponseDto qrisResponse = new QrisResponseDto();
         if (qrisMap.get("01").equals("11")) {
             qrisResponse.setType("static");
@@ -261,6 +262,20 @@ public class TransactionServiceImpl implements TransactionService {
         qrisResponse.setTransactionId(qrisMap.get("62"));
         qrisResponse.setMerchant(qrisMap.get("59"));
         qrisResponse.setAmount(qrisMap.get("54"));
+
+        if (qrisMap.containsKey("62")) {
+            String transactionId = qrisMap.get("62");
+
+            if (transactionId.contains("00")) {
+                int indexOfLength = transactionId.lastIndexOf("00");
+
+                if (indexOfLength == -1 || indexOfLength + 2 > transactionId.length() - 2) {
+                }
+
+                int length = Integer.parseInt(transactionId.substring(indexOfLength + 2, indexOfLength + 4));
+                qrisResponse.setAccountNumber(transactionId.substring(indexOfLength - length, indexOfLength));
+            }
+        }
 
         return qrisResponse;
     }
@@ -278,7 +293,7 @@ public class TransactionServiceImpl implements TransactionService {
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
-        double amount = 0.0;
+        double amount;
         String transactionId = qrisMap.get("62");
         String merchant = qrisMap.get("59");
 
