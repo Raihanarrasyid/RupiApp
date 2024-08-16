@@ -206,8 +206,7 @@ public class GenerateServiceImpl implements GenerateService {
 
         AdditionalDataFieldTemplate additionalDataFieldTemplate = new AdditionalDataFieldTemplate();
         additionalDataFieldTemplate.setReferenceLabel("0804DMCT" + transactionId);
-        // additionalDataFieldTemplate.setTerminalLabel(user.getAccountNumber() + "00" + user.getAccountNumber().length());
-        additionalDataFieldTemplate.setTerminalLabel(1710871362 + "00" + 10);
+        additionalDataFieldTemplate.setTerminalLabel(user.getAccountNumber() + "00" + user.getAccountNumber().length());
         qris.setAdditionalDataFieldTemplate(additionalDataFieldTemplate);
 
         try {

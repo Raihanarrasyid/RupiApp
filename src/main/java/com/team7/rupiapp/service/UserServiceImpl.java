@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -132,8 +133,45 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
+        Otp existingOtp = otpRepository.findByUserAndType(user, OtpType.CHANGE_EMAIL).orElse(null);
+        if (existingOtp != null && userChangeEmailDto.getEmail().equals(existingOtp.getNewValue())) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = existingOtp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                return;
+            }
+        }
+
+        System.out.println("Email has been sent to " + userChangeEmailDto.getEmail());
+
         String otp = generateService.generateOtp(user, OtpType.CHANGE_EMAIL, userChangeEmailDto.getEmail());
         notifierService.sendVerificationEmail(userChangeEmailDto.getEmail(), user.getAlias(), otp);
+    }
+
+    @Override
+    public void resendEmail(Principal principal) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        otpRepository.findByUserAndType(user, OtpType.CHANGE_EMAIL).ifPresent(otp -> {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = otp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                long secondsLeft = Duration.between(now, nextAllowedTime).getSeconds();
+                String message = secondsLeft > 60
+                        ? String.format("OTP already sent, please wait for %d minutes", (secondsLeft / 60))
+                        : String.format("OTP already sent, please wait for %d seconds", secondsLeft);
+                throw new BadRequestException(message);
+            }
+        });
+
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.CHANGE_EMAIL)
+                .orElseThrow(() -> new BadRequestException("No pending email change request"));
+
+        String newOtp = generateService.generateOtp(user, OtpType.CHANGE_EMAIL, otp.getNewValue());
+        notifierService.sendVerificationEmail(otp.getNewValue(), user.getAlias(), newOtp);
     }
 
     @Override
@@ -173,6 +211,16 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Phone number already registered");
         }
 
+        Otp existingOtp = otpRepository.findByUserAndType(user, OtpType.CHANGE_PHONE).orElse(null);
+        if (existingOtp != null && userChangePhoneDto.getPhone().equals(existingOtp.getNewValue())) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = existingOtp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                return;
+            }
+        }
+
         String otp = generateService.generateOtp(user, OtpType.CHANGE_PHONE, userChangePhoneDto.getPhone());
 
         CheckWhatsappNumberData data = new CheckWhatsappNumberData();
@@ -188,6 +236,31 @@ public class UserServiceImpl implements UserService {
         }
 
         notifierService.sendVerificationLogin(userChangePhoneDto.getPhone(), otp);
+    }
+
+    @Override
+    public void resendNumber(Principal principal) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        otpRepository.findByUserAndType(user, OtpType.CHANGE_PHONE).ifPresent(otp -> {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = otp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                long secondsLeft = Duration.between(now, nextAllowedTime).getSeconds();
+                String message = secondsLeft > 60
+                        ? String.format("OTP already sent, please wait for %d minutes", (secondsLeft / 60))
+                        : String.format("OTP already sent, please wait for %d seconds", secondsLeft);
+                throw new BadRequestException(message);
+            }
+        });
+
+        Otp otp = otpRepository.findByUserAndType(user, OtpType.CHANGE_PHONE)
+                .orElseThrow(() -> new BadRequestException("No pending phone change request"));
+
+        String newOtp = generateService.generateOtp(user, OtpType.CHANGE_PHONE, otp.getNewValue());
+        notifierService.sendVerificationLogin(otp.getNewValue(), newOtp);
     }
 
     @Override
@@ -237,7 +310,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        if (signature == null || !generateService.verifySignature(user.getId().toString(), user.getPassword(), signature)) {
+        if (signature == null
+                || !generateService.verifySignature(user.getId().toString(), user.getPassword(), signature)) {
             throw new BadRequestException("Invalid or missing signature");
         }
 
@@ -276,7 +350,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
-        if (signature == null ||  !generateService.verifySignature(user.getId().toString(), user.getPin(), signature)) {
+        if (signature == null || !generateService.verifySignature(user.getId().toString(), user.getPin(), signature)) {
             throw new BadRequestException("Invalid or missing signature");
         }
 

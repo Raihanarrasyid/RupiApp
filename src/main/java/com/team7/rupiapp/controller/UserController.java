@@ -57,6 +57,12 @@ public class UserController implements UserApi {
         return ApiResponseUtil.success(HttpStatus.OK, "Email change request has been sent");
     }
 
+    @PostMapping("/resend-email")
+    public ResponseEntity<Object> resendEmail(Principal principal) {
+        userService.resendEmail(principal);
+        return ApiResponseUtil.success(HttpStatus.OK, "Email has been resent");
+    }
+
     @PostMapping("/verify-email")
     public ResponseEntity<Object> verifyEmail(Principal principal,
             @Valid @RequestBody UserVerifyOtpDto userVerifyOtpDto) {
@@ -69,6 +75,12 @@ public class UserController implements UserApi {
             @Valid @RequestBody UserChangePhoneDto userChangePhoneDto) {
         userService.changeNumber(principal, userChangePhoneDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Number change request has been sent");
+    }
+
+    @PostMapping("/resend-number")
+    public ResponseEntity<Object> resendNumber(Principal principal) {
+        userService.resendNumber(principal);
+        return ApiResponseUtil.success(HttpStatus.OK, "Number has been resent");
     }
 
     @PostMapping("/verify-number")

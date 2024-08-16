@@ -20,7 +20,11 @@ public interface UserService {
 
     public void changeEmail(Principal principal, UserChangeEmailDto userChangeEmailDto);
 
+    public void resendEmail(Principal principal);
+
     public void verifyEmail(Principal principal, UserVerifyOtpDto userVerifyOtpDto);
+
+    public void resendNumber(Principal principal);
 
     public void changeNumber(Principal principal, UserChangePhoneDto userChangePhoneDto);
 

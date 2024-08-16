@@ -6,6 +6,8 @@ import lombok.Data;
 public class UserProfileResponseDto {
     private String avatar;
 
+    private String username;
+
     private String name;
 
     private String email;
