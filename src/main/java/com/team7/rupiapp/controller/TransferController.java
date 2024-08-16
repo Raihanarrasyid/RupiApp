@@ -13,6 +13,7 @@ import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
+import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.service.TransactionService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
@@ -88,7 +89,7 @@ public class TransferController implements TransferApi {
     }
 
     @PostMapping("/qris/generate")
-    public ResponseEntity<Object> createTransactionQrisMPM(@Valid @RequestBody QrisGenerateMPMDto qrisDto, Principal principal){
+    public ResponseEntity<Object> createTransactionQrisMPM(@Valid @RequestBody(required = false) QrisGenerateMPMDto qrisDto, Principal principal) {
         QrisGenerateResponseDto responseDto = transactionService.createQris(principal, qrisDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }

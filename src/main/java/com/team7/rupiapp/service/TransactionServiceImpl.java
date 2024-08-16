@@ -415,6 +415,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public QrisGenerateResponseDto createQris(Principal principal, QrisGenerateMPMDto qrisMPMDto) {
+        if (qrisMPMDto != null && qrisMPMDto.getAmount() != null) {
+            if (qrisMPMDto.getAmount() <= 0) {
+                throw new BadRequestException("Amount must be greater than zero");
+            }
+        } else {
+            qrisMPMDto = new QrisGenerateMPMDto();
+            qrisMPMDto.setAmount(null);
+        }
+
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 

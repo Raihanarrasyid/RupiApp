@@ -307,7 +307,7 @@ public interface UserApi {
     @RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
             {
                 "password": "newPassword123",
-                "confirmPassword": "newPassword123"
+                "confirm_password": "newPassword123"
             }
             """)))
     @ApiResponses(value = {
@@ -424,7 +424,7 @@ public interface UserApi {
     @RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
             {
                 "pin": "654321",
-                "confirmPin": "654321"
+                "confirm_pin": "654321"
             }
             """)))
     @ApiResponses(value = {
@@ -473,7 +473,7 @@ public interface UserApi {
                             {
                                 "message": "Validation failed",
                                 "errors": {
-                                    "confirmPin": "Confirm PIN is required"
+                                    "confirm_pin": "Confirm PIN is required"
                                 }
                             }
                             """),
