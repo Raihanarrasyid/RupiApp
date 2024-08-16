@@ -1,5 +1,6 @@
 package com.team7.rupiapp.controller;
 
+import com.team7.rupiapp.api.DemoApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +16,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/demo")
-public class DemoController {
+public class DemoController implements DemoApi {
     private final DemoService demoService;
     
     public DemoController(DemoService demoService) {
