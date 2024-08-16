@@ -33,15 +33,19 @@ public class DemoServiceImpl implements DemoService {
         Qris qris = qrisRepository.findByPayload(demoQrisCPMDto.getQris());
 
         if (qris == null) {
-            throw new BadRequestException("Qris not found");
+            throw new BadRequestException("Qris not valid");
+        }
+
+        if (qris.isUsed()) {
+            throw new BadRequestException("Qris is already used");
         }
 
         if (qris.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Qris is expired");
         }
-
-        if (qris.isUsed()) {
-            throw new BadRequestException("Qris is already used");
+        
+        if (demoQrisCPMDto.getAmount() > qris.getUser().getBalance()) {
+            throw new BadRequestException("Insufficient balance");
         }
 
         Mutation mutation = modelMapper.map(demoQrisCPMDto, Mutation.class);

@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -143,11 +144,29 @@ public class NotifierServiceImpl implements NotifierService {
 
     @Override
     public void sendAlertEmail(String to, String name, String subject, String message) {
+        sendAlertEmail(to, name, subject, message, Map.of());
+    }
+
+    @Override
+    public void sendAlertEmail(String to, String name, String subject, String message, Map<String, String> details) {
         message = message.replace("{time}", getFormattedDate());
 
         Context context = new Context();
         context.setVariable("name", name);
         context.setVariable("message", message);
+
+        if (details != null && !details.isEmpty()) {
+            Map<String, String> updatedDetails = new HashMap<>();
+
+            details.forEach((key, value) -> {
+                if (value.contains("{time}")) {
+                    value = value.replace("{time}", getFormattedDate());
+                }
+                updatedDetails.put(key, value);
+            });
+
+            context.setVariable("details", updatedDetails);
+        }
 
         String body = templateEngine.process("alertEmail", context);
 

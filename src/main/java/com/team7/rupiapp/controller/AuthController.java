@@ -59,14 +59,12 @@ public class AuthController implements AuthApi {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent, // TODO: remove me
-            @Valid @RequestBody VerificationDto verificationDto,
-            Principal principal) {
-        log.info("User-Agent" + userAgent);
+    public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent,
+            @Valid @RequestBody VerificationDto verificationDto, Principal principal) {
         if (principal == null && verificationDto.getType() != VerificationType.FORGOT_PASSWORD) {
             throw new BadCredentialsException("Unauthorized");
         }
-        return authenticationService.verify(principal, verificationDto);
+        return authenticationService.verify(principal, userAgent, verificationDto);
     }
 
     @PostMapping("/forgot-username")

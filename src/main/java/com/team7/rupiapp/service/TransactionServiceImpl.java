@@ -1,12 +1,26 @@
 package com.team7.rupiapp.service;
 
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
-import com.team7.rupiapp.dto.transfer.qris.QrisCPMDto;
-import com.team7.rupiapp.dto.transfer.qris.QrisCPMResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateCPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateMPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
@@ -30,19 +44,6 @@ import com.team7.rupiapp.util.Base64Util;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-
-import org.modelmapper.ModelMapper;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -275,84 +276,156 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
-        double amount;
-        String transactionId;
-        String merchant;
+        Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
-        if (qrisMap.get("01").equals("12")) {
-            Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
+        double amount = 0.0;
+        String transactionId = qrisMap.get("62");
+        String merchant = qrisMap.get("59");
 
-            if (qris != null) {
-                throw new BadRequestException("Transaction already exists");
-            } else {
-                Qris newQris = new Qris();
-                newQris.setType(QrisType.MPM);
-                newQris.setTransactionId(qrisMap.get("62"));
-                qrisRepository.save(newQris);
-
-                amount = Double.parseDouble(qrisMap.get("54"));
-                if (user.getBalance() < amount) {
-                    throw new BadRequestException("Insufficient balance");
-                }
-
-                user.setBalance(user.getBalance() - amount);
-                userRepository.save(user);
-
-                Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
-                mutation.setUser(user);
-                mutation.setAmount(amount);
-                mutation.setCreatedAt(LocalDateTime.now());
-                mutation.setTransactionType(TransactionType.DEBIT);
-                mutation.setMutationType(MutationType.QRIS);
-                mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
-                mutation.setDescription(qrisDto.getDescription());
-                mutation.setFullName(qrisMap.get("59"));
-                mutationRepository.save(mutation);
-
-                transactionId = newQris.getTransactionId();
-                merchant = qrisMap.get("59");
-            }
+        if (qrisMap.get("52").equals("0000")) {
+            amount = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
+        } else if (qrisMap.get("01").equals("12")) {
+            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
         } else if (qrisMap.get("01").equals("11")) {
-            if (qrisDto.getAmount() == null) {
-                throw new BadRequestException("Amount is required");
-            }
-
-            amount = Double.parseDouble(qrisDto.getAmount());
-            if (user.getBalance() < amount) {
-                throw new BadRequestException("Insufficient balance");
-            }
-
-            user.setBalance(user.getBalance() - amount);
-            userRepository.save(user);
-
-            Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
-            mutation.setUser(user);
-            mutation.setAmount(amount);
-            mutation.setCreatedAt(LocalDateTime.now());
-            mutation.setTransactionType(TransactionType.DEBIT);
-            mutation.setMutationType(MutationType.QRIS);
-            mutation.setTransactionPurpose(TransactionPurpose.PURCHASE);
-            mutation.setDescription(qrisDto.getDescription());
-            mutation.setFullName(qrisMap.get("59"));
-            mutationRepository.save(mutation);
-
-            transactionId = qrisMap.get("62");
-            merchant = qrisMap.get("59");
+            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
 
+        return buildQrisTransferResponse(transactionId, merchant, amount, qrisDto.getDescription());
+    }
+
+    private double handlePersonToPersonTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap, Qris qris) {
+        String transactionId = qrisMap.get("62");
+        int indexOfLength = transactionId.lastIndexOf("00");
+
+        if (indexOfLength == -1 || indexOfLength + 2 > transactionId.length() - 2) {
+            throw new BadRequestException("Invalid QRIS");
+        }
+
+        int length = Integer.parseInt(transactionId.substring(indexOfLength + 2, indexOfLength + 4));
+        String accountNumber = transactionId.substring(indexOfLength - length, indexOfLength);
+
+        if (accountNumber.equals(user.getAccountNumber())) {
+            throw new BadRequestException("Can't transfer to your own account");
+        }
+
+        User receiver = userRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new DataNotFoundException("Receiver not found"));
+
+        if (qris != null && qris.isUsed()) {
+            throw new BadRequestException("Transaction already exists");
+        }
+
+        double amount = qrisMap.get("01").equals("11") ? Double.parseDouble(qrisDto.getAmount())
+                : Double.parseDouble(qrisMap.get("54"));
+
+        processTransaction(user, receiver, amount, qrisDto.getDescription(), qris, qrisDto);
+
+        return amount;
+    }
+
+    private double handleMerchantTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap, Qris qris,
+            boolean isMpm) {
+        double amount = Double.parseDouble(isMpm ? qrisMap.get("54") : qrisDto.getAmount());
+
+        if (qris != null && qris.isUsed()) {
+            throw new BadRequestException("Transaction already exists");
+        }
+
+        Qris newQris = new Qris();
+        newQris.setType(QrisType.MPM);
+        newQris.setTransactionId(qrisMap.get("62"));
+        newQris.setPayload(qrisDto.getQris());
+        newQris.setUsed(true);
+        qrisRepository.save(newQris);
+
+        processTransaction(user, null, amount, qrisDto.getDescription(), newQris, qrisDto);
+
+        return amount;
+    }
+
+    private void processTransaction(User user, User receiver, double amount, String description, Qris qris,
+            QrisDto qrisDto) {
+        if (user.getBalance() < amount) {
+            throw new BadRequestException("Insufficient balance");
+        }
+
+        user.setBalance(user.getBalance() - amount);
+        userRepository.save(user);
+
+        if (receiver != null) {
+            receiver.setBalance(receiver.getBalance() + amount);
+            userRepository.save(receiver);
+        }
+
+        saveMutation(user, amount, description, qrisDto, TransactionType.DEBIT);
+
+        if (receiver != null) {
+            saveMutation(receiver, amount, description, qrisDto, TransactionType.CREDIT);
+        }
+
+        if (qris != null) {
+            qris.setUsed(true);
+            qrisRepository.save(qris);
+        }
+    }
+
+    private void saveMutation(User user, double amount, String description, QrisDto qrisDto,
+            TransactionType transactionType) {
+        Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
+        mutation.setUser(user);
+        mutation.setAmount(amount);
+        mutation.setCreatedAt(LocalDateTime.now());
+        mutation.setTransactionType(transactionType);
+        mutation.setMutationType(MutationType.QRIS);
+        mutation.setTransactionPurpose(TransactionPurpose.OTHER);
+        mutation.setDescription(description);
+        mutation.setFullName(user.getFullName());
+        mutationRepository.save(mutation);
+    }
+
+    private QrisTransferResponseDto buildQrisTransferResponse(String transactionId, String merchant, double amount,
+            String description) {
         QrisTransferResponseDto responseDto = new QrisTransferResponseDto();
         responseDto.setTransactionId(transactionId);
         responseDto.setMerchant(merchant);
         responseDto.setAmount(String.valueOf(amount));
-        responseDto.setDescription(qrisDto.getDescription());
+        responseDto.setDescription(description);
+        return responseDto;
+    }
+
+    @Override
+    public QrisGenerateResponseDto createQris(Principal principal, QrisGenerateMPMDto qrisMPMDto) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
+
+        String qr = generateService.generateQrisMPM(user, UUID.randomUUID().toString().replace("-", ""),
+                qrisMPMDto.getAmount());
+        LocalDateTime expiredAt = LocalDateTime.now().plusHours(24);
+
+        Map<String, String> qrisMap = parseQRIS(qr);
+
+        Qris qris = new Qris();
+        qris.setUser(user);
+        qris.setType(QrisType.MPM);
+        qris.setTransactionId(qrisMap.get("62"));
+        qris.setPayload(qr);
+        qris.setUsed(false);
+        qris.setExpiredAt(expiredAt);
+        qrisRepository.save(qris);
+
+        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300));
+
+        QrisGenerateResponseDto responseDto = new QrisGenerateResponseDto();
+        responseDto.setQris(qrImage);
+        responseDto.setExpiredAt(expiredAt);
 
         return responseDto;
     }
 
     @Override
-    public QrisCPMResponseDto createQrisCPM(Principal principal, QrisCPMDto qrisCPMDto) {
+    public QrisGenerateResponseDto createQrisCPM(Principal principal, QrisGenerateCPMDto qrisCPMDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
@@ -375,7 +448,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300));
 
-        QrisCPMResponseDto responseDto = new QrisCPMResponseDto();
+        QrisGenerateResponseDto responseDto = new QrisGenerateResponseDto();
         responseDto.setQris(qrImage);
         responseDto.setExpiredAt(expiredAt);
 

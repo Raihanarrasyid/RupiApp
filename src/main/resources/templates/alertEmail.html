@@ -19,6 +19,19 @@
             </div>
             <p style="font-size:1.1em">Hai, <strong an th:text="${name}">Name</strong></p>
             <p th:text="${message}">Message</p>
+            <div style="font-size:1.1em;" th:if="${details} != null">
+                <strong style="margin-bottom: 5px;">Detail:</strong>
+                <table style="width:100%; border-spacing:0;">
+                    <tbody th:each="detail : ${details}">
+                        <tr>
+                            <td style="text-align:left; border-bottom: 0.5px solid #ccc;" th:text="${detail.key}"></td>
+                            <td style="text-align:right; border-bottom: 0.5px solid #ccc;"><strong
+                                    th:text="${detail.value}"></strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <br></br>
             <p style="font-size:0.9em;">Regards,<br />RupiApp Team</p>
             <hr style="border:none;border-top:1px solid #eee" />
         </div>

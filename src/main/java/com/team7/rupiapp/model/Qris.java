@@ -42,7 +42,7 @@ public class Qris {
     private String payload;
 
     @Column(nullable = false)
-    private boolean used = true;
+    private boolean used = false;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;

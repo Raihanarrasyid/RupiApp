@@ -3,6 +3,8 @@ package com.team7.rupiapp.service;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -221,10 +223,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ResponseEntity<Object> verify(Principal principal, VerificationDto verificationDto) {
+    public ResponseEntity<Object> verify(Principal principal, String userAgent, VerificationDto verificationDto) {
         switch (verificationDto.getType()) {
             case LOGIN:
-                return handleVerifyLogin(principal, verificationDto);
+                return handleVerifyLogin(principal, userAgent, verificationDto);
             case FORGOT_PASSWORD:
                 return handleForgotPassword(verificationDto);
             default:
@@ -232,7 +234,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    private ResponseEntity<Object> handleVerifyLogin(Principal principal, VerificationDto verificationDto) {
+    private ResponseEntity<Object> handleVerifyLogin(Principal principal, String userAgent,
+            VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 
@@ -262,6 +265,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             return ApiResponseUtil.success(HttpStatus.OK, "Registration verified");
         }
+
+        Map<String, String> details = new HashMap<>();
+        details.put("Time", "{time}");
+        details.put("Device", userAgent);
+
+        notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Login Berhasil",
+                "Login berhasil dilakukan. Jika Anda tidak merasa melakukan login ini, segera hubungi kami.", details);
 
         return ApiResponseUtil.success(HttpStatus.OK, "Login verified");
     }

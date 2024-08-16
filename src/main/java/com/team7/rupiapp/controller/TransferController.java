@@ -5,8 +5,9 @@ import com.team7.rupiapp.dto.transfer.destination.DestinationAddDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDetailDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationDto;
 import com.team7.rupiapp.dto.transfer.destination.DestinationFavoriteDto;
-import com.team7.rupiapp.dto.transfer.qris.QrisCPMDto;
-import com.team7.rupiapp.dto.transfer.qris.QrisCPMResponseDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateCPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateMPMDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisGenerateResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
@@ -86,9 +87,15 @@ public class TransferController implements TransferApi {
         return ApiResponseUtil.success(HttpStatus.OK, "Transaction details retrieved", responseDto);
     }
 
+    @PostMapping("/qris/generate")
+    public ResponseEntity<Object> createTransactionQrisMPM(@Valid @RequestBody QrisGenerateMPMDto qrisDto, Principal principal){
+        QrisGenerateResponseDto responseDto = transactionService.createQris(principal, qrisDto);
+        return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
+    }
+
     @PostMapping("/qris/generate/cpm")
-    public ResponseEntity<Object> createTransactionQrisCPM(@Valid @RequestBody QrisCPMDto qrisDto, Principal principal){
-        QrisCPMResponseDto responseDto = transactionService.createQrisCPM(principal, qrisDto);
+    public ResponseEntity<Object> createTransactionQrisCPM(@Valid @RequestBody QrisGenerateCPMDto qrisDto, Principal principal){
+        QrisGenerateResponseDto responseDto = transactionService.createQrisCPM(principal, qrisDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }
 }

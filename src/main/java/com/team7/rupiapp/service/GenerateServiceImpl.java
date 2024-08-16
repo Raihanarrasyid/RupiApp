@@ -26,6 +26,8 @@ import com.team7.rupiapp.model.Otp;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.OtpRepository;
 import com.team7.rupiapp.util.QrisUtil;
+import com.team7.rupiapp.util.QrisUtil.AdditionalDataFieldTemplate;
+import com.team7.rupiapp.util.QrisUtil.MerchantAccountInformation;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -175,13 +177,49 @@ public class GenerateServiceImpl implements GenerateService {
 
             return image;
         } catch (WriterException e) {
-            throw new RuntimeException("Error generating QR code", e);
+            log.error("Error generating QR code", e);
+            throw new RuntimeException("Error generating QR code");
+        }
+    }
+
+    @Override
+    public String generateQrisMPM(User user, String transactionId, Integer amount) {
+        QrisUtil.MPM qris = new QrisUtil.MPM();
+        qris.setPayloadFormatIndicator("01");
+        if (amount == null) {
+            qris.setPointOfInitiationMethod("11");
+        } else {
+            qris.setPointOfInitiationMethod("12");
+            qris.setTransactionAmount(amount.toString());
+        }
+        
+
+        MerchantAccountInformation merchantAccountInformation = new MerchantAccountInformation();
+        merchantAccountInformation.setGloballyUniqueIdentifier("ME.RUPIAPP");
+        qris.addMerchantAccountInformation("40", merchantAccountInformation);
+        qris.setMerchantCategoryCode("0000");
+        qris.setTransactionCurrency("360");
+        qris.setCountryCode("ID");
+        qris.setMerchantName(user.getFullName());
+        qris.setMerchantCity("Jakarta");
+        qris.setPostalCode("12345");
+
+        AdditionalDataFieldTemplate additionalDataFieldTemplate = new AdditionalDataFieldTemplate();
+        additionalDataFieldTemplate.setReferenceLabel("0804DMCT" + transactionId);
+        additionalDataFieldTemplate.setTerminalLabel(user.getAccountNumber() + "00" + user.getAccountNumber().length());
+        qris.setAdditionalDataFieldTemplate(additionalDataFieldTemplate);
+
+        try {
+            return QrisUtil.MPM.encode(qris);
+        } catch (Exception e) {
+            log.error("Error generating QRIS MPM", e);
+            throw new RuntimeException("Error generating QRIS");
         }
     }
 
     @Override
     public String generateQrisCPM(User user, String transactionId) {
-        QrisUtil.QRIS qris = new QrisUtil.QRIS();
+        QrisUtil.CPM qris = new QrisUtil.CPM();
         qris.setDataPayloadFormatIndicator("CPV01");
 
         QrisUtil.ApplicationTemplate appTemplate = new QrisUtil.ApplicationTemplate();
@@ -206,7 +244,7 @@ public class GenerateServiceImpl implements GenerateService {
         try {
             return qris.generatePayload();
         } catch (Exception e) {
-            log.error("Error generating QRIS", e);
+            log.error("Error generating QRIS CPM", e);
             throw new RuntimeException("Error generating QRIS");
         }
     }
