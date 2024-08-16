@@ -12,7 +12,7 @@ import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
-import com.team7.rupiapp.util.CurrencyFormatter;
+import com.team7.rupiapp.util.Formatter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
                 .fullName(foundUser.getFullName())
                 .email(foundUser.getEmail())
                 .accountNumber(foundUser.getAccountNumber())
-                .balance(CurrencyFormatter.formatToIDR(foundUser.getBalance()))
+                .balance(Formatter.formatToString(foundUser.getBalance()))
                 .build();
     }
 
@@ -79,13 +79,19 @@ public class AccountServiceImpl implements AccountService {
                 foundUser.getId(), rangeStartMutationDate, rangeEndMutationDate);
 
         /*
-         * The balance information calculations are explained as follows:
-         * totalIncome = 100
-         * totalExpense = 50
-         * denominatorBalance = totalIncome + totalExpense = 100 + 50 = 150 // In percentage: 100%
-         * totalIncomePercentage = (totalIncome / denominatorBalance) * 100 = (100 / 150) * 100 = 66.67%
-         * totalExpensePercentage = (totalExpense / denominatorBalance) * 100 = (50 / 150) * 100 = 33.33%
-         * totalEarnings = totalIncome - totalExpense = 100 - 50 = 50
+         * The balance information (expense and income) calculations are explained as follows:
+         *      totalIncome = 100
+         *      totalExpense = 50
+         *      denominatorBalance = totalIncome + totalExpense = 100 + 50 = 150 // In percentage: 100%
+         *      totalIncomePercentage = (totalIncome / denominatorBalance) * 100 = (100 / 150) * 100 = 66.67%
+         *      totalExpensePercentage = (totalExpense / denominatorBalance) * 100 = (50 / 150) * 100 = 33.33%
+         *      totalEarnings = totalIncome - totalExpense = 100 - 50 = 50
+         *
+         * The category details are explained as follows:
+         *      numberOfTransactions = 2 // fetched from the number of transactions in the category
+         *      totalBalance = 100 // fetched from the total balance in the category
+         *      totalBalancePercentage = (totalBalance / totalExpenseOrIncomeAsDenominatorBalance) * 100 // total
+         *      balance percentage by TransactionType
          * */
         double totalIncome = calculateTotal(mutations, TransactionType.CREDIT);
         double totalExpense = calculateTotal(mutations, TransactionType.DEBIT);
@@ -93,24 +99,24 @@ public class AccountServiceImpl implements AccountService {
         double totalEarnings = totalIncome - totalExpense;
 
         List<AccountMutationSummaryResponseDto.CategoryDetail> creditCategories = getCategoryDetails(mutations,
-                TransactionType.CREDIT, denominatorBalance, foundUser);
+                TransactionType.CREDIT, totalIncome, foundUser);
         List<AccountMutationSummaryResponseDto.CategoryDetail> debitCategories = getCategoryDetails(mutations,
-                TransactionType.DEBIT, denominatorBalance, foundUser);
+                TransactionType.DEBIT, totalExpense, foundUser);
 
         return AccountMutationSummaryResponseDto.builder()
                 .income(AccountMutationSummaryResponseDto.IncomeDetail.builder()
                         .categories(creditCategories)
-                        .totalIncome(CurrencyFormatter.formatToIDR(totalIncome))
+                        .totalIncome(Formatter.formatToString(totalIncome))
                         .totalIncomePercentage(calculateBalancePercentage(totalIncome, denominatorBalance))
                         .build()
                 )
                 .expense(AccountMutationSummaryResponseDto.ExpenseDetail.builder()
                         .categories(debitCategories)
-                        .totalExpense(CurrencyFormatter.formatToIDR(totalExpense))
+                        .totalExpense(Formatter.formatToString(totalExpense))
                         .totalExpensePercentage(calculateBalancePercentage(totalExpense, denominatorBalance))
                         .build()
                 )
-                .totalEarnings(CurrencyFormatter.formatToIDR(totalEarnings))
+                .totalEarnings(Formatter.formatToString(totalEarnings))
                 .rangeStartMutationDate(rangeStartMutationDate)
                 .rangeEndMutationDate(rangeEndMutationDate)
                 .build();
@@ -243,7 +249,7 @@ public class AccountServiceImpl implements AccountService {
                         .numberOfTransactions(
                                 extractNumberOfTransaction(mutations, transactionType,
                                 mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
-                        .totalBalance(CurrencyFormatter.formatToIDR(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue()))
+                        .totalBalance(Formatter.formatToString(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue()))
                         .totalBalancePercentage(calculateBalancePercentage(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
                         .mutations(
                                 extractMutations(mutations, transactionType,
@@ -266,9 +272,9 @@ public class AccountServiceImpl implements AccountService {
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
                 .map(mutation -> AccountMutationSummaryResponseDto.MutationDetail.builder()
-                        .fullName(transactionType.equals(TransactionType.CREDIT) ? mutation.getFullName() : user.getFullName())
+                        .fullName(mutation.getFullName())
                         .accountNumber(mutation.getAccountNumber())
-                        .amount(CurrencyFormatter.formatToIDR(mutation.getAmount()))
+                        .amount(Formatter.formatToString(mutation.getAmount()))
                         .description(mutation.getDescription())
                         .createdAt(mutation.getCreatedAt())
                         .transactionPurpose(mutation.getTransactionPurpose())
