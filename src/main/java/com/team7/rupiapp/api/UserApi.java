@@ -499,4 +499,57 @@ public interface UserApi {
     public ResponseEntity<Object> changePin(Principal principal, @RequestHeader("X-SIGNATURE") String signature,
             @RequestBody UserChangePinDto userChangePinDto);
 
+    @Operation(summary = "Resend Email Verification OTP")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Email has been resent successfully.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+                {
+                    "message": "Email has been resent"
+                }
+                """))),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+                    @ExampleObject(name = "OTP Already Sent", value = """
+                        {
+                            "message": "OTP already sent, please wait for 3 minutes"
+                        }
+                        """),
+                    @ExampleObject(name = "No Pending Email Change", value = """
+                        {
+                            "message": "No pending email change request"
+                        }
+                        """)
+            })),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+                {
+                    "message": "Unauthorized"
+                }
+                """)))
+    })
+    public ResponseEntity<Object> resendEmail(Principal principal);
+
+    @Operation(summary = "Resend Phone Number Verification OTP")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Number has been resent successfully.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+                {
+                    "message": "Number has been resent"
+                }
+                """))),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+                    @ExampleObject(name = "OTP Already Sent", value = """
+                        {
+                            "message": "OTP already sent, please wait for 3 minutes"
+                        }
+                        """),
+                    @ExampleObject(name = "No Pending Phone Change", value = """
+                        {
+                            "message": "No pending phone change request"
+                        }
+                        """)
+            })),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+                {
+                    "message": "Unauthorized"
+                }
+                """)))
+    })
+    public ResponseEntity<Object> resendNumber(Principal principal);
 }
