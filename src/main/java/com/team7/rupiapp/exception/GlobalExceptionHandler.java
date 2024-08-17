@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.team7.rupiapp.service.LoggingService;
+import org.slf4j.MDC;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,16 +34,23 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    private final LoggingService loggingService;
+
+    public GlobalExceptionHandler(LoggingService loggingService) {
+        this.loggingService = loggingService;
+    }
+
     @ExceptionHandler(DataNotFoundException.class)
     public ResponseEntity<Object> handleDataNotFoundException(DataNotFoundException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        log.error(ex.getMessage());
+        String message = "Validation failed";
+        loggingService.catchException(ex);
 
         Map<String, String> errors = ex.getBindingResult()
                 .getFieldErrors()
@@ -50,37 +60,44 @@ public class GlobalExceptionHandler {
                         DefaultMessageSourceResolvable::getDefaultMessage,
                         (existing, replacement) -> existing));
 
-        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed", errors);
+        return ApiResponseUtil.error(HttpStatus.UNPROCESSABLE_ENTITY, message, errors);
     }
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Object> handleResourceConflict(ResourceConflictException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception ex) {
-        String requestId = UUID.randomUUID().toString();
-        log.error("Error occurred with requestId: {}", requestId, ex.getMessage());
+        String correlationId = MDC.get("correlation_id");
+        String message = String.format("Error occurred with correlation_id: %s", correlationId);
+        loggingService.catchException(ex);
 
-        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", requestId);
+        return ApiResponseUtil.error(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                message);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
-        log.error(ex.getMessage());
-
         if (ex.getMessage().equals("Bad credentials")) {
-            return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+            String message = "Invalid username or password";
+            loggingService.catchException(ex, message);
+
+            return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
+        } else {
+            loggingService.catchException(ex);
         }
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
@@ -88,28 +105,30 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Object> handleBadRequestException(BadRequestException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex) {
-        log.error(ex.getMessage());
+        String message = "Token has expired";
+        loggingService.catchException(ex);
 
-        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Token has expired");
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        String message;
         Throwable mostSpecificCause = ex.getMostSpecificCause();
-        if (mostSpecificCause instanceof InvalidFormatException) {
-            InvalidFormatException ife = (InvalidFormatException) mostSpecificCause;
+
+        if (mostSpecificCause instanceof InvalidFormatException ife) {
             String fieldName = ife.getPath().stream()
                     .map(Reference::getFieldName)
                     .collect(Collectors.joining("."));
 
-            String message = "Invalid value '" + ife.getValue() + "' for field '" + fieldName + "'";
+            message = "Invalid value '" + ife.getValue() + "' for field '" + fieldName + "'";
 
             if (ife.getTargetType() == UUID.class) {
                 message = "Invalid UUID format for field '" + fieldName + "'";
@@ -124,64 +143,78 @@ public class GlobalExceptionHandler {
                         ". Valid values are: " + validValues;
             }
 
+            loggingService.catchException(ex, message);
             return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
         }
 
-        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Invalid request body");
+        message = "Invalid request body";
+        loggingService.catchException(ex);
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(SignatureException.class)
     public ResponseEntity<Object> handleSignatureException(SignatureException ex) {
-        log.error(ex.getMessage());
+        String message = "Invalid token signature";
+        loggingService.catchException(ex);
 
-        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token signature");
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        log.error(ex.getMessage());
+        String message = "Invalid argument type";
+        loggingService.catchException(ex);
 
-        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, "Invalid argument type");
+        return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(MalformedJwtException.class)
     public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex) {
-        log.error(ex.getMessage());
+        String message = "Invalid token format";
+        loggingService.catchException(ex);
 
-        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, "Invalid token format");
+        return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<Object> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
 
         return ApiResponseUtil.error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex) {
-        log.error(ex.getMessage());
+        loggingService.catchException(ex);
+
         return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<Object> handleJsonProcessingException(JsonProcessingException ex) {
+        loggingService.catchException(ex);
+
+        return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 }

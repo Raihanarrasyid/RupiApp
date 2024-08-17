@@ -1,5 +1,10 @@
 package com.team7.rupiapp.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.team7.rupiapp.config.interceptor.LoggingInterceptor;
+import com.team7.rupiapp.repository.UserRepository;
+import io.swagger.v3.core.jackson.ModelResolver;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +18,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -22,13 +28,14 @@ import com.team7.rupiapp.repository.UserRepository;
 
 import io.swagger.v3.core.jackson.ModelResolver;
 
-@EnableAsync
 @Configuration
 public class AppConfiguration implements WebMvcConfigurer {
   private final UserRepository userRepository;
+  private final LoggingInterceptor loggingInterceptor;
 
-  public AppConfiguration(UserRepository userRepository) {
+  public AppConfiguration(UserRepository userRepository, LoggingInterceptor loggingInterceptor) {
     this.userRepository = userRepository;
+      this.loggingInterceptor = loggingInterceptor;
   }
 
   @Value("${spring.upload.directory}")
@@ -76,5 +83,10 @@ public class AppConfiguration implements WebMvcConfigurer {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadDirectory + "/");
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(loggingInterceptor);
   }
 }

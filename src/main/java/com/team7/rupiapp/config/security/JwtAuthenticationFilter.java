@@ -1,11 +1,14 @@
 package com.team7.rupiapp.config.security;
 
+import com.team7.rupiapp.model.User;
+import com.team7.rupiapp.service.JwtService;
+import com.team7.rupiapp.service.LoggingService;
+import com.team7.rupiapp.util.LogUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,9 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import com.team7.rupiapp.model.User;
-import com.team7.rupiapp.service.JwtService;
-
 import java.io.IOException;
 
 @Slf4j
@@ -30,14 +30,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final LoggingService loggingService;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserDetailsService userDetailsService,
-            HandlerExceptionResolver handlerExceptionResolver) {
+            HandlerExceptionResolver handlerExceptionResolver, LoggingService loggingService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.handlerExceptionResolver = handlerExceptionResolver;
+        this.loggingService = loggingService;
     }
 
     private boolean isAllowedRequest(String requestURI) {
@@ -57,6 +59,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            loggingService.logTrace(new LogUtil.LogHttpRequest(request));
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -85,6 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    loggingService.logTrace(new LogUtil.LogAuthorizedHttpRequest(request, ((User) userDetails).getId()));
                 }
             }
 

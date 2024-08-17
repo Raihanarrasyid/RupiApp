@@ -56,5 +56,9 @@ client:
     wahub:
         key: ${WAHUB_API_KEY}
 
+logging:
+    level:
+        com.team7.rupiapp: TRACE
+
 test:
     tester: ${TESTER:}
