@@ -33,7 +33,7 @@ public class NotifierServiceImpl implements NotifierService {
     private final TemplateEngine templateEngine;
     private final WhatsappClient whatsappClient;
 
-    private String pathLogo = "src/main/resources/templates/images/RupiApp.png";
+    private String pathLogo = "images/RupiApp.png";
 
     @Value("${client.wahub.key}")
     private String waApiKey;
