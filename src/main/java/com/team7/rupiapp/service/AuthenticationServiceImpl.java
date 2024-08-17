@@ -93,6 +93,41 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 : "";
     }
 
+    private String simplifyUserAgent(String userAgent) {
+        String platform = null;
+        String browser = null;
+
+        if (userAgent.contains("Windows")) {
+            platform = "Windows";
+        } else if (userAgent.contains("Macintosh")) {
+            platform = "Mac";
+        } else if (userAgent.contains("X11")) {
+            platform = "Unix";
+        } else if (userAgent.contains("Android")) {
+            platform = "Android";
+        } else if (userAgent.contains("iPhone")) {
+            platform = "iPhone";
+        }
+
+        if (userAgent.contains("Edg/")) {
+            browser = "Edge";
+        } else if (userAgent.contains("Chrome/")) {
+            browser = "Chrome";
+        } else if (userAgent.contains("Safari/") && userAgent.contains("Version/")) {
+            browser = "Safari";
+        } else if (userAgent.contains("Firefox/")) {
+            browser = "Firefox";
+        } else if (userAgent.contains("MSIE") || userAgent.contains("Trident/")) {
+            browser = "IE";
+        }
+
+        if (platform != null && browser != null) {
+            return platform + "(" + browser + ")";
+        } else {
+            return userAgent;
+        }
+    }
+
     @Override
     public SignupResponseDto signup(SignupDto signupDto) {
         CheckWhatsappNumberData data = new CheckWhatsappNumberData();
@@ -244,7 +279,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    private ResponseEntity<Object> handleVerifyLogin(Principal principal, String userAgent,
+    public ResponseEntity<Object> handleVerifyLogin(Principal principal, String userAgent,
             VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
@@ -276,9 +311,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return ApiResponseUtil.success(HttpStatus.OK, "Registration verified");
         }
 
+        String simplifiedUserAgent = simplifyUserAgent(userAgent);
         Map<String, String> details = new HashMap<>();
         details.put("Time", "{time}");
-        details.put("Device", userAgent);
+        details.put("Device", simplifiedUserAgent);
 
         notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Login Berhasil",
                 "Login berhasil dilakukan. Jika Anda tidak merasa melakukan login ini, segera hubungi kami.", details);
