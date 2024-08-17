@@ -208,14 +208,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String forgotUsername(ForgotUsernameDto forgotUsernameDto) {
         if (forgotUsernameDto.getDestination().contains("@")) {
             User user = userRepository.findByEmail(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByEmail(user.getEmail(), user.getAlias(), user.getUsername());
 
             return "Username has been sent to your email";
         } else {
             User user = userRepository.findByPhone(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByPhone(user.getPhone(), user.getUsername());
 
