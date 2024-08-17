@@ -161,6 +161,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         responseSigninDto.setAccessToken(tokens[0]);
         responseSigninDto.setRefreshToken(tokens[1]);
 
+        Otp existingOtp = otpRepository.findByUserAndType(user, OtpType.LOGIN).orElse(null);
+        if (existingOtp != null) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = existingOtp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                return responseSigninDto;
+            }
+        }
+
         if (user.isDefaultPassword()) {
             String otp = generateService.generateOtp(user, OtpType.LOGIN);
             notifierService.sendVerification(user.getPhone(), otp);
@@ -198,14 +208,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String forgotUsername(ForgotUsernameDto forgotUsernameDto) {
         if (forgotUsernameDto.getDestination().contains("@")) {
             User user = userRepository.findByEmail(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByEmail(user.getEmail(), user.getAlias(), user.getUsername());
 
             return "Username has been sent to your email";
         } else {
             User user = userRepository.findByPhone(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByPhone(user.getPhone(), user.getUsername());
 
