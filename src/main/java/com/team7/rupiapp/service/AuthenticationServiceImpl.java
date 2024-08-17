@@ -93,6 +93,41 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 : "";
     }
 
+    private String simplifyUserAgent(String userAgent) {
+        String platform = null;
+        String browser = null;
+
+        if (userAgent.contains("Windows")) {
+            platform = "Windows";
+        } else if (userAgent.contains("Macintosh")) {
+            platform = "Mac";
+        } else if (userAgent.contains("X11")) {
+            platform = "Unix";
+        } else if (userAgent.contains("Android")) {
+            platform = "Android";
+        } else if (userAgent.contains("iPhone")) {
+            platform = "iPhone";
+        }
+
+        if (userAgent.contains("Edg/")) {
+            browser = "Edge";
+        } else if (userAgent.contains("Chrome/")) {
+            browser = "Chrome";
+        } else if (userAgent.contains("Safari/") && userAgent.contains("Version/")) {
+            browser = "Safari";
+        } else if (userAgent.contains("Firefox/")) {
+            browser = "Firefox";
+        } else if (userAgent.contains("MSIE") || userAgent.contains("Trident/")) {
+            browser = "IE";
+        }
+
+        if (platform != null && browser != null) {
+            return platform + "(" + browser + ")";
+        } else {
+            return userAgent;
+        }
+    }
+
     @Override
     public SignupResponseDto signup(SignupDto signupDto) {
         CheckWhatsappNumberData data = new CheckWhatsappNumberData();
@@ -161,6 +196,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         responseSigninDto.setAccessToken(tokens[0]);
         responseSigninDto.setRefreshToken(tokens[1]);
 
+        Otp existingOtp = otpRepository.findByUserAndType(user, OtpType.LOGIN).orElse(null);
+        if (existingOtp != null) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextAllowedTime = existingOtp.getExpiryDate().minusMinutes(4);
+
+            if (now.isBefore(nextAllowedTime)) {
+                return responseSigninDto;
+            }
+        }
+
         if (user.isDefaultPassword()) {
             String otp = generateService.generateOtp(user, OtpType.LOGIN);
             notifierService.sendVerification(user.getPhone(), otp);
@@ -198,14 +243,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String forgotUsername(ForgotUsernameDto forgotUsernameDto) {
         if (forgotUsernameDto.getDestination().contains("@")) {
             User user = userRepository.findByEmail(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByEmail(user.getEmail(), user.getAlias(), user.getUsername());
 
             return "Username has been sent to your email";
         } else {
             User user = userRepository.findByPhone(forgotUsernameDto.getDestination())
-                    .orElseThrow(() -> new BadRequestException("User not registered"));
+                    .orElseThrow(() -> new BadRequestException("Please enter a valid phone number or email address"));
 
             notifierService.sendUsernameByPhone(user.getPhone(), user.getUsername());
 
@@ -234,7 +279,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    private ResponseEntity<Object> handleVerifyLogin(Principal principal, String userAgent,
+    public ResponseEntity<Object> handleVerifyLogin(Principal principal, String userAgent,
             VerificationDto verificationDto) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
@@ -266,9 +311,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return ApiResponseUtil.success(HttpStatus.OK, "Registration verified");
         }
 
+        String simplifiedUserAgent = simplifyUserAgent(userAgent);
         Map<String, String> details = new HashMap<>();
         details.put("Time", "{time}");
-        details.put("Device", userAgent);
+        details.put("Device", simplifiedUserAgent);
 
         notifierService.sendAlertEmail(user.getEmail(), user.getAlias(), "Login Berhasil",
                 "Login berhasil dilakukan. Jika Anda tidak merasa melakukan login ini, segera hubungi kami.", details);

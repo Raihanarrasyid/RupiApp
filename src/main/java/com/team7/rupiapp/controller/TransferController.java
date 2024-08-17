@@ -88,7 +88,7 @@ public class TransferController implements TransferApi {
     }
 
     @PostMapping("/qris/generate")
-    public ResponseEntity<Object> createTransactionQrisMPM(@Valid @RequestBody QrisGenerateMPMDto qrisDto, Principal principal){
+    public ResponseEntity<Object> createTransactionQrisMPM(@Valid @RequestBody(required = false) QrisGenerateMPMDto qrisDto, Principal principal) {
         QrisGenerateResponseDto responseDto = transactionService.createQris(principal, qrisDto);
         return ApiResponseUtil.success(HttpStatus.OK, "Qris transaction has been created", responseDto);
     }
