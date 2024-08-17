@@ -13,7 +13,6 @@ import com.team7.rupiapp.dto.transfer.qris.QrisResponseDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
-import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.service.TransactionService;
 import com.team7.rupiapp.util.ApiResponseUtil;
 
