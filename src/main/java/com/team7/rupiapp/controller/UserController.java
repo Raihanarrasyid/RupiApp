@@ -48,7 +48,7 @@ public class UserController implements UserApi {
     public ResponseEntity<Object> changeProfile(Principal principal,
             @Valid @ModelAttribute UserChangeProfileDto userChangeProfileDto) {
         userService.changeProfile(principal, userChangeProfileDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ApiResponseUtil.success(HttpStatus.OK, "Profile has been changed");
     }
 
     @PatchMapping("/change-email")
