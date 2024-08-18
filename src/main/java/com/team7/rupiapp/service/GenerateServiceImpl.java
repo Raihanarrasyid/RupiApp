@@ -160,6 +160,9 @@ public class GenerateServiceImpl implements GenerateService {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Error verifying signature", e);
             return false;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            log.error("Invalid signature", e);
+            throw new IllegalArgumentException("Invalid signature");
         }
     }
 
@@ -192,7 +195,6 @@ public class GenerateServiceImpl implements GenerateService {
             qris.setPointOfInitiationMethod("12");
             qris.setTransactionAmount(amount.toString());
         }
-        
 
         MerchantAccountInformation merchantAccountInformation = new MerchantAccountInformation();
         merchantAccountInformation.setGloballyUniqueIdentifier("ME.RUPIAPP");
