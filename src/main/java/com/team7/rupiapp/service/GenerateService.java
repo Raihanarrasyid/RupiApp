@@ -18,6 +18,8 @@ public interface GenerateService {
 
     public BufferedImage generateQRCodeImage(String qrContent, int width, int height);
 
+    public BufferedImage generateQRCodeImage(String qrContent, int width, int height, BufferedImage image);
+
     public String generateQrisMPM(User user, String transactionId, Integer amount);
 
     public String generateQrisCPM(User user, String transactionId);

@@ -8,6 +8,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -473,7 +478,16 @@ public class TransactionServiceImpl implements TransactionService {
         qris.setExpiredAt(expiredAt);
         qrisRepository.save(qris);
 
-        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300));
+        String path = "images/RupiApp.png";
+        BufferedImage logo = null;
+
+        try {
+            logo = ImageIO.read(new File(path));
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid logo path");
+        }
+
+        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300, logo));
 
         QrisGenerateResponseDto responseDto = new QrisGenerateResponseDto();
         responseDto.setQris(qrImage);
