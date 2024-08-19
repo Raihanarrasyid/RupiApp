@@ -8,6 +8,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -106,7 +111,8 @@ public class TransactionServiceImpl implements TransactionService {
         senderMutation.setAccountNumber(destination.getAccountNumber());
         senderMutation.setFullName(receiver.getFullName());
         senderMutation.setTransactionType(TransactionType.DEBIT);
-        mutationRepository.save(senderMutation);
+
+        Mutation savedSenderMutation = mutationRepository.save(senderMutation);
 
         Mutation receiverMutation = modelMapper.map(requestDto, Mutation.class);
         receiverMutation.setUser(receiver);
@@ -129,6 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
         TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
         mutationDetail.setAmount(requestDto.getAmount());
         mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
+        mutationDetail.setMutationId(savedSenderMutation.getId());
         responseDto.setMutationDetail(mutationDetail);
 
         TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
@@ -268,9 +275,6 @@ public class TransactionServiceImpl implements TransactionService {
 
             if (transactionId.contains("00")) {
                 int indexOfLength = transactionId.lastIndexOf("00");
-
-                if (indexOfLength == -1 || indexOfLength + 2 > transactionId.length() - 2) {
-                }
 
                 int length = Integer.parseInt(transactionId.substring(indexOfLength + 2, indexOfLength + 4));
                 qrisResponse.setAccountNumber(transactionId.substring(indexOfLength - length, indexOfLength));
@@ -473,7 +477,16 @@ public class TransactionServiceImpl implements TransactionService {
         qris.setExpiredAt(expiredAt);
         qrisRepository.save(qris);
 
-        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300));
+        String path = "images/RupiApp.png";
+        BufferedImage logo = null;
+
+        try {
+            logo = ImageIO.read(new File(path));
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid logo path");
+        }
+
+        String qrImage = Base64Util.convertImage(generateService.generateQRCodeImage(qr, 300, 300, logo));
 
         QrisGenerateResponseDto responseDto = new QrisGenerateResponseDto();
         responseDto.setQris(qrImage);

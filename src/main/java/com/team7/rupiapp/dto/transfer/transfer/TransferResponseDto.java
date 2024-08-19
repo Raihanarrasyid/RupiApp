@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -22,6 +23,7 @@ public class TransferResponseDto {
 
     @Data
     public static class MutationDetail {
+        private UUID mutationId;
         private Double amount;
         private LocalDateTime createdAt;
     }

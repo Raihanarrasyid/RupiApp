@@ -1,5 +1,6 @@
 package com.team7.rupiapp.service;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -160,22 +161,42 @@ public class GenerateServiceImpl implements GenerateService {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Error verifying signature", e);
             return false;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            log.error("Invalid signature", e);
+            throw new IllegalArgumentException("Invalid signature");
         }
     }
 
     @Override
     public BufferedImage generateQRCodeImage(String qrContent, int width, int height) {
+        return generateQRCodeImage(qrContent, width, height, null);
+    }
+
+    @Override
+    public BufferedImage generateQRCodeImage(String qrContent, int width, int height, BufferedImage image) {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         try {
             BitMatrix bitMatrix = qrCodeWriter.encode(qrContent, BarcodeFormat.QR_CODE, width, height);
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            BufferedImage qrImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {
-                    image.setRGB(x, y, bitMatrix.get(x, y) ? 0x000000 : 0xFFFFFF);
+                    qrImage.setRGB(x, y, bitMatrix.get(x, y) ? 0x000000 : 0xFFFFFF);
                 }
             }
 
-            return image;
+            if (image != null && image.getWidth() > 0 && image.getHeight() > 0) {
+                int logoWidth = Math.min(image.getWidth(), width / 5);
+                int logoHeight = Math.min(image.getHeight(), height / 5);
+                int logoX = (width - logoWidth) / 2;
+                int logoY = (height - logoHeight) / 2;
+
+                Graphics2D g = qrImage.createGraphics();
+                g.drawImage(image, logoX, logoY, logoWidth, logoHeight, null);
+                g.dispose();
+            }
+
+            return qrImage;
         } catch (WriterException e) {
             log.error("Error generating QR code", e);
             throw new RuntimeException("Error generating QR code");
@@ -192,7 +213,6 @@ public class GenerateServiceImpl implements GenerateService {
             qris.setPointOfInitiationMethod("12");
             qris.setTransactionAmount(amount.toString());
         }
-        
 
         MerchantAccountInformation merchantAccountInformation = new MerchantAccountInformation();
         merchantAccountInformation.setGloballyUniqueIdentifier("ME.RUPIAPP");
