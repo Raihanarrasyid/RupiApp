@@ -303,10 +303,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (qrisMap.get("52").equals("0000")) {
             amount = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
-        } else if (qrisMap.get("01").equals("12")) {
-            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else if (qrisMap.get("01").equals("11")) {
             amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
+        } else if (qrisMap.get("01").equals("12")) {
+            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
@@ -339,7 +339,7 @@ public class TransactionServiceImpl implements TransactionService {
         double amount = qrisMap.get("01").equals("11") ? Double.parseDouble(qrisDto.getAmount())
                 : Double.parseDouble(qrisMap.get("54"));
 
-        processTransaction(user, receiver, amount, qrisDto.getDescription(), qris, qrisDto);
+        processTransaction(user, receiver, qrisMap, amount, qrisDto.getDescription(), qris, qrisDto);
 
         return amount;
     }
@@ -352,7 +352,9 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException("Transaction already exists");
         }
 
-        if (!isStatic) {
+        if (isStatic) {
+            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), null, qrisDto);
+        } else {
             Qris newQris = new Qris();
             newQris.setType(QrisType.MPM);
             newQris.setTransactionId(qrisMap.get("62"));
@@ -361,13 +363,14 @@ public class TransactionServiceImpl implements TransactionService {
             newQris.setExpiredAt(LocalDateTime.now());
             qrisRepository.save(newQris);
 
-            processTransaction(user, null, amount, qrisDto.getDescription(), newQris, qrisDto);
+            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), newQris, qrisDto);
         }
 
         return amount;
     }
 
-    private void processTransaction(User user, User receiver, double amount, String description, Qris qris,
+    private void processTransaction(User user, User receiver, Map<String, String> qrisMap, double amount,
+            String description, Qris qris,
             QrisDto qrisDto) {
         if (user.getBalance() < amount) {
             throw new BadRequestException("Insufficient balance");
@@ -381,10 +384,10 @@ public class TransactionServiceImpl implements TransactionService {
             userRepository.save(receiver);
         }
 
-        saveMutation(user, amount, description, qrisDto, TransactionType.DEBIT);
+        saveMutation(user, qrisMap.get("59"), amount, description, qrisDto, TransactionType.DEBIT);
 
         if (receiver != null) {
-            saveMutation(receiver, amount, description, qrisDto, TransactionType.CREDIT);
+            saveMutation(receiver, user.getFullName(), amount, description, qrisDto, TransactionType.CREDIT);
         }
 
         if (qris != null) {
@@ -393,7 +396,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private void saveMutation(User user, double amount, String description, QrisDto qrisDto,
+    private void saveMutation(User user, String merchant, double amount, String description, QrisDto qrisDto,
             TransactionType transactionType) {
         Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
         mutation.setUser(user);
@@ -403,7 +406,7 @@ public class TransactionServiceImpl implements TransactionService {
         mutation.setMutationType(MutationType.QRIS);
         mutation.setTransactionPurpose(TransactionPurpose.OTHER);
         mutation.setDescription(description);
-        mutation.setFullName(user.getFullName());
+        mutation.setFullName(merchant);
         mutationRepository.save(mutation);
     }
 
