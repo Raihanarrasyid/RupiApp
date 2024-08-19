@@ -439,62 +439,6 @@ public interface TransferApi {
     })
     ResponseEntity<Object> getDetailQris(String qris);
 
-    @Operation(summary = "Get Transaction Detail")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transaction Detail Retrieved", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "QRIS Transaction Detail", value = """
-                                {
-                                    "data": {
-                                        "transaction_id": "3a83dc93-9f62-4d8a-995a-885d9d3a0353",
-                                        "merchant": "ZeRo Store",
-                                        "amount": "10000.0",
-                                        "description": "jajan baru"
-                                    },
-                                    "message": "Transaction details retrieved"
-                                }
-                            """),
-                    @ExampleObject(name = "Non-QRIS Transaction Detail", value = """
-                                {
-                                    "data": {
-                                        "receiver_detail": {
-                                            "name": "user1",
-                                            "account_number": "9785232178"
-                                        },
-                                        "mutation_detail": {
-                                            "amount": 50000.0,
-                                            "created_at": "2024-08-06T23:42:39.226771"
-                                        },
-                                        "sender_detail": {
-                                            "name": "user3",
-                                            "account_number": "3141971266"
-                                        },
-                                        "description": "test",
-                                        "transaction_purpose": "OTHER"
-                                    },
-                                    "message": "Transaction details retrieved"
-                                }
-                            """)
-            })),
-            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "Invalid Argument Type", value = """
-                                {
-                                    "message": "Invalid argument type"
-                                }
-                            """),
-                    @ExampleObject(name = "Transaction Not Found", value = """
-                                {
-                                    "message": "Transaction not found"
-                                }
-                            """)
-            })),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            {
-                                "message": "Unauthorized"
-                            }
-                    """)))
-    })
-    ResponseEntity<Object> getTransactionDetails(UUID transactionId, Principal principal);
-
     @Operation(summary = "Generate QRIS MPM Transaction")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = {
             @ExampleObject(name = "With Amount", value = """

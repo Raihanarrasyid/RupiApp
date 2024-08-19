@@ -3,16 +3,21 @@ package com.team7.rupiapp.service;
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
+import com.team7.rupiapp.dto.account.AccountMutationsDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
+import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.MutationType;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
+import com.team7.rupiapp.exception.UnauthorizedException;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
+import com.team7.rupiapp.specification.MutationSpecification;
 import com.team7.rupiapp.util.Formatter;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +28,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -122,76 +126,46 @@ public class AccountServiceImpl implements AccountService {
                 .build();
     }
 
-    public AccountMutationsMonthlyDto getAccountMutationPageable(Principal principal, int page, int size,
-                                                                 Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType) {
-        int currentYear = LocalDate.now().getYear();
+    public AccountMutationsDto getAccountMutationPageable(Principal principal, int page, int size,
+                                                          Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType) {
+        Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
+        UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
 
+        int currentYear = LocalDate.now().getYear();
         if (year != null && year > currentYear) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot query data for future dates.");
         }
 
-        Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
-
-        UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
-
         Pageable pageable = PageRequest.of(page, size);
+        MutationSpecification spec = new MutationSpecification(userId, year, month, transactionPurpose, transactionType, mutationType);
 
-        Page<Mutation> mutationsPage;
-        if (year != null && month != null) {
-            LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
-            LocalDateTime endDate = startDate.withDayOfMonth(startDate.toLocalDate().lengthOfMonth());
-            mutationsPage = mutationRepository.findByUserIdAndCreatedAtBetween(userId, startDate, endDate, pageable);
-        } else {
-            mutationsPage = mutationRepository.findByUserId(userId, pageable);
+        Page<Mutation> mutations = mutationRepository.findAll(spec, pageable);
+
+        AccountMutationsDto response = new AccountMutationsDto();
+
+        List<AccountMutationResponseDto> mutationResponseList = new ArrayList<>();
+
+        for (Mutation mutation : mutations) {
+            AccountMutationResponseDto dto = convertToDto(mutation);
+            mutationResponseList.add(dto);
         }
 
-        List<Mutation> mutations = mutationsPage.getContent();
-
-        if (transactionPurpose != null) {
-            mutations = mutations.stream()
-                    .filter(mutation -> mutation.getTransactionPurpose().name().equalsIgnoreCase(transactionPurpose))
-                    .collect(Collectors.toList());
-        }
-
-        if (transactionType != null) {
-            mutations = mutations.stream()
-                    .filter(mutation -> mutation.getTransactionType().name().equalsIgnoreCase(transactionType))
-                    .collect(Collectors.toList());
-        }
-
-        if (mutationType != null) {
-            mutations = mutations.stream()
-                    .filter(mutation -> mutation.getMutationType().name().equalsIgnoreCase(mutationType))
-                    .collect(Collectors.toList());
-        }
-
-        Map<Month, List<Mutation>> groupedByMonth = mutations.stream()
-                .collect(Collectors.groupingBy(mutation -> mutation.getCreatedAt().getMonth()));
-
-        Map<String, List<AccountMutationResponseDto>> responseData = new LinkedHashMap<>();
-
-        for (Month monthEnum : Month.values()) {
-            List<AccountMutationResponseDto> monthData = groupedByMonth.getOrDefault(monthEnum, Collections.emptyList()).stream()
-                    .map(mutation -> {
-                        AccountMutationResponseDto dto = new AccountMutationResponseDto();
-                        dto.setDate(mutation.getCreatedAt());
-                        dto.setCategory(mutation.getMutationType().name());
-                        dto.setDescription(mutation.getDescription());
-                        dto.setAmount(mutation.getAmount());
-                        dto.setAccountNumber(mutation.getAccountNumber());
-                        dto.setTransactionPurpose(mutation.getTransactionPurpose().name());
-                        dto.setTransactionType(mutation.getTransactionType().name());
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-
-            responseData.put(monthEnum.name().toLowerCase(), monthData);
-        }
-
-        AccountMutationsMonthlyDto response = new AccountMutationsMonthlyDto();
-        response.setData(responseData);
+        response.setData(mutationResponseList);
 
         return response;
+    }
+
+    private AccountMutationResponseDto convertToDto(Mutation mutation) {
+        AccountMutationResponseDto dto = new AccountMutationResponseDto();
+        dto.setDate(mutation.getCreatedAt());
+        dto.setCategory(mutation.getMutationType().name());
+        dto.setDescription(mutation.getDescription());
+        dto.setAmount(mutation.getAmount());
+        dto.setAccountNumber(mutation.getAccountNumber());
+        dto.setTransactionPurpose(mutation.getTransactionPurpose().name());
+        dto.setTransactionType(mutation.getTransactionType().name());
+        // Set other fields if necessary
+        return dto;
     }
 
     private static LocalDateTime getRangeStartMutationLocalDateTime(Integer year, Integer month) {
@@ -253,7 +227,7 @@ public class AccountServiceImpl implements AccountService {
                         .totalBalancePercentage(calculateBalancePercentage(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
                         .mutations(
                                 extractMutations(mutations, transactionType,
-                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey(), user))
+                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
                         .build())
                 .toList();
     }
@@ -267,7 +241,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private List<AccountMutationSummaryResponseDto.MutationDetail> extractMutations(List<Mutation> mutations,
-                                                                                    TransactionType transactionType, MutationType mutationType, User user) {
+                                                                                    TransactionType transactionType, MutationType mutationType) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
@@ -282,6 +256,83 @@ public class AccountServiceImpl implements AccountService {
                 .toList()
                 .stream()
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public Object getMutationDetails(UUID mutationId, Principal principal) {
+        Mutation mutation = mutationRepository.findById(mutationId)
+                .orElseThrow(() -> new DataNotFoundException("Mutation not found"));
+
+        User requestingUser = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        if (!isUserAuthorized(mutation, requestingUser)) {
+            throw new UnauthorizedException("Not authorized to access this transaction");
+        }
+
+        if (mutation.getMutationType() == MutationType.QRIS && mutation.getAccountNumber() == null) {
+            return buildQrisResponseDto(mutation);
+        } else if (mutation.getMutationType() == MutationType.QRIS) {
+            return buildTransferResponseDto(mutation);
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return buildTransferResponseDto(mutation);
+        } else {
+            throw new DataNotFoundException("Invalid mutation type");
+        }
+    }
+
+    private boolean isUserAuthorized(Mutation mutation, User requestingUser) {
+        if (mutation.getMutationType() == MutationType.QRIS) {
+            return mutation.getUser().getId().equals(requestingUser.getId());
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return mutation.getUser().getId().equals(requestingUser.getId()) ||
+                    mutation.getAccountNumber().equals(requestingUser.getAccountNumber());
+        }
+        return false;
+    }
+
+    private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
+        QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
+        qrisResponseDto.setMutationId(mutation.getId().toString());
+        qrisResponseDto.setMerchant(mutation.getFullName());
+        qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
+        qrisResponseDto.setDescription(mutation.getDescription());
+        return qrisResponseDto;
+    }
+
+    private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
+        User sender = mutation.getUser();
+        TransferResponseDto transferResponseDto = new TransferResponseDto();
+
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+
+        if (mutation.getTransactionType() == TransactionType.DEBIT) {
+            senderDetail.setName(sender.getFullName());
+            senderDetail.setAccountNumber(sender.getAccountNumber());
+            receiverDetail.setName(mutation.getFullName());
+            receiverDetail.setAccountNumber(mutation.getAccountNumber());
+        } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
+            senderDetail.setName(mutation.getFullName());
+            senderDetail.setAccountNumber(mutation.getAccountNumber());
+            receiverDetail.setName(sender.getFullName());
+            receiverDetail.setAccountNumber(sender.getAccountNumber());
+        }
+
+        transferResponseDto.setSenderDetail(senderDetail);
+        transferResponseDto.setReceiverDetail(receiverDetail);
+
+        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
+        mutationDetail.setAmount(mutation.getAmount());
+        mutationDetail.setCreatedAt(mutation.getCreatedAt());
+        mutationDetail.setMutationId(mutation.getId());
+        transferResponseDto.setMutationDetail(mutationDetail);
+
+        transferResponseDto.setDescription(mutation.getDescription());
+        transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
+
+        return transferResponseDto;
     }
 
 }
