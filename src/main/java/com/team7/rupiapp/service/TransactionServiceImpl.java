@@ -111,7 +111,8 @@ public class TransactionServiceImpl implements TransactionService {
         senderMutation.setAccountNumber(destination.getAccountNumber());
         senderMutation.setFullName(receiver.getFullName());
         senderMutation.setTransactionType(TransactionType.DEBIT);
-        mutationRepository.save(senderMutation);
+
+        Mutation savedSenderMutation = mutationRepository.save(senderMutation);
 
         Mutation receiverMutation = modelMapper.map(requestDto, Mutation.class);
         receiverMutation.setUser(receiver);
@@ -134,6 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
         TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
         mutationDetail.setAmount(requestDto.getAmount());
         mutationDetail.setCreatedAt(senderMutation.getCreatedAt());
+        mutationDetail.setMutationId(savedSenderMutation.getId());
         responseDto.setMutationDetail(mutationDetail);
 
         TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
@@ -273,9 +275,6 @@ public class TransactionServiceImpl implements TransactionService {
 
             if (transactionId.contains("00")) {
                 int indexOfLength = transactionId.lastIndexOf("00");
-
-                if (indexOfLength == -1 || indexOfLength + 2 > transactionId.length() - 2) {
-                }
 
                 int length = Integer.parseInt(transactionId.substring(indexOfLength + 2, indexOfLength + 4));
                 qrisResponse.setAccountNumber(transactionId.substring(indexOfLength - length, indexOfLength));
