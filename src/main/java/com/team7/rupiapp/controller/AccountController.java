@@ -3,7 +3,7 @@ package com.team7.rupiapp.controller;
 
 import com.team7.rupiapp.api.AccountApi;
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
+import com.team7.rupiapp.dto.account.AccountMutationsDto;
 import com.team7.rupiapp.service.AccountServiceImpl;
 import com.team7.rupiapp.util.ApiResponseUtil;
 import jakarta.validation.Valid;
@@ -43,7 +43,7 @@ public class AccountController implements AccountApi {
     }
 
     @GetMapping("/mutations")
-    public ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(Principal principal,
+    public ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(Principal principal,
                                                                                   @RequestParam(defaultValue = "0") int page,
                                                                                   @RequestParam(defaultValue = "100") int size,
                                                                                   @RequestParam(required = false) Integer year,
@@ -52,7 +52,7 @@ public class AccountController implements AccountApi {
                                                                                   @RequestParam(required = false) String transactionType,
                                                                                   @RequestParam(required = false) String mutationType
     ) {
-        AccountMutationsMonthlyDto response = accountService.getAccountMutationPageable(principal, page, size, year, month, transactionPurpose, transactionType, mutationType);
+        AccountMutationsDto response = accountService.getAccountMutationPageable(principal, page, size, year, month, transactionPurpose, transactionType, mutationType);
         return ResponseEntity.ok(response);
     }
 
