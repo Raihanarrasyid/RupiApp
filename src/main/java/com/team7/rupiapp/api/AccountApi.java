@@ -2,7 +2,7 @@ package com.team7.rupiapp.api;
 
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationsMonthlyDto;
+import com.team7.rupiapp.dto.account.AccountMutationsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -437,7 +437,7 @@ public interface AccountApi {
                             description = "Successful retrieval of account mutations",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = AccountMutationsMonthlyDto.class),
+                                    schema = @Schema(implementation = AccountMutationsDto.class),
                                     examples = @ExampleObject(
                                             name = "example-response",
                                             value = "{\n" +
@@ -507,7 +507,7 @@ public interface AccountApi {
             }
     )
     @GetMapping("/mutations/page/filter")
-    ResponseEntity<AccountMutationsMonthlyDto> getMutationsByMonthPageable(
+    ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(
             Principal principal,
             @Parameter(description = "Page number", example = "0")
             @RequestParam(defaultValue = "0") int page,
