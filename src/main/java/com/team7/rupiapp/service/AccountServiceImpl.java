@@ -1,9 +1,6 @@
 package com.team7.rupiapp.service;
 
-import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationsDto;
+import com.team7.rupiapp.dto.account.*;
 import com.team7.rupiapp.enums.MutationType;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
@@ -147,7 +144,20 @@ public class AccountServiceImpl implements AccountService {
             mutationResponseList.add(dto);
         }
 
-        response.setData(mutationResponseList);
+        Map<String, List<AccountMutationResponseDto>> data = new HashMap<>();
+        data.put("mutations", mutationResponseList);
+        response.setData(data);
+
+        PageableDto pageableDto = new PageableDto();
+        pageableDto.setPageNumber(mutations.getNumber());
+        pageableDto.setPageSize(mutations.getSize());
+        pageableDto.setLast(mutations.isLast());
+        pageableDto.setFirst(mutations.isFirst());
+        pageableDto.setTotalPages(mutations.getTotalPages());
+        pageableDto.setTotalElements(mutations.getTotalElements());
+        pageableDto.setNumberOfElements(mutations.getNumberOfElements());
+        pageableDto.setEmpty(mutations.isEmpty());
+        response.setPageable(pageableDto);
 
         return response;
     }
