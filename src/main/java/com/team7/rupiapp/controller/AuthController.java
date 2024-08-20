@@ -76,7 +76,7 @@ public class AuthController implements AuthApi {
     @PostMapping("/forgot-password")
     public ResponseEntity<Object> forgotPasswordRequest(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto) {
         authenticationService.forgotPassword(forgotPasswordDto);
-        return ApiResponseUtil.success(HttpStatus.OK, "Forgot password success");
+        return ApiResponseUtil.success(HttpStatus.OK, "OTP for forgot password has been sent.");
     }
 
     @PostMapping("/refresh-token")
