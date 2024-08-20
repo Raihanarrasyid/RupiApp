@@ -1,19 +1,24 @@
 package com.team7.rupiapp.service;
 
+import com.team7.rupiapp.dto.account.*;
 import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
 import com.team7.rupiapp.dto.account.AccountMutationsDto;
+import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
+import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.MutationType;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
+import com.team7.rupiapp.exception.UnauthorizedException;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
 import com.team7.rupiapp.specification.MutationSpecification;
 import com.team7.rupiapp.util.Formatter;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -147,7 +151,20 @@ public class AccountServiceImpl implements AccountService {
             mutationResponseList.add(dto);
         }
 
-        response.setData(mutationResponseList);
+        Map<String, List<AccountMutationResponseDto>> data = new HashMap<>();
+        data.put("mutations", mutationResponseList);
+        response.setData(data);
+
+        PageableDto pageableDto = new PageableDto();
+        pageableDto.setPageNumber(mutations.getNumber());
+        pageableDto.setPageSize(mutations.getSize());
+        pageableDto.setLast(mutations.isLast());
+        pageableDto.setFirst(mutations.isFirst());
+        pageableDto.setTotalPages(mutations.getTotalPages());
+        pageableDto.setTotalElements(mutations.getTotalElements());
+        pageableDto.setNumberOfElements(mutations.getNumberOfElements());
+        pageableDto.setEmpty(mutations.isEmpty());
+        response.setPageable(pageableDto);
 
         return response;
     }
@@ -224,7 +241,7 @@ public class AccountServiceImpl implements AccountService {
                         .totalBalancePercentage(calculateBalancePercentage(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
                         .mutations(
                                 extractMutations(mutations, transactionType,
-                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey(), user))
+                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
                         .build())
                 .toList();
     }
@@ -238,7 +255,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private List<AccountMutationSummaryResponseDto.MutationDetail> extractMutations(List<Mutation> mutations,
-                                                                                    TransactionType transactionType, MutationType mutationType, User user) {
+                                                                                    TransactionType transactionType, MutationType mutationType) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
@@ -253,6 +270,83 @@ public class AccountServiceImpl implements AccountService {
                 .toList()
                 .stream()
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public Object getMutationDetails(UUID mutationId, Principal principal) {
+        Mutation mutation = mutationRepository.findById(mutationId)
+                .orElseThrow(() -> new DataNotFoundException("Mutation not found"));
+
+        User requestingUser = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        if (!isUserAuthorized(mutation, requestingUser)) {
+            throw new UnauthorizedException("Not authorized to access this transaction");
+        }
+
+        if (mutation.getMutationType() == MutationType.QRIS && mutation.getAccountNumber() == null) {
+            return buildQrisResponseDto(mutation);
+        } else if (mutation.getMutationType() == MutationType.QRIS) {
+            return buildTransferResponseDto(mutation);
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return buildTransferResponseDto(mutation);
+        } else {
+            throw new DataNotFoundException("Invalid mutation type");
+        }
+    }
+
+    private boolean isUserAuthorized(Mutation mutation, User requestingUser) {
+        if (mutation.getMutationType() == MutationType.QRIS) {
+            return mutation.getUser().getId().equals(requestingUser.getId());
+        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
+            return mutation.getUser().getId().equals(requestingUser.getId()) ||
+                    mutation.getAccountNumber().equals(requestingUser.getAccountNumber());
+        }
+        return false;
+    }
+
+    private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
+        QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
+        qrisResponseDto.setMutationId(mutation.getId().toString());
+        qrisResponseDto.setMerchant(mutation.getFullName());
+        qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
+        qrisResponseDto.setDescription(mutation.getDescription());
+        return qrisResponseDto;
+    }
+
+    private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
+        User sender = mutation.getUser();
+        TransferResponseDto transferResponseDto = new TransferResponseDto();
+
+        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
+        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
+
+        if (mutation.getTransactionType() == TransactionType.DEBIT) {
+            senderDetail.setName(sender.getFullName());
+            senderDetail.setAccountNumber(sender.getAccountNumber());
+            receiverDetail.setName(mutation.getFullName());
+            receiverDetail.setAccountNumber(mutation.getAccountNumber());
+        } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
+            senderDetail.setName(mutation.getFullName());
+            senderDetail.setAccountNumber(mutation.getAccountNumber());
+            receiverDetail.setName(sender.getFullName());
+            receiverDetail.setAccountNumber(sender.getAccountNumber());
+        }
+
+        transferResponseDto.setSenderDetail(senderDetail);
+        transferResponseDto.setReceiverDetail(receiverDetail);
+
+        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
+        mutationDetail.setAmount(mutation.getAmount());
+        mutationDetail.setCreatedAt(mutation.getCreatedAt());
+        mutationDetail.setMutationId(mutation.getId());
+        transferResponseDto.setMutationDetail(mutationDetail);
+
+        transferResponseDto.setDescription(mutation.getDescription());
+        transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
+
+        return transferResponseDto;
     }
 
 }

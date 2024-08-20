@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class QrisTransferResponseDto {
-    private String transactionId;
+    private String mutationId;
     private String merchant;
     private String amount;
     private String description;

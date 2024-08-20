@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
+import java.util.UUID;
 
 public interface AccountApi {
 
@@ -530,4 +531,61 @@ public interface AccountApi {
             @Parameter(description = "Transaction type for filtering mutations", example = "TRANSFER")
             @RequestParam(required = false) String mutationType
     );
+
+    @Operation(summary = "Get Mutation Detail")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mutation Detail Retrieved", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "QRIS Mutation Detail", value = """
+                                {
+                                    "data": {
+                                        "mutation_id": "3a83dc93-9f62-4d8a-995a-885d9d3a0353",
+                                        "merchant": "ZeRo Store",
+                                        "amount": "10000.0",
+                                        "description": "jajan baru"
+                                    },
+                                    "message": "Mutation details retrieved"
+                                }
+                            """),
+                    @ExampleObject(name = "Non-QRIS Mutation Detail", value = """
+                                {
+                                    "data": {
+                                        "receiver_detail": {
+                                            "name": "user1",
+                                            "account_number": "9785232178"
+                                        },
+                                        "mutation_detail": {
+                                            "mutation_id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
+                                            "amount": 50000.0,
+                                            "created_at": "2024-08-06T23:42:39.226771"
+                                        },
+                                        "sender_detail": {
+                                            "name": "user3",
+                                            "account_number": "3141971266"
+                                        },
+                                        "description": "test",
+                                        "transaction_purpose": "OTHER"
+                                    },
+                                    "message": "Mutation details retrieved"
+                                }
+                            """)
+            })),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Invalid Argument Type", value = """
+                                {
+                                    "message": "Invalid argument type"
+                                }
+                            """),
+                    @ExampleObject(name = "Mutation Not Found", value = """
+                                {
+                                    "message": "Mutation not found"
+                                }
+                            """)
+            })),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                            {
+                                "message": "Unauthorized"
+                            }
+                    """)))
+    })
+    public ResponseEntity<Object> getMutationDetails(UUID mutationId, Principal principal);
 }

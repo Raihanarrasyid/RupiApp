@@ -36,7 +36,6 @@ import com.team7.rupiapp.enums.TransactionPurpose;
 import com.team7.rupiapp.enums.TransactionType;
 import com.team7.rupiapp.exception.BadRequestException;
 import com.team7.rupiapp.exception.DataNotFoundException;
-import com.team7.rupiapp.exception.UnauthorizedException;
 import com.team7.rupiapp.model.Destination;
 import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.Qris;
@@ -303,10 +302,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (qrisMap.get("52").equals("0000")) {
             amount = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
-        } else if (qrisMap.get("01").equals("12")) {
-            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else if (qrisMap.get("01").equals("11")) {
             amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
+        } else if (qrisMap.get("01").equals("12")) {
+            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
@@ -339,7 +338,7 @@ public class TransactionServiceImpl implements TransactionService {
         double amount = qrisMap.get("01").equals("11") ? Double.parseDouble(qrisDto.getAmount())
                 : Double.parseDouble(qrisMap.get("54"));
 
-        processTransaction(user, receiver, amount, qrisDto.getDescription(), qris, qrisDto);
+        processTransaction(user, receiver, qrisMap, amount, qrisDto.getDescription(), qris, qrisDto);
 
         return amount;
     }
@@ -352,7 +351,9 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException("Transaction already exists");
         }
 
-        if (!isStatic) {
+        if (isStatic) {
+            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), null, qrisDto);
+        } else {
             Qris newQris = new Qris();
             newQris.setType(QrisType.MPM);
             newQris.setTransactionId(qrisMap.get("62"));
@@ -361,13 +362,14 @@ public class TransactionServiceImpl implements TransactionService {
             newQris.setExpiredAt(LocalDateTime.now());
             qrisRepository.save(newQris);
 
-            processTransaction(user, null, amount, qrisDto.getDescription(), newQris, qrisDto);
+            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), newQris, qrisDto);
         }
 
         return amount;
     }
 
-    private void processTransaction(User user, User receiver, double amount, String description, Qris qris,
+    private void processTransaction(User user, User receiver, Map<String, String> qrisMap, double amount,
+            String description, Qris qris,
             QrisDto qrisDto) {
         if (user.getBalance() < amount) {
             throw new BadRequestException("Insufficient balance");
@@ -381,10 +383,11 @@ public class TransactionServiceImpl implements TransactionService {
             userRepository.save(receiver);
         }
 
-        saveMutation(user, amount, description, qrisDto, TransactionType.DEBIT);
-
         if (receiver != null) {
-            saveMutation(receiver, amount, description, qrisDto, TransactionType.CREDIT);
+            saveMutation(user, receiver.getFullName(), receiver.getAccountNumber(), amount, description, qrisDto, TransactionType.DEBIT);
+            saveMutation(receiver, user.getFullName(), user.getAccountNumber(), amount, description, qrisDto, TransactionType.CREDIT);
+        } else {
+            saveMutation(user, qrisMap.get("59"), null, amount, description, qrisDto, TransactionType.DEBIT);
         }
 
         if (qris != null) {
@@ -393,7 +396,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private void saveMutation(User user, double amount, String description, QrisDto qrisDto,
+    private void saveMutation(User user, String merchant, String accountNumber, double amount, String description, QrisDto qrisDto,
             TransactionType transactionType) {
         Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
         mutation.setUser(user);
@@ -403,14 +406,15 @@ public class TransactionServiceImpl implements TransactionService {
         mutation.setMutationType(MutationType.QRIS);
         mutation.setTransactionPurpose(TransactionPurpose.OTHER);
         mutation.setDescription(description);
-        mutation.setFullName(user.getFullName());
+        mutation.setFullName(merchant);
+        mutation.setAccountNumber(accountNumber);
         mutationRepository.save(mutation);
     }
 
     private QrisTransferResponseDto buildQrisTransferResponse(String transactionId, String merchant, double amount,
             String description) {
         QrisTransferResponseDto responseDto = new QrisTransferResponseDto();
-        responseDto.setTransactionId(transactionId);
+        responseDto.setMutationId(transactionId);
         responseDto.setMerchant(merchant);
         responseDto.setAmount(String.valueOf(amount));
         responseDto.setDescription(description);
@@ -493,79 +497,5 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setExpiredAt(expiredAt);
 
         return responseDto;
-    }
-
-    @Override
-    @Transactional
-    public Object getTransactionDetails(UUID transactionId, Principal principal) {
-        Mutation mutation = mutationRepository.findById(transactionId)
-                .orElseThrow(() -> new DataNotFoundException("Transaction not found"));
-
-        User requestingUser = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new DataNotFoundException("User not found"));
-
-        if (!isUserAuthorized(mutation, requestingUser)) {
-            throw new UnauthorizedException("Not authorized to access this transaction");
-        }
-
-        if (mutation.getMutationType() == MutationType.QRIS) {
-            return buildQrisResponseDto(mutation);
-        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
-            return buildTransferResponseDto(mutation);
-        } else {
-            throw new DataNotFoundException("Invalid mutation type");
-        }
-    }
-
-    private boolean isUserAuthorized(Mutation mutation, User requestingUser) {
-        if (mutation.getMutationType() == MutationType.QRIS) {
-            return mutation.getUser().getId().equals(requestingUser.getId());
-        } else if (mutation.getMutationType() == MutationType.TRANSFER) {
-            return mutation.getUser().getId().equals(requestingUser.getId()) ||
-                    mutation.getAccountNumber().equals(requestingUser.getAccountNumber());
-        }
-        return false;
-    }
-
-    private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
-        QrisTransferResponseDto qrisResponseDto = new QrisTransferResponseDto();
-        qrisResponseDto.setTransactionId(mutation.getId().toString());
-        qrisResponseDto.setMerchant(mutation.getFullName());
-        qrisResponseDto.setAmount(String.valueOf(mutation.getAmount()));
-        qrisResponseDto.setDescription(mutation.getDescription());
-        return qrisResponseDto;
-    }
-
-    private TransferResponseDto buildTransferResponseDto(Mutation mutation) {
-        User sender = mutation.getUser();
-        TransferResponseDto transferResponseDto = new TransferResponseDto();
-
-        TransferResponseDto.SenderDetail senderDetail = new TransferResponseDto.SenderDetail();
-        TransferResponseDto.ReceiverDetail receiverDetail = new TransferResponseDto.ReceiverDetail();
-
-        if (mutation.getTransactionType() == TransactionType.DEBIT) {
-            senderDetail.setName(sender.getFullName());
-            senderDetail.setAccountNumber(sender.getAccountNumber());
-            receiverDetail.setName(mutation.getFullName());
-            receiverDetail.setAccountNumber(mutation.getAccountNumber());
-        } else if (mutation.getTransactionType() == TransactionType.CREDIT) {
-            senderDetail.setName(mutation.getFullName());
-            senderDetail.setAccountNumber(mutation.getAccountNumber());
-            receiverDetail.setName(sender.getFullName());
-            receiverDetail.setAccountNumber(sender.getAccountNumber());
-        }
-
-        transferResponseDto.setSenderDetail(senderDetail);
-        transferResponseDto.setReceiverDetail(receiverDetail);
-
-        TransferResponseDto.MutationDetail mutationDetail = new TransferResponseDto.MutationDetail();
-        mutationDetail.setAmount(mutation.getAmount());
-        mutationDetail.setCreatedAt(mutation.getCreatedAt());
-        transferResponseDto.setMutationDetail(mutationDetail);
-
-        transferResponseDto.setDescription(mutation.getDescription());
-        transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
-
-        return transferResponseDto;
     }
 }
