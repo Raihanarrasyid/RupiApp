@@ -1,51 +1,28 @@
 package com.team7.rupiapp.service;
 
 import com.team7.rupiapp.util.LogUtil;
-import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 
 @Slf4j
 @Service
 public class LoggingServiceImpl implements LoggingService {
 
-    public void logTrace(LogUtil.LogHttpRequest logHttpRequest, HttpServletRequest request) {
-        log.trace(logHttpRequest.toJson());
-    }
-
-    public void logTrace(LogUtil.Log log) {
-        LoggingServiceImpl.log.trace(log.toJson());
+    @Override
+    public <T extends Throwable> void logErrorMessage(T t) {
+        log.error(t.getMessage());
     }
 
     @Override
-    public void logDebug(String message) {
-        log.debug(message);
-    }
-
-    @Override
-    public void logInfo(String message) {
-        log.info(message);
-    }
-
-    public void logInfo(LogUtil.LogHttpRequest logHttpRequest) {
-        log.info(logHttpRequest.toJson());
-    }
-
-    @Override
-    public void logWarn(String message) {
-        log.warn(message);
-    }
-
-    @Override
-    public <T extends Throwable> void logError(T t) {
+    public <T extends Throwable> void logErrorMessageWithStackTrace(T t) {
         log.error(t.getMessage(), t);
     }
 
     @Override
-    public <T extends Throwable> void logError(T t, String message) {
+    public <T extends Throwable> void logErrorMessageCustom(T t, String message) {
         log.error(message, t);
     }
 
@@ -80,23 +57,36 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
+    public void logTrace(LogUtil.LogHttpResponseWithExceptionStackTrace log) {
+        LoggingServiceImpl.log.trace(log.toJson());
+    }
+
+    @Override
     public void logTrace(LogUtil.LogAuthorizedHttpResponseWithException log) {
         LoggingServiceImpl.log.trace(log.toJson());
     }
 
     @Override
-    public <T extends Exception> void catchException(T e) {
-        catchExceptionDetails(e, e.getMessage());
+    public void logTrace(LogUtil.LogAuthorizedHttpResponseWithExceptionStackTrace log) {
+        LoggingServiceImpl.log.trace(log.toJson());
     }
 
     @Override
-    public <T extends Exception> void catchException(T e, String message) {
-        catchExceptionDetails(e, message);
+    public <T extends Exception> void catchException(T e, boolean withStackTrace) {
+        catchExceptionDetails(e, e.getMessage(), withStackTrace);
     }
 
-    private <T extends Exception> void catchExceptionDetails(T e, String message) {
+    @Override
+    public <T extends Exception> void catchException(T e, boolean withStackTrace, String message) {
+        catchExceptionDetails(e, message, withStackTrace);
+    }
+
+    private <T extends Exception> void catchExceptionDetails(T e, String message, boolean withStackTrace) {
         MDC.put("is_error", "true");
         MDC.put("exception_message", message);
-        MDC.put("exception_stack_trace", Arrays.toString(e.getStackTrace()));
+        if (withStackTrace) {
+            MDC.put("is_error_with_stack_trace", "true");
+            MDC.put("exception_stack_trace", Arrays.toString(e.getStackTrace()));
+        }
     }
 }

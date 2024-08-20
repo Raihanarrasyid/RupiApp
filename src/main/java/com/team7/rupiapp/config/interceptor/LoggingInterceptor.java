@@ -26,30 +26,51 @@ public class LoggingInterceptor implements HandlerInterceptor {
         String mdcCorrelationId = MDC.get("correlation_id");
         String mdcLog = MDC.get(mdcCorrelationId);
         boolean isError = Boolean.parseBoolean((MDC.get("is_error")));
+        boolean isErrorWithStackTrace = Boolean.parseBoolean((MDC.get("is_error_with_stack_trace")));
         boolean isAuthorized = Boolean.parseBoolean((MDC.get("is_authorized")));
 
         try {
             if (isError) {
                 String exceptionMessage = MDC.get("exception_message");
-                String exceptionStackTrace = MDC.get("exception_stack_trace");
 
                 if (!isAuthorized) {
-                    LogUtil.LogHttpResponseWithException log =
-                            LogUtil.readLogHttpResponseWithException(mdcLog,
-                                    LogUtil.LogHttpResponseWithException.class);
-                    log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
-                    log.setHttpStatusCode(response.getStatus());
-                    log.setExceptionMessage(exceptionMessage);
-                    log.setExceptionStackTrace(exceptionStackTrace);
-                    loggingService.logTrace(log);
+                    if (isErrorWithStackTrace) {
+                        String exceptionStackTrace = MDC.get("exception_stack_trace");
+                        LogUtil.LogHttpResponseWithExceptionStackTrace log = LogUtil.readLogHttpResponseWithExceptionStackTrace(mdcLog,
+                                LogUtil.LogHttpResponseWithExceptionStackTrace.class);
+                        log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
+                        log.setHttpStatusCode(response.getStatus());
+                        log.setExceptionMessage(exceptionMessage);
+                        log.setExceptionStackTrace(exceptionStackTrace);
+                        loggingService.logTrace(log);
+                    } else {
+                        LogUtil.LogHttpResponseWithException log =
+                                LogUtil.readLogHttpResponseWithException(mdcLog,
+                                        LogUtil.LogHttpResponseWithException.class);
+                        log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
+                        log.setHttpStatusCode(response.getStatus());
+                        log.setExceptionMessage(exceptionMessage);
+                        loggingService.logTrace(log);
+                    }
                 } else {
-                    LogUtil.LogAuthorizedHttpResponseWithException log = LogUtil.readLogAuthorizedHttpResponseWithException(mdcLog,
-                            LogUtil.LogAuthorizedHttpResponseWithException.class);
-                    log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
-                    log.setHttpStatusCode(response.getStatus());
-                    log.setExceptionMessage(exceptionMessage);
-                    log.setExceptionStackTrace(exceptionStackTrace);
-                    loggingService.logTrace(log);
+                    if (isErrorWithStackTrace) {
+                        String exceptionStackTrace = MDC.get("exception_stack_trace");
+                        LogUtil.LogAuthorizedHttpResponseWithExceptionStackTrace log =
+                                LogUtil.readLogAuthorizedHttpResponseWithExceptionStackTrace(mdcLog,
+                                LogUtil.LogAuthorizedHttpResponseWithExceptionStackTrace.class);
+                        log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
+                        log.setHttpStatusCode(response.getStatus());
+                        log.setExceptionMessage(exceptionMessage);
+                        log.setExceptionStackTrace(exceptionStackTrace);
+                        loggingService.logTrace(log);
+                    } else {
+                        LogUtil.LogAuthorizedHttpResponseWithException log = LogUtil.readLogAuthorizedHttpResponseWithException(mdcLog,
+                                LogUtil.LogAuthorizedHttpResponseWithException.class);
+                        log.setHttpStatus(HttpStatus.valueOf(response.getStatus()));
+                        log.setHttpStatusCode(response.getStatus());
+                        log.setExceptionMessage(exceptionMessage);
+                        loggingService.logTrace(log);
+                    }
                 }
             } else {
                 if (!isAuthorized) {
@@ -67,10 +88,14 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
             MDC.clear();
         } catch (JsonProcessingException e) {
-            log.error("[" + this.getClass().getSimpleName() + "] Error parsing log: {}", e.getMessage());
+            log.error("[{}] Error parsing log: {}",
+                    this.getClass().getSimpleName(),
+                    e.getMessage());
             throw new RuntimeException(e);
         } catch (Exception e) {
-            log.error("[" + this.getClass().getSimpleName() + "] Error unknown : {}", e.getMessage());
+            log.error("[{}] Error unknown : {}",
+                    this.getClass().getSimpleName(),
+                    e.getMessage());
             throw new RuntimeException(e);
         }
     }

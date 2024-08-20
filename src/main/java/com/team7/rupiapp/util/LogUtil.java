@@ -30,7 +30,17 @@ public class LogUtil {
         return objectMapper.readValue(mdcLog, log);
     }
 
+    public static LogAuthorizedHttpResponseWithExceptionStackTrace readLogAuthorizedHttpResponseWithExceptionStackTrace(String mdcLog,
+                                                                                                     Class<LogAuthorizedHttpResponseWithExceptionStackTrace> log) throws JsonProcessingException {
+        return objectMapper.readValue(mdcLog, log);
+    }
+
     public static LogHttpResponseWithException readLogHttpResponseWithException(String mdcLog, Class<LogHttpResponseWithException> log) throws JsonProcessingException {
+        return objectMapper.readValue(mdcLog, log);
+    }
+
+    public static LogHttpResponseWithExceptionStackTrace readLogHttpResponseWithExceptionStackTrace(String mdcLog,
+                                                                                 Class<LogHttpResponseWithExceptionStackTrace> log) throws JsonProcessingException {
         return objectMapper.readValue(mdcLog, log);
     }
 
@@ -219,6 +229,12 @@ public class LogUtil {
     @NoArgsConstructor
     public static class LogHttpResponseWithException extends LogHttpResponse {
         private String exceptionMessage;
+    }
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    @NoArgsConstructor
+    public static class LogHttpResponseWithExceptionStackTrace extends LogHttpResponseWithException {
         private String exceptionStackTrace;
     }
 
@@ -227,6 +243,12 @@ public class LogUtil {
     @NoArgsConstructor
     public static class LogAuthorizedHttpResponseWithException extends LogAuthorizedHttpResponse {
         private String exceptionMessage;
+    }
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    @NoArgsConstructor
+    public static class LogAuthorizedHttpResponseWithExceptionStackTrace extends LogAuthorizedHttpResponseWithException {
         private String exceptionStackTrace;
     }
 }
