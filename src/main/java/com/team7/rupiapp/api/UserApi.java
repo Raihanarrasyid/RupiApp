@@ -43,7 +43,7 @@ public interface UserApi {
                         "message": "Profile has been changed"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Bad Request due to invalid input or failed file upload.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Invalid Image Type", value = """
                             {
                                 "message": "Only image files are allowed"
@@ -172,12 +172,7 @@ public interface UserApi {
                         "message": "Number change request has been sent"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Bad Request due to invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
-                    @ExampleObject(name = "Phone Already Registered", value = """
-                            {
-                                "message": "Phone number already registered"
-                            }
-                            """),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Invalid Phone Number", value = """
                             {
                                 "message": "Number is not valid"
@@ -189,7 +184,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Phone is required", value = """
                             {
                                 "message": "Validation failed",
@@ -231,7 +226,7 @@ public interface UserApi {
                         "message": "Number has been verified"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Bad Request due to invalid or expired OTP.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Invalid OTP", value = """
                             {
                                 "message": "Invalid OTP"
@@ -248,7 +243,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to missing or invalid OTP.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -291,7 +286,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to missing or invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -316,7 +311,7 @@ public interface UserApi {
                         "message": "Password has been changed"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Bad Request due to invalid signature or other validation errors.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Invalid Signature", value = """
                             {
                                 "message": "Invalid or missing signature"
@@ -338,7 +333,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "Password Too Short", value = """
                             {
                                 "message": "Validation failed",
@@ -409,7 +404,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to missing or invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
                     {
                         "message": "Validation failed",
                         "errors": {
@@ -460,7 +455,7 @@ public interface UserApi {
                         "message": "Unauthorized"
                     }
                     """))),
-            @ApiResponse(responseCode = "422", description = "Validation failed due to invalid input.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
                     @ExampleObject(name = "PIN is required", value = """
                             {
                                 "message": "Validation failed",

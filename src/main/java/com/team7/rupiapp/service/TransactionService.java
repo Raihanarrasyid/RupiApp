@@ -35,7 +35,5 @@ public interface TransactionService {
     public QrisGenerateResponseDto createQris(Principal principal, QrisGenerateMPMDto qrisMPMDto);
 
     public QrisGenerateResponseDto createQrisCPM(Principal principal, QrisGenerateCPMDto qrisCPMDto);
-
-    public Object getTransactionDetails(UUID transactionId, Principal principal);
 }
 
