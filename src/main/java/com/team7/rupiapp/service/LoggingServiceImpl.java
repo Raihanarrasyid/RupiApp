@@ -40,7 +40,12 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public void logError(String message, Throwable t) {
+    public <T extends Throwable> void logError(T t) {
+        log.error(t.getMessage(), t);
+    }
+
+    @Override
+    public <T extends Throwable> void logError(T t, String message) {
         log.error(message, t);
     }
 

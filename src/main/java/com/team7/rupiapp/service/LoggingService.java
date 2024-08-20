@@ -7,7 +7,8 @@ public interface LoggingService {
     public void logInfo(String message);
     public void logInfo(LogUtil.LogHttpRequest logHttpRequest);
     public void logWarn(String message);
-    public void logError(String message, Throwable t);
+    public <T extends Throwable> void logError(T t);
+    public <T extends Throwable> void logError(T t, String message);
     public void logTrace(LogUtil.LogHttpRequest logHttpRequest);
     public void logTrace(LogUtil.LogAuthorizedHttpRequest logAuthorizedHttpRequest);
     public <T extends Exception> void catchException(T e);

@@ -67,9 +67,10 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
             MDC.clear();
         } catch (JsonProcessingException e) {
-            log.error("Error parsing log: {}", e.getMessage());
+            log.error("[" + this.getClass().getSimpleName() + "] Error parsing log: {}", e.getMessage());
             throw new RuntimeException(e);
         } catch (Exception e) {
+            log.error("[" + this.getClass().getSimpleName() + "] Error unknown : {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

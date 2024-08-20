@@ -45,6 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataNotFoundException.class)
     public ResponseEntity<Object> handleDataNotFoundException(DataNotFoundException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
@@ -53,6 +54,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         String message = "Validation failed";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         Map<String, String> errors = ex.getBindingResult()
                 .getFieldErrors()
@@ -68,6 +70,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Object> handleResourceConflict(ResourceConflictException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrors());
     }
@@ -75,6 +78,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
@@ -96,10 +100,12 @@ public class GlobalExceptionHandler {
         if (ex.getMessage().equals("Bad credentials")) {
             String message = "Invalid username or password";
             loggingService.catchException(ex, message);
+            loggingService.logError(ex);
 
             return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
         } else {
             loggingService.catchException(ex);
+            loggingService.logError(ex);
         }
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
@@ -108,6 +114,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Object> handleBadRequestException(BadRequestException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
@@ -116,6 +123,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex) {
         String message = "Token has expired";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
@@ -146,17 +154,20 @@ public class GlobalExceptionHandler {
             }
 
             loggingService.catchException(ex, message);
+            loggingService.logError(ex);
             return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
         }
 
         message = "Invalid request body";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
@@ -165,6 +176,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleSignatureException(SignatureException ex) {
         String message = "Invalid token signature";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
@@ -173,6 +185,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         String message = "Invalid argument type";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, message);
     }
@@ -181,6 +194,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex) {
         String message = "Invalid token format";
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.UNAUTHORIZED, message);
     }
@@ -188,6 +202,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
@@ -195,6 +210,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<Object> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
@@ -202,6 +218,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
@@ -209,6 +226,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
@@ -216,6 +234,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<Object> handleJsonProcessingException(JsonProcessingException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
@@ -223,6 +242,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
         loggingService.catchException(ex);
+        loggingService.logError(ex);
 
         return ApiResponseUtil.error(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
     }
