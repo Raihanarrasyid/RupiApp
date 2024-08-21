@@ -42,22 +42,22 @@ public class AccountController implements AccountApi {
         return ApiResponseUtil.success(HttpStatus.OK, "Account Mutation Summary fetched", response);
     }
 
-    @GetMapping("/mutations")
-    public ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(Principal principal,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) String transactionPurpose,
-            @RequestParam(required = false) String transactionType,
-            @RequestParam(required = false) String mutationType) {
-        AccountMutationsDto response = accountService.getAccountMutationPageable(principal, page, size, year, month,
-                transactionPurpose, transactionType, mutationType);
-        return ResponseEntity.ok(response);
-    }
+    // @GetMapping("/mutations")
+    // public ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(Principal principal,
+    //         @RequestParam(defaultValue = "0") int page,
+    //         @RequestParam(defaultValue = "100") int size,
+    //         @RequestParam(required = false) Integer year,
+    //         @RequestParam(required = false) Integer month,
+    //         @RequestParam(required = false) String transactionPurpose,
+    //         @RequestParam(required = false) String transactionType,
+    //         @RequestParam(required = false) String mutationType) {
+    //     AccountMutationsDto response = accountService.getAccountMutationPageable(principal, page, size, year, month,
+    //             transactionPurpose, transactionType, mutationType);
+    //     return ResponseEntity.ok(response);
+    // }
 
-    @GetMapping("/mutations/test")
-    public ResponseEntity<Object> getMutationsTest(Principal principal,
+    @GetMapping("/mutations")
+    public ResponseEntity<Object> getMutations(Principal principal,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) TransactionType category,

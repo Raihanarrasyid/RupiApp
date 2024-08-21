@@ -14,13 +14,14 @@ import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
 
 public interface TransactionService {
     public TransferResponseDto createTransaction(TransferRequestDto requestDto, Principal principal);
 
-    public List<DestinationDto> getDestination(Principal principal);
+    public Page<DestinationDto> getDestination(Principal principal, String search, int page, int size);
 
     public void addFavorites(UUID id, DestinationFavoriteDto destinationFavoriteDto);
 

@@ -12,6 +12,7 @@ import com.team7.rupiapp.dto.transfer.transfer.TransferRequestDto;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 
 public interface TransferApi {
 
@@ -184,7 +186,11 @@ public interface TransferApi {
                             """)
             }))
     })
-    public ResponseEntity<Object> getDestinations(Principal principal);
+    public ResponseEntity<Object> getDestinations(
+            @Valid Principal principal,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size);
 
     @Operation(summary = "Add to Favorites")
     @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
