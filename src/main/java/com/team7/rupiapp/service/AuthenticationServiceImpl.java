@@ -323,6 +323,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private ResponseEntity<Object> handleForgotPassword(VerificationDto verificationDto) {
+        if (!verificationDto.getPassword().equals(verificationDto.getConfirmPassword())) {
+            throw new BadRequestException("Password and confirm password must be the same");
+        }
+
         User user = userRepository.findByUsername(verificationDto.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not registered"));
 

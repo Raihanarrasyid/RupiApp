@@ -1,6 +1,7 @@
 package com.team7.rupiapp.dto.auth.verify;
 
 import com.team7.rupiapp.dto.validation.ValidEnum;
+import com.team7.rupiapp.dto.validation.ValidPassword;
 import com.team7.rupiapp.dto.validation.ValidVerificationOtp;
 import com.team7.rupiapp.enums.VerificationType;
 
@@ -19,6 +20,9 @@ public class VerificationDto {
     private String otp;
 
     private String username;
+
+    @ValidPassword(nullable = true)
     private String password;
+
     private String confirmPassword;
 }

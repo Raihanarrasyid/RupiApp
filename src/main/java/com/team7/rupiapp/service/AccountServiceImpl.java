@@ -1,10 +1,6 @@
 package com.team7.rupiapp.service;
 
 import com.team7.rupiapp.dto.account.*;
-import com.team7.rupiapp.dto.account.AccountDetailResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationSummaryResponseDto;
-import com.team7.rupiapp.dto.account.AccountMutationsDto;
 import com.team7.rupiapp.dto.transfer.qris.QrisTransferResponseDto;
 import com.team7.rupiapp.dto.transfer.transfer.TransferResponseDto;
 import com.team7.rupiapp.enums.MutationType;
@@ -19,7 +15,10 @@ import com.team7.rupiapp.repository.UserRepository;
 import com.team7.rupiapp.specification.MutationSpecification;
 import com.team7.rupiapp.util.Formatter;
 import jakarta.transaction.Transactional;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -35,10 +34,13 @@ import java.util.stream.Collectors;
 
 @Service
 public class AccountServiceImpl implements AccountService {
+    private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     private final MutationRepository mutationRepository;
 
-    public AccountServiceImpl(UserRepository userRepository, MutationRepository mutationRepository) {
+    public AccountServiceImpl(ModelMapper modelMapper, UserRepository userRepository,
+            MutationRepository mutationRepository) {
+        this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.mutationRepository = mutationRepository;
     }
@@ -59,21 +61,23 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountMutationSummaryResponseDto getAccountMutationSummary(Principal principal,
-                                                                       Integer year,
-                                                                       Integer month) {
+            Integer year,
+            Integer month) {
         /*
-        * rangeStartMutationDate:
-        *       By default, the rangeStartMutationDate defined as the beginning of the month
-        *               of the given year and month.
-        *       If the 'year' and 'month' fields are provided, the rangeStartMutationDate will be
-        *               set based on the respective fields.
-        *       The date of month cannot be set to a future date. Reason: the data is not available yet.
-        *
-        * rangeEndMutationDate:
-        *       By default, the rangeEndMutationDate defined as the end of the month.
-        *       The date of month defined as the last day of the month or current date if
-        *               the provided 'month' parameter is equals to current month.
-        * */
+         * rangeStartMutationDate:
+         * By default, the rangeStartMutationDate defined as the beginning of the month
+         * of the given year and month.
+         * If the 'year' and 'month' fields are provided, the rangeStartMutationDate
+         * will be
+         * set based on the respective fields.
+         * The date of month cannot be set to a future date. Reason: the data is not
+         * available yet.
+         *
+         * rangeEndMutationDate:
+         * By default, the rangeEndMutationDate defined as the end of the month.
+         * The date of month defined as the last day of the month or current date if
+         * the provided 'month' parameter is equals to current month.
+         */
         LocalDateTime rangeStartMutationDate = getRangeStartMutationLocalDateTime(year, month);
         LocalDateTime rangeEndMutationDate = getRangeEndMutationLocalDateTime(rangeStartMutationDate);
 
@@ -84,20 +88,26 @@ public class AccountServiceImpl implements AccountService {
                 foundUser.getId(), rangeStartMutationDate, rangeEndMutationDate);
 
         /*
-         * The balance information (expense and income) calculations are explained as follows:
-         *      totalIncome = 100
-         *      totalExpense = 50
-         *      denominatorBalance = totalIncome + totalExpense = 100 + 50 = 150 // In percentage: 100%
-         *      totalIncomePercentage = (totalIncome / denominatorBalance) * 100 = (100 / 150) * 100 = 66.67%
-         *      totalExpensePercentage = (totalExpense / denominatorBalance) * 100 = (50 / 150) * 100 = 33.33%
-         *      totalEarnings = totalIncome - totalExpense = 100 - 50 = 50
+         * The balance information (expense and income) calculations are explained as
+         * follows:
+         * totalIncome = 100
+         * totalExpense = 50
+         * denominatorBalance = totalIncome + totalExpense = 100 + 50 = 150 // In
+         * percentage: 100%
+         * totalIncomePercentage = (totalIncome / denominatorBalance) * 100 = (100 /
+         * 150) * 100 = 66.67%
+         * totalExpensePercentage = (totalExpense / denominatorBalance) * 100 = (50 /
+         * 150) * 100 = 33.33%
+         * totalEarnings = totalIncome - totalExpense = 100 - 50 = 50
          *
          * The category details are explained as follows:
-         *      numberOfTransactions = 2 // fetched from the number of transactions in the category
-         *      totalBalance = 100 // fetched from the total balance in the category
-         *      totalBalancePercentage = (totalBalance / totalExpenseOrIncomeAsDenominatorBalance) * 100 // total
-         *      balance percentage by TransactionType
-         * */
+         * numberOfTransactions = 2 // fetched from the number of transactions in the
+         * category
+         * totalBalance = 100 // fetched from the total balance in the category
+         * totalBalancePercentage = (totalBalance /
+         * totalExpenseOrIncomeAsDenominatorBalance) * 100 // total
+         * balance percentage by TransactionType
+         */
         double totalIncome = calculateTotal(mutations, TransactionType.CREDIT);
         double totalExpense = calculateTotal(mutations, TransactionType.DEBIT);
         double denominatorBalance = totalIncome + totalExpense;
@@ -113,14 +123,12 @@ public class AccountServiceImpl implements AccountService {
                         .categories(creditCategories)
                         .totalIncome(Formatter.formatToString(totalIncome))
                         .totalIncomePercentage(calculateBalancePercentage(totalIncome, denominatorBalance))
-                        .build()
-                )
+                        .build())
                 .expense(AccountMutationSummaryResponseDto.ExpenseDetail.builder()
                         .categories(debitCategories)
                         .totalExpense(Formatter.formatToString(totalExpense))
                         .totalExpensePercentage(calculateBalancePercentage(totalExpense, denominatorBalance))
-                        .build()
-                )
+                        .build())
                 .totalEarnings(Formatter.formatToString(totalEarnings))
                 .rangeStartMutationDate(rangeStartMutationDate)
                 .rangeEndMutationDate(rangeEndMutationDate)
@@ -128,7 +136,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     public AccountMutationsDto getAccountMutationPageable(Principal principal, int page, int size,
-                                                          Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType) {
+            Integer year, Integer month, String transactionPurpose, String transactionType, String mutationType) {
         Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
         UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -138,7 +146,8 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        MutationSpecification spec = new MutationSpecification(userId, year, month, transactionPurpose, transactionType, mutationType);
+        MutationSpecification spec = new MutationSpecification(userId, year, month, transactionPurpose, transactionType,
+                mutationType);
 
         Page<Mutation> mutations = mutationRepository.findAll(spec, pageable);
 
@@ -225,29 +234,33 @@ public class AccountServiceImpl implements AccountService {
                 .sum();
     }
 
-    private List<AccountMutationSummaryResponseDto.CategoryDetail> getCategoryDetails(List<Mutation> mutations, TransactionType transactionType, double denominatorBalance, User user) {
+    private List<AccountMutationSummaryResponseDto.CategoryDetail> getCategoryDetails(List<Mutation> mutations,
+            TransactionType transactionType, double denominatorBalance, User user) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .collect(Collectors.groupingBy(
                         Mutation::getMutationType,
                         Collectors.summingDouble(Mutation::getAmount)))
                 .entrySet().stream()
-                .map(mutationsGroupedByMutationTypeSummedByMutationAmount -> AccountMutationSummaryResponseDto.CategoryDetail.builder()
+                .map(mutationsGroupedByMutationTypeSummedByMutationAmount -> AccountMutationSummaryResponseDto.CategoryDetail
+                        .builder()
                         .type(mutationsGroupedByMutationTypeSummedByMutationAmount.getKey())
                         .numberOfTransactions(
                                 extractNumberOfTransaction(mutations, transactionType,
-                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
-                        .totalBalance(Formatter.formatToString(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue()))
-                        .totalBalancePercentage(calculateBalancePercentage(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
+                                        mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
+                        .totalBalance(Formatter
+                                .formatToString(mutationsGroupedByMutationTypeSummedByMutationAmount.getValue()))
+                        .totalBalancePercentage(calculateBalancePercentage(
+                                mutationsGroupedByMutationTypeSummedByMutationAmount.getValue(), denominatorBalance))
                         .mutations(
                                 extractMutations(mutations, transactionType,
-                                mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
+                                        mutationsGroupedByMutationTypeSummedByMutationAmount.getKey()))
                         .build())
                 .toList();
     }
 
     private Integer extractNumberOfTransaction(List<Mutation> mutations, TransactionType transactionType,
-                                               MutationType mutationType) {
+            MutationType mutationType) {
         return Math.toIntExact(mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
@@ -255,7 +268,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private List<AccountMutationSummaryResponseDto.MutationDetail> extractMutations(List<Mutation> mutations,
-                                                                                    TransactionType transactionType, MutationType mutationType) {
+            TransactionType transactionType, MutationType mutationType) {
         return mutations.stream()
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
@@ -347,6 +360,40 @@ public class AccountServiceImpl implements AccountService {
         transferResponseDto.setTransactionPurpose(mutation.getTransactionPurpose().toString());
 
         return transferResponseDto;
+    }
+
+    @Override
+    public Page<MutationResponseDto> getMutations(Principal principal, MutationDto mutationDto, int page, int size) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        List<Mutation> mutations = user.getMutations();
+
+        List<Mutation> filteredMutations = mutations.stream()
+                .filter(mutation -> (mutationDto.getStartDate() == null
+                        || !mutation.getCreatedAt().toLocalDate().isBefore(mutationDto.getStartDate())))
+                .filter(mutation -> (mutationDto.getEndDate() == null
+                        || !mutation.getCreatedAt().toLocalDate().isAfter(mutationDto.getEndDate())))
+                .filter(mutation -> (mutationDto.getCategory() == null
+                        || mutation.getTransactionType().equals(mutationDto.getCategory())))
+                .filter(mutation -> (mutationDto.getSearch() == null
+                        || mutation.getFullName().contains(mutationDto.getSearch())
+                        || String.valueOf(mutation.getAmount()).contains(mutationDto.getSearch())))
+                .collect(Collectors.toList());
+
+        int start = page * size;
+        int end = Math.min(start + size, filteredMutations.size());
+        List<Mutation> paginatedMutations = filteredMutations.subList(start, end);
+
+        List<MutationResponseDto> mutationDtos = paginatedMutations.stream()
+                .map(mutation -> {
+                    MutationResponseDto dto = modelMapper.map(mutation, MutationResponseDto.class);
+                    dto.setDate(mutation.getCreatedAt().toLocalDate()); // TODO: Change Format
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(mutationDtos, PageRequest.of(page, size), filteredMutations.size());
     }
 
 }

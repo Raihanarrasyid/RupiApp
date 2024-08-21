@@ -11,6 +11,7 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     private int minLowerCase;
     private int minDigits;
     private int minSpecialChars;
+    private boolean nullable;
 
     @Override
     public void initialize(ValidPassword constraintAnnotation) {
@@ -19,12 +20,13 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
         this.minLowerCase = constraintAnnotation.minLowerCase();
         this.minDigits = constraintAnnotation.minDigits();
         this.minSpecialChars = constraintAnnotation.minSpecialChars();
+        this.nullable = constraintAnnotation.nullable();
     }
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null) {
-            return false;
+            return nullable;
         }
 
         StringBuilder errorMessage = new StringBuilder();
