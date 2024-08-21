@@ -3,6 +3,7 @@ package com.team7.rupiapp.service;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -296,24 +297,25 @@ public class TransactionServiceImpl implements TransactionService {
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
-        double amount;
+        HashMap<String, Object> data = new HashMap<>();
         String transactionId = qrisMap.get("62");
         String merchant = qrisMap.get("59");
 
         if (qrisMap.get("52").equals("0000")) {
-            amount = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
+            data = handlePersonToPersonTransaction(user, qrisDto, qrisMap, qris);
         } else if (qrisMap.get("01").equals("11")) {
-            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
+            data = handleMerchantTransaction(user, qrisDto, qrisMap, qris, true);
         } else if (qrisMap.get("01").equals("12")) {
-            amount = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
+            data = handleMerchantTransaction(user, qrisDto, qrisMap, qris, false);
         } else {
             throw new BadRequestException("Invalid QRIS");
         }
 
-        return buildQrisTransferResponse(transactionId, merchant, amount, qrisDto.getDescription());
+        return buildQrisTransferResponse(data, merchant, qrisDto.getDescription());
     }
 
-    private double handlePersonToPersonTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap, Qris qris) {
+    private HashMap<String, Object> handlePersonToPersonTransaction(User user, QrisDto qrisDto,
+            Map<String, String> qrisMap, Qris qris) {
         String transactionId = qrisMap.get("62");
         int indexOfLength = transactionId.lastIndexOf("00");
 
@@ -338,21 +340,26 @@ public class TransactionServiceImpl implements TransactionService {
         double amount = qrisMap.get("01").equals("11") ? Double.parseDouble(qrisDto.getAmount())
                 : Double.parseDouble(qrisMap.get("54"));
 
-        processTransaction(user, receiver, qrisMap, amount, qrisDto.getDescription(), qris, qrisDto);
+        UUID mutationId = processTransaction(user, receiver, qrisMap, amount, qrisDto.getDescription(), qris, qrisDto);
 
-        return amount;
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("mutationId", mutationId);
+        data.put("amount", amount);
+        return data;
     }
 
-    private double handleMerchantTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap, Qris qris,
+    private HashMap<String, Object> handleMerchantTransaction(User user, QrisDto qrisDto, Map<String, String> qrisMap,
+            Qris qris,
             boolean isStatic) {
         double amount = Double.parseDouble(isStatic ? qrisDto.getAmount() : qrisMap.get("54"));
+        UUID mutationId;
 
         if (qris != null && qris.isUsed()) {
             throw new BadRequestException("Transaction already exists");
         }
 
         if (isStatic) {
-            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), null, qrisDto);
+            mutationId = processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), null, qrisDto);
         } else {
             Qris newQris = new Qris();
             newQris.setType(QrisType.MPM);
@@ -362,13 +369,16 @@ public class TransactionServiceImpl implements TransactionService {
             newQris.setExpiredAt(LocalDateTime.now());
             qrisRepository.save(newQris);
 
-            processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), newQris, qrisDto);
+            mutationId = processTransaction(user, null, qrisMap, amount, qrisDto.getDescription(), newQris, qrisDto);
         }
 
-        return amount;
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("mutationId", mutationId);
+        data.put("amount", amount);
+        return data;
     }
 
-    private void processTransaction(User user, User receiver, Map<String, String> qrisMap, double amount,
+    private UUID processTransaction(User user, User receiver, Map<String, String> qrisMap, double amount,
             String description, Qris qris,
             QrisDto qrisDto) {
         if (user.getBalance() < amount) {
@@ -378,25 +388,33 @@ public class TransactionServiceImpl implements TransactionService {
         user.setBalance(user.getBalance() - amount);
         userRepository.save(user);
 
+        UUID mutationId;
+
         if (receiver != null) {
             receiver.setBalance(receiver.getBalance() + amount);
             userRepository.save(receiver);
         }
 
         if (receiver != null) {
-            saveMutation(user, receiver.getFullName(), receiver.getAccountNumber(), amount, description, qrisDto, TransactionType.DEBIT);
-            saveMutation(receiver, user.getFullName(), user.getAccountNumber(), amount, description, qrisDto, TransactionType.CREDIT);
+            mutationId = saveMutation(user, receiver.getFullName(), receiver.getAccountNumber(), amount, description,
+                    qrisDto, TransactionType.DEBIT).getId();
+            saveMutation(receiver, user.getFullName(), user.getAccountNumber(), amount, description, qrisDto,
+                    TransactionType.CREDIT);
         } else {
-            saveMutation(user, qrisMap.get("59"), null, amount, description, qrisDto, TransactionType.DEBIT);
+            mutationId = saveMutation(user, qrisMap.get("59"), null, amount, description, qrisDto,
+                    TransactionType.DEBIT).getId();
         }
 
         if (qris != null) {
             qris.setUsed(true);
             qrisRepository.save(qris);
         }
+
+        return mutationId;
     }
 
-    private void saveMutation(User user, String merchant, String accountNumber, double amount, String description, QrisDto qrisDto,
+    private Mutation saveMutation(User user, String merchant, String accountNumber, double amount, String description,
+            QrisDto qrisDto,
             TransactionType transactionType) {
         Mutation mutation = modelMapper.map(qrisDto, Mutation.class);
         mutation.setUser(user);
@@ -409,14 +427,16 @@ public class TransactionServiceImpl implements TransactionService {
         mutation.setFullName(merchant);
         mutation.setAccountNumber(accountNumber);
         mutationRepository.save(mutation);
+
+        return mutation;
     }
 
-    private QrisTransferResponseDto buildQrisTransferResponse(String transactionId, String merchant, double amount,
+    private QrisTransferResponseDto buildQrisTransferResponse(HashMap<String, Object> data, String merchant,
             String description) {
         QrisTransferResponseDto responseDto = new QrisTransferResponseDto();
-        responseDto.setMutationId(transactionId);
+        responseDto.setMutationId(data.get("mutationId").toString());
         responseDto.setMerchant(merchant);
-        responseDto.setAmount(String.valueOf(amount));
+        responseDto.setAmount(String.valueOf(data.get("amount")));
         responseDto.setDescription(description);
         return responseDto;
     }
