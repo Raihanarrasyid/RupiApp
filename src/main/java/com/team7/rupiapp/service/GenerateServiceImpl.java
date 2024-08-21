@@ -31,6 +31,7 @@ import com.team7.rupiapp.util.QrisUtil.AdditionalDataFieldTemplate;
 import com.team7.rupiapp.util.QrisUtil.MerchantAccountInformation;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -67,7 +68,8 @@ public class GenerateServiceImpl implements GenerateService {
         return String.format("%0" + otpCodeLength + "d", code);
     }
 
-    private Otp createOtp(User user, OtpType type, String newValue, String otpCode) {
+    @Transactional
+    private void createOtp(User user, OtpType type, String newValue, String otpCode) {
         otpRepository.findByUserAndType(user, type).ifPresent(otpRepository::delete);
 
         Otp otp = new Otp();
@@ -76,7 +78,8 @@ public class GenerateServiceImpl implements GenerateService {
         otp.setExpiryDate(LocalDateTime.now().plusMinutes(otpExpirationTime));
         otp.setType(type);
         otp.setNewValue(newValue);
-        return otp;
+
+        otpRepository.save(otp);
     }
 
     @Override
@@ -91,8 +94,7 @@ public class GenerateServiceImpl implements GenerateService {
             otpCode = "123456";
         }
 
-        Otp otp = createOtp(user, type, newValue, otpCode);
-        otpRepository.save(otp);
+        createOtp(user, type, newValue, otpCode);
 
         return otpCode;
     }
