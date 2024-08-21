@@ -7,6 +7,11 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MutationSpecification implements Specification<Mutation> {
@@ -26,32 +31,36 @@ public class MutationSpecification implements Specification<Mutation> {
         this.mutationType = mutationType;
     }
     public Predicate toPredicate(Root<Mutation> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-        Predicate predicate = criteriaBuilder.equal(root.get("user").get("id"), userId);
-        if (year != null) {
-            Predicate yearPredicate = criteriaBuilder.equal(criteriaBuilder.function("YEAR", Integer.class, root.get("createdAt")), year);
-            predicate = criteriaBuilder.and(predicate, yearPredicate);
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Filter by user ID
+        predicates.add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+
+        // Filter by date range if year and month are provided
+        if (year != null && month != null) {
+            LocalDate startDate = LocalDate.of(year, month, 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+            predicates.add(criteriaBuilder.between(root.get("createdAt"), startDateTime, endDateTime));
         }
 
-        if (month != null) {
-            Predicate monthPredicate = criteriaBuilder.equal(criteriaBuilder.function("MONTH", Integer.class, root.get("createdAt")), month);
-            predicate = criteriaBuilder.and(predicate, monthPredicate);
-        }
-
+        // Filter by transaction purpose
         if (transactionPurpose != null && !transactionPurpose.isEmpty()) {
-            Predicate purposePredicate = criteriaBuilder.equal(root.get("transactionPurpose"), transactionPurpose);
-            predicate = criteriaBuilder.and(predicate, purposePredicate);
+            predicates.add(criteriaBuilder.equal(root.get("transactionPurpose"), transactionPurpose));
         }
 
+        // Filter by transaction type
         if (transactionType != null && !transactionType.isEmpty()) {
-            Predicate typePredicate = criteriaBuilder.equal(root.get("transactionType"), transactionType);
-            predicate = criteriaBuilder.and(predicate, typePredicate);
+            predicates.add(criteriaBuilder.equal(root.get("transactionType"), transactionType));
         }
 
+        // Filter by mutation type
         if (mutationType != null && !mutationType.isEmpty()) {
-            Predicate mutationPredicate = criteriaBuilder.equal(root.get("mutationType"), mutationType);
-            predicate = criteriaBuilder.and(predicate, mutationPredicate);
+            predicates.add(criteriaBuilder.equal(root.get("mutationType"), mutationType));
         }
 
-        return predicate;
+        // Combine all predicates
+        return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }
 }
