@@ -15,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,9 @@ import com.team7.rupiapp.util.Base64Util;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service
@@ -147,21 +152,29 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<DestinationDto> getDestination(Principal principal) {
+    public Page<DestinationDto> getDestination(Principal principal, String search, int page, int size) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
-        List<Destination> destinations = destinationRepository.findByUser(user);
 
-        return destinations.stream()
-                .map(destination -> {
-                    DestinationDto dto = new DestinationDto();
-                    dto.setId(destination.getId());
-                    dto.setFullname(destination.getName());
-                    dto.setAccountNumber(destination.getAccountNumber());
-                    dto.setFavorites(destination.isFavorites());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Destination> destinations;
+        if (search != null && !search.isEmpty()) {
+            destinations = destinationRepository
+                    .findByUserAndNameContainingIgnoreCaseOrAccountNumberContainingIgnoreCase(user,
+                            search, search, pageable);
+        } else {
+            destinations = destinationRepository.findByUser(user, pageable);
+        }
+
+        return destinations.map(destination -> {
+            DestinationDto dto = new DestinationDto();
+            dto.setId(destination.getId());
+            dto.setFullname(destination.getName());
+            dto.setAccountNumber(destination.getAccountNumber());
+            dto.setFavorites(destination.isFavorites());
+            return dto;
+        });
     }
 
     @Override
@@ -297,8 +310,7 @@ public class TransactionServiceImpl implements TransactionService {
         Map<String, String> qrisMap = parseQRIS(qrisDto.getQris());
         Qris qris = qrisRepository.findByTransactionId(qrisMap.get("62"));
 
-        HashMap<String, Object> data = new HashMap<>();
-        String transactionId = qrisMap.get("62");
+        HashMap<String, Object> data;
         String merchant = qrisMap.get("59");
 
         if (qrisMap.get("52").equals("0000")) {
