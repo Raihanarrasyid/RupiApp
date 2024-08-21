@@ -34,7 +34,7 @@ public interface AuthApi {
             }
             """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
+            @ApiResponse(responseCode = "201", description = "Signup success", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "No Password", value = """
                             {
                                 "message": "Signup success",
@@ -152,14 +152,25 @@ public interface AuthApi {
     public ResponseEntity<Object> resendVerificationEmail(ResendVerificationDto resendVerificationDto);
 
     @Operation(summary = "Verification")
-    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-            {
-                "type": "LOGIN",
-                "otp": "975226"
-            }
-            """)))
+    @RequestBody(required = true, content = @Content(mediaType = "application/json", examples = {
+            @ExampleObject(name = "Verify Login", value = """
+                        {
+                            "type": "LOGIN",
+                            "otp": "975226"
+                        }
+                    """),
+            @ExampleObject(name = "Verify Forgot Password", value = """
+                    {
+                        "type": "FORGOT_PASSWORD",
+                        "otp": "231004",
+                        "username": "samsul",
+                        "password": "321#4a567U8",
+                        "confirm_password": "321#4a567U8"
+                    }
+                    """)
+    }))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = {
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "LOGIN", value = """
                             {
                                 "message": "Login verified"
@@ -181,17 +192,72 @@ public interface AuthApi {
                             {
                                 "message": "OTP expired"
                             }
+                            """),
+                    @ExampleObject(name = "Different password and confirm password", value = """
+                            {
+                                "message": "Password and confirm password must be the same"
+                            }
+                            """)
+
+            })),
+            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "Password character requirements", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "password": "Password must contain at least uppercase letters, special characters."
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "OTP type is required", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "type": "OTP type is required"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "OTP Type", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "type": "otp type must be one of LOGIN, FORGOT_PASSWORD"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Username is required", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "username": "Username is required when type is FORGOT_PASSWORD"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "Password is required", value = """
+                            {
+                                 "message": "Validation failed",
+                                 "errors": {
+                                     "password": "Password is required when type is FORGOT_PASSWORD"
+                                 }
+                             }
+                            """),
+                    @ExampleObject(name = "Confirm password is required", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "confirm_password": "Confirm password is required when type is FORGOT_PASSWORD"
+                                }
+                            }
+                            """),
+                    @ExampleObject(name = "OTP is required", value = """
+                            {
+                                "message": "Validation failed",
+                                "errors": {
+                                    "otp": "OTP is required"
+                                }
+                            }
                             """)
             })),
-            @ApiResponse(responseCode = "422", description = "Validation failed", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                    {
-                        "message": "Validation failed",
-                        "errors": {
-                            "otp": "OTP is required",
-                            "type": "otp type must be one of LOGIN, FORGOT_PASSWORD"
-                        }
-                    }
-                    """)))
     })
     public ResponseEntity<Object> verify(@RequestHeader(value = "User-Agent") String userAgent,
                                          VerificationDto verificationDto,
@@ -204,9 +270,9 @@ public interface AuthApi {
             }
             """)))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Signin success", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                     {
-                        "message": "Forgot password success"
+                        "message": "OTP for forgot password has been sent."
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
