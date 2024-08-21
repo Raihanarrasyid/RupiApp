@@ -20,4 +20,6 @@ public @interface ValidPassword {
     int minLowerCase() default 1;
     int minDigits() default 1;
     int minSpecialChars() default 1;
+
+    boolean nullable() default false;
 }
