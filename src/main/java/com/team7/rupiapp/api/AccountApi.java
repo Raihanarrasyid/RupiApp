@@ -253,58 +253,58 @@ public interface AccountApi {
                     @ExampleObject(name = "Default: Parameters are not provided", description = "Data will be queried from the first date of the current "
                             +
                             "month until the current date (today).", value = """
-                                    {
-                                        "message": "Account Mutations Summary fetched",
-                                        "data": {
-                                            "income": {
-                                                "categories": [],
-                                                "total_income": "0",
-                                                "total_income_percentage": 0.0
-                                            },
-                                            "expense": {
-                                                "categories": [
+                            {
+                                "message": "Account Mutations Summary fetched",
+                                "data": {
+                                    "income": {
+                                        "categories": [],
+                                        "total_income": "0",
+                                        "total_income_percentage": 0.0
+                                    },
+                                    "expense": {
+                                        "categories": [
+                                            {
+                                                "mutations": [
                                                     {
-                                                        "mutations": [
-                                                            {
-                                                                "account_number": "7484357077",
-                                                                "full_name": "Samsul2",
-                                                                "amount": "10000",
-                                                                "description": "Samsul3 to Samsul2",
-                                                                "transaction_purpose": "INVESTMENT",
-                                                                "created_at": "2024-07-29T20:30:10.87222"
-                                                            }
-                                                        ],
-                                                        "type": "QRIS",
-                                                        "number_of_transactions": 1,
-                                                        "total_balance": "10000",
-                                                        "total_balance_percentage": 40.0
-                                                    },
-                                                    {
-                                                        "mutations": [
-                                                            {
-                                                                "account_number": "7484357077",
-                                                                "full_name": "Samsul2",
-                                                                "amount": "15000",
-                                                                "description": "Samsul3 to Samsul2",
-                                                                "transaction_purpose": "INVESTMENT",
-                                                                "created_at": "2024-07-29T20:21:33.405838"
-                                                            }
-                                                        ],
-                                                        "type": "TRANSFER",
-                                                        "number_of_transactions": 1,
-                                                        "total_balance": "15000",
-                                                        "total_balance_percentage": 60.0
+                                                        "account_number": "7484357077",
+                                                        "full_name": "Samsul2",
+                                                        "amount": "10000",
+                                                        "description": "Samsul3 to Samsul2",
+                                                        "transaction_purpose": "INVESTMENT",
+                                                        "created_at": "2024-07-29T20:30:10.87222"
                                                     }
                                                 ],
-                                                "total_expense": "25000",
-                                                "total_expense_percentage": 100.0
+                                                "type": "QRIS",
+                                                "number_of_transactions": 1,
+                                                "total_balance": "10000",
+                                                "total_balance_percentage": 40.0
                                             },
-                                            "total_earnings": "-25000",
-                                            "range_start_mutation_date": "2024-07-01T00:00:00",
-                                            "range_end_mutation_date": "2024-07-29T23:02:28.330633"
-                                        }
-                                    }
-                                    """),
+                                            {
+                                                "mutations": [
+                                                    {
+                                                        "account_number": "7484357077",
+                                                        "full_name": "Samsul2",
+                                                        "amount": "15000",
+                                                        "description": "Samsul3 to Samsul2",
+                                                        "transaction_purpose": "INVESTMENT",
+                                                        "created_at": "2024-07-29T20:21:33.405838"
+                                                    }
+                                                ],
+                                                "type": "TRANSFER",
+                                                "number_of_transactions": 1,
+                                                "total_balance": "15000",
+                                                "total_balance_percentage": 60.0
+                                            }
+                                        ],
+                                        "total_expense": "25000",
+                                        "total_expense_percentage": 100.0
+                                    },
+                                    "total_earnings": "-25000",
+                                    "range_start_mutation_date": "2024-07-01T00:00:00",
+                                    "range_end_mutation_date": "2024-07-29T23:02:28.330633"
+                                }
+                            }
+                            """),
                     @ExampleObject(name = "Success no data", description = "Parameters are provided but found no data to be processed.", value = """
                             {
                                 "message": "Account Mutations Summary fetched",
@@ -352,118 +352,192 @@ public interface AccountApi {
             @Parameter(description = "Month for which the summary is required (1...12)", example = "06", schema = @Schema(implementation = Integer.class, minimum = "1", maximum = "12")) @Min(1) @Max(12) Integer month);
 
     @Operation(summary = "Get paginated account mutations with optional filtering", description = "Retrieve a paginated list of account mutations with optional filtering by year, month, transaction purpose, and transaction type.", responses = {
-            @ApiResponse(responseCode = "200", description = "Successful retrieval of account mutations", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AccountMutationsDto.class), examples = @ExampleObject(name = "example-response", value = "{\n"
-                    +
-                    "  \"data\": {\n" +
-                    "    \"january\": [\n" +
-                    "      {\n" +
-                    "        \"date\": \"2023-01-01T10:00:00\",\n" +
-                    "        \"category\": \"CREDIT\",\n" +
-                    "        \"description\": \"Salary\",\n" +
-                    "        \"amount\": 1000.0,\n" +
-                    "        \"accountNumber\": \"123456\",\n" +
-                    "        \"transactionPurpose\": \"INVESTMENT\",\n" +
-                    "        \"transactionType\": \"DEBIT\",\n" +
-                    "        \"mutationType\": \"QRIS\"\n" +
-                    "      }\n" +
-                    "    ],\n" +
-                    "    \"february\": [\n" +
-                    "      {\n" +
-                    "        \"date\": \"2023-02-10T12:00:00\",\n" +
-                    "        \"category\": \"DEBIT\",\n" +
-                    "        \"description\": \"Groceries\",\n" +
-                    "        \"amount\": 150.0,\n" +
-                    "        \"accountNumber\": \"123456\",\n" +
-                    "        \"transactionPurpose\": \"PURCHASE\",\n" +
-                    "        \"transactionType\": \"DEBIT\",\n" +
-                    "        \"mutationType\": \"QRIS\"\n" +
-                    "      }\n" +
-                    "    ]\n" +
-                    "  }\n" +
-                    "}"))),
-            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(name = "error-response", value = "{ \"message\": \"User not found\" }"))),
-            @ApiResponse(responseCode = "400", description = "Invalid request parameters", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(name = "error-response", value = "{ \"message\": \"Invalid request parameters\" }"))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(name = "error-response", value = "{ \"message\": \"Unauthorized\" }")))
+            @ApiResponse(responseCode = "200", description = "Successful retrieval of account mutations", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = AccountMutationsDto.class), examples = @ExampleObject(value = """
+                    {
+                        "data": {
+                            "total_pages": 1,
+                            "total_elements": 7,
+                            "size": 10,
+                            "content": [
+                                {
+                                    "id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
+                                    "full_name": "Joko",
+                                    "account_number": "6782389148",
+                                    "date": "2024-08-20",
+                                    "time": "00:55 WIB",
+                                    "amount": 111.0,
+                                    "description": "Hutang",
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "TRANSFER"
+                                },
+                                {
+                                    "id": "89f13461-8c34-4546-b64f-a990a5abd0f3",
+                                    "full_name": "Mulyono",
+                                    "account_number": "5047974146",
+                                    "date": "2024-08-20",
+                                    "time": "00:57 WIB",
+                                    "amount": 222.0,
+                                    "description": null,
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "QRIS"
+                                },
+                                {
+                                    "id": "5eb10f42-8990-4a6a-891b-9db6186b8c0a",
+                                    "full_name": "Joko",
+                                    "account_number": "6782389148",
+                                    "date": "2024-08-20",
+                                    "time": "01:29 WIB",
+                                    "amount": 333.0,
+                                    "description": "cod jam tangan",
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "TRANSFER"
+                                },
+                                {
+                                    "id": "67f5202a-bcd3-4041-8c44-67c9939c056b",
+                                    "full_name": "Joko",
+                                    "account_number": null,
+                                    "date": "2024-08-20",
+                                    "time": "01:50 WIB",
+                                    "amount": 222.0,
+                                    "description": null,
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "QRIS"
+                                },
+                                {
+                                    "id": "de25b427-9a09-4a4f-bb2a-1d0344a3d6c3",
+                                    "full_name": "Joko",
+                                    "account_number": "6782389148",
+                                    "date": "2024-08-20",
+                                    "time": "01:58 WIB",
+                                    "amount": 999.0,
+                                    "description": null,
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "QRIS"
+                                },
+                                {
+                                    "id": "7aeef0e1-b4b2-4dac-a744-99cb02b109ba",
+                                    "full_name": "ZeRo Store",
+                                    "account_number": null,
+                                    "date": "2024-08-20",
+                                    "time": "02:00 WIB",
+                                    "amount": 888.0,
+                                    "description": "cod rumah",
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "QRIS"
+                                },
+                                {
+                                    "id": "aa6654a8-079f-4f94-8d0f-d033ce430f49",
+                                    "full_name": "Exabytes",
+                                    "account_number": null,
+                                    "date": "2024-08-20",
+                                    "time": "02:04 WIB",
+                                    "amount": 11100.0,
+                                    "description": null,
+                                    "transaction_type": "DEBIT",
+                                    "mutation_type": "QRIS"
+                                }
+                            ],
+                            "number": 0,
+                            "sort": [],
+                            "first": true,
+                            "last": true,
+                            "number_of_elements": 7,
+                            "pageable": {
+                                "page_number": 0,
+                                "page_size": 10,
+                                "sort": [],
+                                "offset": 0,
+                                "unpaged": false,
+                                "paged": true
+                            },
+                            "empty": false
+                        },
+                        "message": "Mutations fetched"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = "{ \"message\": \"User not found\" }"))),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = "{ \"message\": \"Invalid request parameters\" }"))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = "{ \"message\": \"Unauthorized\" }")))
     })
-    // @GetMapping("/mutations/page/filter")
-    // ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(
-    //         Principal principal,
-    //         @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
-
-    //         @Parameter(description = "Page size", example = "10") @RequestParam(defaultValue = "10") int size,
-
-    //         @Parameter(description = "Year for filtering mutations", example = "2023") @RequestParam(required = false) Integer year,
-
-    //         @Parameter(description = "Month for filtering mutations", example = "7") @RequestParam(required = false) Integer month,
-
-    //         @Parameter(description = "Transaction purpose for filtering mutations", example = "PURCHASE") @RequestParam(required = false) String transactionPurpose,
-
-    //         @Parameter(description = "Transaction type for filtering mutations", example = "CREDIT") @RequestParam(required = false) String transactionType,
-
-    //         @Parameter(description = "Transaction type for filtering mutations", example = "TRANSFER") @RequestParam(required = false) String mutationType);
-
-    // @Operation(summary = "Get Mutation Detail")
-    // @ApiResponses(value = {
-    //         @ApiResponse(responseCode = "200", description = "Mutation Detail Retrieved", content = @Content(mediaType = "application/json", examples = {
-    //                 @ExampleObject(name = "QRIS Mutation Detail", value = """
-    //                             {
-    //                                 "data": {
-    //                                     "mutation_id": "3a83dc93-9f62-4d8a-995a-885d9d3a0353",
-    //                                     "merchant": "ZeRo Store",
-    //                                     "amount": "10000.0",
-    //                                     "description": "jajan baru"
-    //                                 },
-    //                                 "message": "Mutation details retrieved"
-    //                             }
-    //                         """),
-    //                 @ExampleObject(name = "Non-QRIS Mutation Detail", value = """
-    //                             {
-    //                                 "data": {
-    //                                     "receiver_detail": {
-    //                                         "name": "user1",
-    //                                         "account_number": "9785232178"
-    //                                     },
-    //                                     "mutation_detail": {
-    //                                         "mutation_id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
-    //                                         "amount": 50000.0,
-    //                                         "created_at": "2024-08-06T23:42:39.226771"
-    //                                     },
-    //                                     "sender_detail": {
-    //                                         "name": "user3",
-    //                                         "account_number": "3141971266"
-    //                                     },
-    //                                     "description": "test",
-    //                                     "transaction_purpose": "OTHER"
-    //                                 },
-    //                                 "message": "Mutation details retrieved"
-    //                             }
-    //                         """)
-    //         })),
-    //         @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
-    //                 @ExampleObject(name = "Invalid Argument Type", value = """
-    //                             {
-    //                                 "message": "Invalid argument type"
-    //                             }
-    //                         """),
-    //                 @ExampleObject(name = "Mutation Not Found", value = """
-    //                             {
-    //                                 "message": "Mutation not found"
-    //                             }
-    //                         """)
-    //         })),
-    //         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-    //                         {
-    //                             "message": "Unauthorized"
-    //                         }
-    //                 """)))
-    // })
-    // public ResponseEntity<Object> getMutationDetails(UUID mutationId, Principal principal);
-
     ResponseEntity<Object> getMutations(Principal principal,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) TransactionType category,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size);
+                                        @RequestParam(required = false) LocalDate startDate,
+                                        @RequestParam(required = false) LocalDate endDate,
+                                        @RequestParam(required = false) TransactionType category,
+                                        @RequestParam(required = false) String search,
+                                        @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size);
+
+        // @GetMapping("/mutations/page/filter")
+        // ResponseEntity<AccountMutationsDto> getMutationsByMonthPageable(
+        //         Principal principal,
+        //         @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0") int page,
+
+        //         @Parameter(description = "Page size", example = "10") @RequestParam(defaultValue = "10") int size,
+
+        //         @Parameter(description = "Year for filtering mutations", example = "2023") @RequestParam(required = false) Integer year,
+
+        //         @Parameter(description = "Month for filtering mutations", example = "7") @RequestParam(required = false) Integer month,
+
+        //         @Parameter(description = "Transaction purpose for filtering mutations", example = "PURCHASE") @RequestParam(required = false) String transactionPurpose,
+
+        //         @Parameter(description = "Transaction type for filtering mutations", example = "CREDIT") @RequestParam(required = false) String transactionType,
+
+        //         @Parameter(description = "Transaction type for filtering mutations", example = "TRANSFER") @RequestParam(required = false) String mutationType);
+
+         @Operation(summary = "Get Mutation Detail")
+         @ApiResponses(value = {
+                 @ApiResponse(responseCode = "200", description = "Mutation Detail Retrieved", content = @Content(mediaType = "application/json", examples = {
+                         @ExampleObject(name = "QRIS Mutation Detail", value = """
+                                     {
+                                         "data": {
+                                             "mutation_id": "3a83dc93-9f62-4d8a-995a-885d9d3a0353",
+                                             "merchant": "ZeRo Store",
+                                             "amount": "10000.0",
+                                             "description": "cod Lemari"
+                                         },
+                                         "message": "Mutation details retrieved"
+                                     }
+                                 """),
+                         @ExampleObject(name = "Non-QRIS Mutation Detail", value = """
+                                     {
+                                         "data": {
+                                             "receiver_detail": {
+                                                 "name": "Joko",
+                                                 "account_number": "9785232178"
+                                             },
+                                             "mutation_detail": {
+                                                 "mutation_id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
+                                                 "amount": 50000.0,
+                                                 "created_at": "2024-08-06T23:42:39.226771"
+                                             },
+                                             "sender_detail": {
+                                                 "name": "Samsul",
+                                                 "account_number": "3141971266"
+                                             },
+                                             "description": "test",
+                                             "transaction_purpose": "OTHER"
+                                         },
+                                         "message": "Mutation details retrieved"
+                                     }
+                                 """)
+                 })),
+                 @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", examples = {
+                         @ExampleObject(name = "Invalid Argument Type", value = """
+                                     {
+                                         "message": "Invalid argument type"
+                                     }
+                                 """),
+                         @ExampleObject(name = "Mutation Not Found", value = """
+                                     {
+                                         "message": "Mutation not found"
+                                     }
+                                 """)
+                 })),
+                 @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                                 {
+                                     "message": "Unauthorized"
+                                 }
+                         """)))
+         })
+         public ResponseEntity<Object> getMutationDetails(UUID mutationId, Principal principal);
 }
