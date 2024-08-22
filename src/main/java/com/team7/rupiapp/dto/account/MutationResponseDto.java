@@ -20,6 +20,7 @@ public class MutationResponseDto {
     private String fullName;
     private String accountNumber;
     private LocalDate date;
+    private String time;
     private Double amount;
     private String description;
     private TransactionType transactionType;

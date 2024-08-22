@@ -28,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -367,28 +368,55 @@ public class AccountServiceImpl implements AccountService {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
+        if (mutationDto.getStartDate() != null && mutationDto.getEndDate() != null
+                && mutationDto.getStartDate().isAfter(mutationDto.getEndDate())) {
+            throw new BadRequestException("Start date cannot be greater than end date");
+        }
+
         List<Mutation> mutations = user.getMutations();
 
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm 'WIB'");
+
         List<Mutation> filteredMutations = mutations.stream()
-                .filter(mutation -> (mutationDto.getStartDate() == null
-                        || !mutation.getCreatedAt().toLocalDate().isBefore(mutationDto.getStartDate())))
-                .filter(mutation -> (mutationDto.getEndDate() == null
-                        || !mutation.getCreatedAt().toLocalDate().isAfter(mutationDto.getEndDate())))
-                .filter(mutation -> (mutationDto.getCategory() == null
-                        || mutation.getTransactionType().equals(mutationDto.getCategory())))
-                .filter(mutation -> (mutationDto.getSearch() == null
-                        || mutation.getFullName().contains(mutationDto.getSearch())
-                        || String.valueOf(mutation.getAmount()).contains(mutationDto.getSearch())))
+                .filter(mutation -> mutationDto.getStartDate() == null
+                        || !mutation.getCreatedAt().toLocalDate().isBefore(mutationDto.getStartDate()))
+                .filter(mutation -> mutationDto.getEndDate() == null
+                        || !mutation.getCreatedAt().toLocalDate().isAfter(mutationDto.getEndDate()))
+                .filter(mutation -> mutationDto.getCategory() == null
+                        || mutation.getTransactionType().equals(mutationDto.getCategory()))
+                .filter(mutation -> {
+                    if (mutationDto.getSearch() == null) {
+                        return true;
+                    }
+
+                    String search = mutationDto.getSearch().toLowerCase();
+                    return (mutation.getFullName() != null && mutation.getFullName().toLowerCase().contains(search))
+                            || (mutation.getAmount() != null && String.valueOf(mutation.getAmount()).contains(search))
+                            || (mutation.getAccountNumber() != null
+                                    && mutation.getAccountNumber().contains(search))
+                            || (mutation.getCreatedAt() != null
+                                    && mutation.getCreatedAt().toLocalDate().format(dateFormatter).contains(search))
+                            || (mutation.getCreatedAt() != null
+                                    && mutation.getCreatedAt().toLocalTime().format(timeFormatter).contains(search))
+                            || (mutation.getDescription() != null
+                                    && mutation.getDescription().toLowerCase().contains(search))
+                            || (mutation.getMutationType() != null
+                                    && mutation.getMutationType().toString().toLowerCase().contains(search));
+                })
                 .collect(Collectors.toList());
 
         int start = page * size;
         int end = Math.min(start + size, filteredMutations.size());
-        List<Mutation> paginatedMutations = filteredMutations.subList(start, end);
+
+        List<Mutation> paginatedMutations = start < filteredMutations.size() ? filteredMutations.subList(start, end)
+                : Collections.emptyList();
 
         List<MutationResponseDto> mutationDtos = paginatedMutations.stream()
                 .map(mutation -> {
                     MutationResponseDto dto = modelMapper.map(mutation, MutationResponseDto.class);
-                    dto.setDate(mutation.getCreatedAt().toLocalDate()); // TODO: Change Format
+                    dto.setDate(mutation.getCreatedAt().toLocalDate());
+                    dto.setTime(mutation.getCreatedAt().toLocalTime().format(timeFormatter));
                     return dto;
                 })
                 .collect(Collectors.toList());
