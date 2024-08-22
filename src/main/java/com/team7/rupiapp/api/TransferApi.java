@@ -134,42 +134,43 @@ public interface TransferApi {
     })
     ResponseEntity<Object> transferIntrabank(TransferRequestDto requestDto, Principal principal);
 
-    @Operation(summary = "List Destination")
+    @Operation(summary = "Get List of Destinations")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success getting list of destination", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Fetch the list of destinations linked to the user.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
                     {
-                        "data": [
-                            {
-                                "id": "809036d4-36fb-4a26-9879-aeba24959c60",
-                                "fullname": "Destination 3",
-                                "account_number": "3456789012",
-                                "favorites": false
+                        "data": {
+                            "total_pages": 1,
+                            "total_elements": 2,
+                            "size": 10,
+                            "content": [
+                                {
+                                    "id": "db46bf75-9bbf-4967-8f5f-e478e5333a8a",
+                                    "fullname": "Joko",
+                                    "account_number": "6782389148",
+                                    "favorites": false
+                                },
+                                {
+                                    "id": "dcda82e3-19a0-4237-840c-390c9259333b",
+                                    "fullname": "Mulyono",
+                                    "account_number": "4789653214",
+                                    "favorites": true
+                                }
+                            ],
+                            "number": 0,
+                            "sort": [],
+                            "first": true,
+                            "last": true,
+                            "number_of_elements": 2,
+                            "pageable": {
+                                "page_number": 0,
+                                "page_size": 10,
+                                "sort": [],
+                                "offset": 0,
+                                "unpaged": false,
+                                "paged": true
                             },
-                            {
-                                "id": "e9b68002-d99d-40e2-88e8-8dd0d6ad8c80",
-                                "fullname": "Destination 4",
-                                "account_number": "4567890123",
-                                "favorites": true
-                            },
-                            {
-                                "id": "6c8dc735-4127-4ca4-b33a-65054aae9636",
-                                "fullname": "Destination 1",
-                                "account_number": "1234567890",
-                                "favorites": false
-                            },
-                            {
-                                "id": "2289fd9a-d5c6-40fb-ba69-e269012b60be",
-                                "fullname": "Destination 2",
-                                "account_number": "2345678901",
-                                "favorites": false
-                            },
-                            {
-                                "id": "62da90b8-f19c-477e-8602-4356a2272f10",
-                                "fullname": "asdfjkl1",
-                                "account_number": "1234567893",
-                                "favorites": false
-                            }
-                        ],
+                            "empty": false
+                        },
                         "message": "List of destinations"
                     }
                     """))),
@@ -475,7 +476,7 @@ public interface TransferApi {
                                 },
                                 "message": "Qris transaction has been created"
                             }
-                                """)
+                            """)
             })),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(value = """
                         {
