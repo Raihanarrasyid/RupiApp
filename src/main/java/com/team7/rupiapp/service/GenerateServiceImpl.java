@@ -69,7 +69,7 @@ public class GenerateServiceImpl implements GenerateService {
     }
 
     @Transactional
-    private void createOtp(User user, OtpType type, String newValue, String otpCode) {
+    private synchronized void createOtp(User user, OtpType type, String newValue, String otpCode) {
         otpRepository.findByUserAndType(user, type).ifPresent(otpRepository::delete);
 
         Otp otp = new Otp();
