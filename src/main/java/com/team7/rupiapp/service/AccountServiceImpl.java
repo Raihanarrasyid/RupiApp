@@ -274,6 +274,7 @@ public class AccountServiceImpl implements AccountService {
                 .filter(mutation -> mutation.getTransactionType().equals(transactionType))
                 .filter(mutation -> mutation.getMutationType().equals(mutationType))
                 .map(mutation -> AccountMutationSummaryResponseDto.MutationDetail.builder()
+                        .mutationId(mutation.getId())
                         .fullName(mutation.getFullName())
                         .accountNumber(mutation.getAccountNumber())
                         .amount(Formatter.formatToString(mutation.getAmount()))

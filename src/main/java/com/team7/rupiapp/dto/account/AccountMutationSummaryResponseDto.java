@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -71,6 +72,7 @@ public class AccountMutationSummaryResponseDto {
     @Builder
     @Schema(description = "Mutation detail")
     public static class MutationDetail {
+        private UUID mutationId;
         @Schema(description = "Account number. Examples (quoted): '1234567890', '0987654321'", example = "1234567890")
         private String accountNumber;
         @Schema(description = "Full name. Examples (quoted): 'John Doe', 'Jane Doe'", example = "John Doe")

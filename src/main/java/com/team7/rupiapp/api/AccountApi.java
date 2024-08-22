@@ -17,7 +17,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
@@ -64,6 +63,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "aa6654a8-079f-4f94-8d0f-d033ce430f49",
                                                         "account_number": "1981198675",
                                                         "full_name": "Samsul 3",
                                                         "amount": "10000",
@@ -80,6 +80,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "7aeef0e1-b4b2-4dac-a744-99cb02b109ba",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "10000",
@@ -88,6 +89,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-25T02:01:56.385388"
                                                     },
                                                     {
+                                                        "mutation_id": "de25b427-9a09-4a4f-bb2a-1d0344a3d6c3",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "15000",
@@ -96,6 +98,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-25T02:02:12.323242"
                                                     },
                                                     {
+                                                        "mutation_id": "67f5202a-bcd3-4041-8c44-67c9939c056b",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "25000",
@@ -104,6 +107,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-25T02:02:18.348473"
                                                     },
                                                     {
+                                                        "mutation_id": "89f13461-8c34-4546-b64f-a990a5abd0f3",
                                                         "account_number": "1981198675",
                                                         "full_name": "Samsul 3",
                                                         "amount": "15000",
@@ -126,6 +130,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "5eb10f42-8990-4a6a-891b-9db6186b8c0a",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "45000",
@@ -134,6 +139,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-29T19:11:07.904872"
                                                     },
                                                     {
+                                                        "mutation_id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "90000",
@@ -142,6 +148,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-29T19:11:23.743897"
                                                     },
                                                     {
+                                                        "mutation_id": "7aeef0e1-b4b2-4dac-a744-99cb02b109ba",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "90000",
@@ -150,6 +157,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-29T22:07:06.748712"
                                                     },
                                                     {
+                                                        "mutation_id": "de25b427-9a09-4a4f-bb2a-1d0344a3d6c3",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "90000",
@@ -166,6 +174,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "67f5202a-bcd3-4041-8c44-67c9939c056b",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "150000",
@@ -174,6 +183,7 @@ public interface AccountApi {
                                                         "created_at": "2024-07-26T15:47:28.468631"
                                                     },
                                                     {
+                                                        "mutation_id": "0cf689e9-73d2-4d33-8622-4184dae5c3df",
                                                         "account_number": "0774014731",
                                                         "full_name": "Samsul 1",
                                                         "amount": "200000",
@@ -211,6 +221,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "aa6654a8-079f-4f94-8d0f-d033ce430f49",
                                                         "account_number": "7484357077",
                                                         "full_name": "Samsul2",
                                                         "amount": "10000",
@@ -227,6 +238,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "5eb10f42-8990-4a6a-891b-9db6186b8c0a",
                                                         "account_number": "7484357077",
                                                         "full_name": "Samsul2",
                                                         "amount": "15000",
@@ -266,6 +278,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "89f13461-8c34-4546-b64f-a990a5abd0f3",
                                                         "account_number": "7484357077",
                                                         "full_name": "Samsul2",
                                                         "amount": "10000",
@@ -282,6 +295,7 @@ public interface AccountApi {
                                             {
                                                 "mutations": [
                                                     {
+                                                        "mutation_id": "7aeef0e1-b4b2-4dac-a744-99cb02b109ba",
                                                         "account_number": "7484357077",
                                                         "full_name": "Samsul2",
                                                         "amount": "15000",
