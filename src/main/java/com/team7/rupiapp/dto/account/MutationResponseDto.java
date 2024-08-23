@@ -17,6 +17,7 @@ import com.team7.rupiapp.enums.TransactionType;
 @AllArgsConstructor
 public class MutationResponseDto {
     private UUID id;
+    private String bankName;
     private String fullName;
     private String accountNumber;
     private LocalDate date;
