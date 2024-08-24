@@ -82,6 +82,8 @@ public class TransactionServiceImpl implements TransactionService {
     public class TransactionDetails {
         private User user;
         private User receiver;
+        private String fullName;
+        private String accountNumber;
         private Map<String, String> qrisMap;
         private double amount;
         private String description;
@@ -367,6 +369,8 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionDetails details = new TransactionDetails();
         details.setUser(user);
         details.setReceiver(receiver);
+        details.setFullName(receiver.getFullName());
+        details.setAccountNumber(receiver.getAccountNumber());
         details.setQrisMap(qrisMap);
         details.setAmount(amount);
         details.setDescription(qrisDto.getDescription());
@@ -395,6 +399,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (isStatic) {
             TransactionDetails details = new TransactionDetails();
             details.setUser(user);
+            details.setFullName(qrisMap.get("59"));
             details.setQrisMap(qrisMap);
             details.setAmount(amount);
             details.setDescription(qrisDto.getDescription());
@@ -414,6 +419,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             TransactionDetails newQrisDetails = new TransactionDetails();
             newQrisDetails.setUser(user);
+            newQrisDetails.setFullName(qrisMap.get("59"));
             newQrisDetails.setQrisMap(qrisMap);
             newQrisDetails.setAmount(amount);
             newQrisDetails.setDescription(qrisDto.getDescription());
@@ -449,9 +455,11 @@ public class TransactionServiceImpl implements TransactionService {
             userRepository.save(receiver);
 
             mutationId = saveMutation(details, TransactionType.DEBIT).getId();
+
             TransactionDetails receiverDetails = new TransactionDetails();
             receiverDetails.setUser(receiver);
-            receiverDetails.setReceiver(user);
+            receiverDetails.setFullName(user.getFullName());
+            receiverDetails.setAccountNumber(user.getAccountNumber());
             receiverDetails.setQrisMap(details.getQrisMap());
             receiverDetails.setAmount(amount);
             receiverDetails.setDescription(details.getDescription());
@@ -481,8 +489,8 @@ public class TransactionServiceImpl implements TransactionService {
         mutation.setMutationType(details.getMutationType());
         mutation.setTransactionPurpose(TransactionPurpose.OTHER);
         mutation.setDescription(details.getDescription());
-        mutation.setFullName(details.getQrisMap().get("59"));
-        mutation.setAccountNumber(details.getQrisMap().get("62"));
+        mutation.setFullName(details.getFullName());
+        mutation.setAccountNumber(details.getAccountNumber());
         mutationRepository.save(mutation);
 
         return mutation;
