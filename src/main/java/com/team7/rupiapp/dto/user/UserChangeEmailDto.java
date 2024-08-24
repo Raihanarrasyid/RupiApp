@@ -12,4 +12,8 @@ public class UserChangeEmailDto {
     @Email(message = "Invalid email format")
     @ValidUnique(column = "email", message = "Email already been taken")
     private String email;
+
+    public void setEmail(String email) {
+        this.email = email != null ? email.toLowerCase() : null;
+    }
 }
