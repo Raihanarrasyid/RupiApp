@@ -386,7 +386,10 @@ public class AccountServiceImpl implements AccountService {
                         throw new BadRequestException("Start date cannot be greater than end date");
                 }
 
-                List<Mutation> mutations = user.getMutations();
+                List<Mutation> mutations = user.getMutations()
+                                                .stream()
+                                                .sorted(Comparator.comparing(Mutation::getCreatedAt).reversed())
+                                                .collect(Collectors.toList());
 
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm 'WIB'");
