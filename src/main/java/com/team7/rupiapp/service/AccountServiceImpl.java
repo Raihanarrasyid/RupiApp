@@ -240,32 +240,23 @@ public class AccountServiceImpl implements AccountService {
                 Mutation mutation = mutationRepository.findById(mutationId)
                                 .orElseThrow(() -> new DataNotFoundException("Mutation not found"));
 
-                User requestingUser = userRepository.findByUsername(principal.getName())
+                User user = userRepository.findByUsername(principal.getName())
                                 .orElseThrow(() -> new DataNotFoundException("User not found"));
 
-                if (!isUserAuthorized(mutation, requestingUser)) {
-                        throw new UnauthorizedException("Not authorized to access this transaction");
+                if (!mutation.getUser().getId().equals(user.getId())) {
+                        throw new UnauthorizedException("User is not authorized to access this mutation");
                 }
 
                 if (mutation.getMutationType() == MutationType.QRIS && mutation.getAccountNumber() == null) {
                         return buildQrisResponseDto(mutation);
-                } else if (mutation.getMutationType() == MutationType.QRIS) {
+                } else if (mutation.getMutationType() == MutationType.QRIS
+                                || mutation.getMutationType() == MutationType.QR) {
                         return buildTransferResponseDto(mutation);
                 } else if (mutation.getMutationType() == MutationType.TRANSFER) {
                         return buildTransferResponseDto(mutation);
                 } else {
                         throw new DataNotFoundException("Invalid mutation type");
                 }
-        }
-
-        private boolean isUserAuthorized(Mutation mutation, User requestingUser) {
-                if (mutation.getMutationType() == MutationType.QRIS) {
-                        return mutation.getUser().getId().equals(requestingUser.getId());
-                } else if (mutation.getMutationType() == MutationType.TRANSFER) {
-                        return mutation.getUser().getId().equals(requestingUser.getId()) ||
-                                        mutation.getAccountNumber().equals(requestingUser.getAccountNumber());
-                }
-                return false;
         }
 
         private QrisTransferResponseDto buildQrisResponseDto(Mutation mutation) {
