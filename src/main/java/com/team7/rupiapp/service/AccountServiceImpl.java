@@ -314,61 +314,79 @@ public class AccountServiceImpl implements AccountService {
         @Override
         public Page<MutationResponseDto> getMutations(Principal principal, MutationDto mutationDto, int page,
                         int size) {
-                User user = userRepository.findByUsername(principal.getName())
-                                .orElseThrow(() -> new DataNotFoundException("User not found"));
+                User user = findUserByPrincipal(principal);
 
+                validateDateRange(mutationDto);
+
+                List<Mutation> filteredMutations = filterMutations(user.getMutations(), mutationDto);
+
+                List<MutationResponseDto> mutationDtos = mapToMutationResponseDtos(filteredMutations, page, size);
+
+                return new PageImpl<>(mutationDtos, PageRequest.of(page, size), filteredMutations.size());
+        }
+
+        private User findUserByPrincipal(Principal principal) {
+                return userRepository.findByUsername(principal.getName())
+                                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        }
+
+        private void validateDateRange(MutationDto mutationDto) {
                 if (mutationDto.getStartDate() != null && mutationDto.getEndDate() != null
                                 && mutationDto.getStartDate().isAfter(mutationDto.getEndDate())) {
                         throw new BadRequestException("Start date cannot be greater than end date");
                 }
+        }
 
-                List<Mutation> mutations = user.getMutations()
-                                .stream()
-                                .sorted(Comparator.comparing(Mutation::getCreatedAt).reversed())
-                                .collect(Collectors.toList());
-
+        private List<Mutation> filterMutations(List<Mutation> mutations, MutationDto mutationDto) {
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm 'WIB'");
 
-                List<Mutation> filteredMutations = mutations.stream()
-                                .filter(mutation -> mutationDto.getStartDate() == null
-                                                || !mutation.getCreatedAt().toLocalDate()
-                                                                .isBefore(mutationDto.getStartDate()))
-                                .filter(mutation -> mutationDto.getEndDate() == null
-                                                || !mutation.getCreatedAt().toLocalDate()
-                                                                .isAfter(mutationDto.getEndDate()))
-                                .filter(mutation -> mutationDto.getCategory() == null
-                                                || mutation.getTransactionType().equals(mutationDto.getCategory()))
-                                .filter(mutation -> {
-                                        if (mutationDto.getSearch() == null) {
-                                                return true;
-                                        }
-
-                                        String search = mutationDto.getSearch().toLowerCase();
-                                        return (mutation.getFullName() != null
-                                                        && mutation.getFullName().toLowerCase().contains(search))
-                                                        || (mutation.getAmount() != null && String
-                                                                        .valueOf(mutation.getAmount()).contains(search))
-                                                        || (mutation.getAccountNumber() != null
-                                                                        && mutation.getAccountNumber().contains(search))
-                                                        || (mutation.getCreatedAt() != null
-                                                                        && mutation.getCreatedAt().toLocalDate()
-                                                                                        .format(dateFormatter)
-                                                                                        .contains(search))
-                                                        || (mutation.getCreatedAt() != null
-                                                                        && mutation.getCreatedAt().toLocalTime()
-                                                                                        .format(timeFormatter)
-                                                                                        .contains(search))
-                                                        || (mutation.getDescription() != null
-                                                                        && mutation.getDescription().toLowerCase()
-                                                                                        .contains(search))
-                                                        || (mutation.getMutationType() != null
-                                                                        && mutation.getMutationType().toString()
-                                                                                        .toLowerCase()
-                                                                                        .contains(search));
-                                })
+                return mutations.stream()
+                                .sorted(Comparator.comparing(Mutation::getCreatedAt).reversed())
+                                .filter(mutation -> isWithinDateRange(mutation, mutationDto))
+                                .filter(mutation -> matchesCategory(mutation, mutationDto))
+                                .filter(mutation -> matchesSearchCriteria(mutation, mutationDto, dateFormatter,
+                                                timeFormatter))
                                 .collect(Collectors.toList());
+        }
 
+        private boolean isWithinDateRange(Mutation mutation, MutationDto mutationDto) {
+                return (mutationDto.getStartDate() == null
+                                || !mutation.getCreatedAt().toLocalDate().isBefore(mutationDto.getStartDate()))
+                                && (mutationDto.getEndDate() == null || !mutation.getCreatedAt().toLocalDate()
+                                                .isAfter(mutationDto.getEndDate()));
+        }
+
+        private boolean matchesCategory(Mutation mutation, MutationDto mutationDto) {
+                return mutationDto.getCategory() == null
+                                || mutation.getTransactionType().equals(mutationDto.getCategory());
+        }
+
+        private boolean matchesSearchCriteria(Mutation mutation, MutationDto mutationDto,
+                        DateTimeFormatter dateFormatter, DateTimeFormatter timeFormatter) {
+                if (mutationDto.getSearch() == null) {
+                        return true;
+                }
+
+                String search = mutationDto.getSearch().toLowerCase();
+
+                return (mutation.getFullName() != null && mutation.getFullName().toLowerCase().contains(search))
+                                || (mutation.getAmount() != null
+                                                && String.valueOf(mutation.getAmount()).contains(search))
+                                || (mutation.getAccountNumber() != null && mutation.getAccountNumber().contains(search))
+                                || (mutation.getCreatedAt() != null && mutation.getCreatedAt().toLocalDate()
+                                                .format(dateFormatter).contains(search))
+                                || (mutation.getCreatedAt() != null && mutation.getCreatedAt().toLocalTime()
+                                                .format(timeFormatter).contains(search))
+                                || (mutation.getDescription() != null
+                                                && mutation.getDescription().toLowerCase().contains(search))
+                                || (mutation.getMutationType() != null && mutation.getMutationType().toString()
+                                                .toLowerCase().contains(search));
+        }
+
+        private List<MutationResponseDto> mapToMutationResponseDtos(List<Mutation> filteredMutations, int page,
+                        int size) {
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm 'WIB'");
                 int start = page * size;
                 int end = Math.min(start + size, filteredMutations.size());
 
@@ -376,7 +394,7 @@ public class AccountServiceImpl implements AccountService {
                                 ? filteredMutations.subList(start, end)
                                 : Collections.emptyList();
 
-                List<MutationResponseDto> mutationDtos = paginatedMutations.stream()
+                return paginatedMutations.stream()
                                 .map(mutation -> {
                                         MutationResponseDto dto = modelMapper.map(mutation, MutationResponseDto.class);
                                         dto.setDate(mutation.getCreatedAt().toLocalDate());
@@ -391,8 +409,6 @@ public class AccountServiceImpl implements AccountService {
                                         return dto;
                                 })
                                 .collect(Collectors.toList());
-
-                return new PageImpl<>(mutationDtos, PageRequest.of(page, size), filteredMutations.size());
         }
 
 }
