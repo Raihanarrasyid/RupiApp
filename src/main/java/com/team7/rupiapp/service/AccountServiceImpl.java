@@ -12,7 +12,6 @@ import com.team7.rupiapp.model.Mutation;
 import com.team7.rupiapp.model.User;
 import com.team7.rupiapp.repository.MutationRepository;
 import com.team7.rupiapp.repository.UserRepository;
-import com.team7.rupiapp.specification.MutationSpecification;
 import com.team7.rupiapp.util.Formatter;
 import jakarta.transaction.Transactional;
 
@@ -20,13 +19,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -136,65 +131,6 @@ public class AccountServiceImpl implements AccountService {
                                 .rangeStartMutationDate(rangeStartMutationDate)
                                 .rangeEndMutationDate(rangeEndMutationDate)
                                 .build();
-        }
-
-        public AccountMutationsDto getAccountMutationPageable(Principal principal, int page, int size,
-                        Integer year, Integer month, String transactionPurpose, String transactionType,
-                        String mutationType) {
-                Optional<User> optionalUser = userRepository.findByUsername(principal.getName());
-                UUID userId = optionalUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));
-
-                int currentYear = LocalDate.now().getYear();
-                if (year != null && year > currentYear) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                        "Cannot query data for future dates.");
-                }
-
-                Pageable pageable = PageRequest.of(page, size);
-                MutationSpecification spec = new MutationSpecification(userId, year, month, transactionPurpose,
-                                transactionType,
-                                mutationType);
-
-                Page<Mutation> mutations = mutationRepository.findAll(spec, pageable);
-
-                AccountMutationsDto response = new AccountMutationsDto();
-
-                List<AccountMutationResponseDto> mutationResponseList = new ArrayList<>();
-
-                for (Mutation mutation : mutations) {
-                        AccountMutationResponseDto dto = convertToDto(mutation);
-                        mutationResponseList.add(dto);
-                }
-
-                Map<String, List<AccountMutationResponseDto>> data = new HashMap<>();
-                data.put("mutations", mutationResponseList);
-                response.setData(data);
-
-                PageableDto pageableDto = new PageableDto();
-                pageableDto.setPageNumber(mutations.getNumber());
-                pageableDto.setPageSize(mutations.getSize());
-                pageableDto.setLast(mutations.isLast());
-                pageableDto.setFirst(mutations.isFirst());
-                pageableDto.setTotalPages(mutations.getTotalPages());
-                pageableDto.setTotalElements(mutations.getTotalElements());
-                pageableDto.setNumberOfElements(mutations.getNumberOfElements());
-                pageableDto.setEmpty(mutations.isEmpty());
-                response.setPageable(pageableDto);
-
-                return response;
-        }
-
-        private AccountMutationResponseDto convertToDto(Mutation mutation) {
-                AccountMutationResponseDto dto = new AccountMutationResponseDto();
-                dto.setDate(mutation.getCreatedAt());
-                dto.setCategory(mutation.getMutationType().name());
-                dto.setDescription(mutation.getDescription());
-                dto.setAmount(mutation.getAmount());
-                dto.setAccountNumber(mutation.getAccountNumber());
-                dto.setTransactionPurpose(mutation.getTransactionPurpose().name());
-                dto.setTransactionType(mutation.getTransactionType().name());
-                // Set other fields if necessary
-                return dto;
         }
 
         private static LocalDateTime getRangeStartMutationLocalDateTime(Integer year, Integer month) {
@@ -387,9 +323,9 @@ public class AccountServiceImpl implements AccountService {
                 }
 
                 List<Mutation> mutations = user.getMutations()
-                                                .stream()
-                                                .sorted(Comparator.comparing(Mutation::getCreatedAt).reversed())
-                                                .collect(Collectors.toList());
+                                .stream()
+                                .sorted(Comparator.comparing(Mutation::getCreatedAt).reversed())
+                                .collect(Collectors.toList());
 
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm 'WIB'");
